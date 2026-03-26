@@ -1,0 +1,153 @@
+
+/*  CONTROL SUCURSALES  { */
+
+
+        /*///////////////////// CONTROL EGRESOS  ////////////////////*/
+
+        .myTable {
+            margin-left: 1rem;
+            font-size: 0.8em;
+            width: 98%;
+        }
+
+        .thead-dark{
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .contenedor{
+            display: flex;
+            align-items: center;
+            margin-left: 4rem;
+        }
+
+
+
+        #btnSubmit{
+            height:45px;
+            margin-left: 15%;
+            width:100px;
+            margin-top: 0px;
+        }
+
+        a{
+            color: gray;
+        }
+
+        .loading {
+            position: fixed;
+            left: 0px;
+            top: 0px;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background: url('../../contabilidad/images/g0R9.gif') 50% 50% no-repeat rgb(0, 0, 0);
+            background-size: 25%;
+            opacity: .8;
+        }
+
+        #busqRapida{
+            margin-left: 2rem;
+        }
+
+        #myTable_filter input[type="search"] {
+            margin-right:20px;
+        }
+
+        #td_myTable{
+            text-align:center;
+        }
+
+        .pagination{
+            margin-right: 3px !important;
+            margin-bottom: 3px !important;
+        }
+
+
+
+        /*///////////////////// CONTROL DIARIO  ////////////////////*/
+
+        #tablaControlDiarioB td {
+            text-align:center;
+        }
+        #tablaControlDiarioB th {
+            text-align:center;
+        }
+
+        #controlDiarioBtnFiltrar {
+            height:45px;
+            margin-left:2px;
+            position:relative;
+            margin-bottom:8px;
+        }
+
+
+
+        /*///////////////////// CONTROL RECEPCION  ////////////////////*/
+
+        #tablaControlRecepcion {
+            width: 100%;
+        }
+
+        #tablaControlRecepcion td {
+            text-align:center;
+        }
+
+        #btnFiltrarControlRecepcion {
+
+            height:45px;
+            margin-left:5px;
+            width:100px;
+
+        }
+
+
+        /*///////////////////// VENTAS VS COBRANZA  ////////////////////*/
+        .btn.btn-primary.ventaVsCobranza {
+            cursor: pointer;
+            position: relative;
+            margin-top: 2rem;
+            margin-left: 1rem;
+        }
+        .btn.btn-success.ventaVsCobranza {
+            cursor: pointer;
+            position: relative;
+            margin-top: 2rem;
+            margin-left: 1rem;  
+
+        }
+
+/*  } */
+
+
+/* IMPUESTOS   {  */
+    
+     /*///////////////////// CARGA ALQUILERES ////////////////////*/
+     #thConcepto {
+        position: -webkit-sticky;
+        position: sticky;
+        left: 0;
+        z-index: 2;
+    }
+    #concepto{
+        position: -webkit-sticky;
+        position: sticky;
+        left: 0;
+        z-index: 2;
+        background: #ccc;
+    }
+    
+    
+    .btn-with-icon {
+    position: relative;
+    }
+    
+    .btn-with-icon span {
+    position: absolute;
+    top: 45%;
+    right: 8px; /* Ajusta el espaciado del icono según tus necesidades */
+    transform: translateY(-50%);
+    }
+    
+    

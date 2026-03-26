@@ -1,0 +1,23 @@
+
+/* main.css - Archivo principal que importa todos los módulos de estilos */
+
+/* Estilos base */
+@import 'base.css';
+
+/* Estructura y layout */
+@import 'layout.css';
+
+/* Componentes comunes */
+@import 'components.css';
+
+/* Documentos y políticas */
+@import 'documents.css';
+
+/* Glosario */
+@import 'glossary.css';
+
+/* Formularios */
+@import 'forms.css';
+
+/* Resultados de búsqueda */
+@import 'search-results.css';

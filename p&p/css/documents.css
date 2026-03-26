@@ -1,0 +1,294 @@
+
+/* documents.css - Estilos para documentos y políticas */
+
+/* Lista de documentos */
+.policy-list {
+    list-style: none;
+}
+
+.policy-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.policy-item:last-child {
+    border-bottom: none;
+}
+
+.policy-info {
+    display: flex;
+    align-items: center;
+}
+
+.policy-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background-color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    color: var(--primary-color);
+}
+
+.policy-details h4 {
+    font-size: 16px;
+    margin-bottom: 3px;
+}
+
+.policy-details p {
+    font-size: 12px;
+    color: #777;
+}
+
+.policy-actions {
+    display: flex;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    color: #777;
+    cursor: pointer;
+    margin-left: 15px;
+    font-size: 16px;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    color: var(--primary-color);
+}
+
+.action-btn.download:hover {
+    color: var(--success-color);
+}
+
+/* Modal para visor de PDF */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 3% auto; /* Ajustado para aumentar el tamaño vertical */
+    padding: 20px;
+    border-radius: 10px;
+    width: 85%;
+    height: 90%; /* Aumentado del 80% al 90% */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.close-modal {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.close-modal:hover {
+    color: #555;
+}
+
+/* Visor de PDF */
+.pdf-container {
+    width: 100%;
+    height: calc(100% - 80px); /* Ajustado para que ocupe más espacio */
+    overflow: auto;
+    margin-top: 20px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+}
+
+#pdfViewer {
+    min-height: 400px; /* Altura mínima para evitar que se vea demasiado pequeño */
+}
+
+#pdfCanvas {
+    border: 1px solid #ddd;
+    margin: 0 auto;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.pdf-controls {
+    padding: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    border-top: 1px solid #eee;
+    border-radius: 0 0 5px 5px;
+}
+
+.pdf-btn {
+    margin: 0 5px;
+    padding: 8px 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+}
+
+.pdf-btn i {
+    margin-right: 8px;
+}
+
+.pdf-btn:hover {
+    background-color: #e9ecef;
+}
+
+.pdf-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#pageInfo {
+    margin: 0 15px;
+    font-size: 14px;
+}
+
+.pdf-loading, .pdf-error {
+    padding: 50px;
+    text-align: center;
+}
+
+.pdf-loading i, .pdf-error i {
+    font-size: 40px;
+    color: #3498db;
+    margin-bottom: 15px;
+}
+
+.pdf-error i {
+    color: #e74c3c;
+}
+
+.pdf-loading p, .pdf-error p {
+    font-size: 16px;
+    color: #555;
+}
+
+.pdf-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 72px;
+    color: #ccc;
+    margin: 40px 0;
+}
+
+/* Vista previa del PDF dentro del modal */
+.pdf-container object {
+    width: 100%;
+    height: 100%;
+    min-height: 500px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Responsive para documentos */
+@media (max-width: 768px) {
+    .policy-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px;
+        gap: 12px;
+    }
+    
+    .policy-info {
+        width: 100%;
+    }
+    
+    .policy-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .action-btn {
+        margin-left: 10px;
+        font-size: 18px;
+    }
+    
+    /* Modal responsive */
+    .modal-content {
+        width: 95%;
+        height: 95%;
+        margin: 2.5% auto;
+        padding: 15px;
+    }
+    
+    .pdf-container {
+        height: calc(100% - 60px);
+    }
+    
+    .pdf-controls {
+        padding: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .pdf-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+    
+    #pageInfo {
+        margin: 0 10px;
+        font-size: 13px;
+        width: 100%;
+        text-align: center;
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .policy-icon {
+        width: 35px;
+        height: 35px;
+        margin-right: 12px;
+    }
+    
+    .policy-details h4 {
+        font-size: 14px;
+    }
+    
+    .policy-details p {
+        font-size: 11px;
+    }
+    
+    .close-modal {
+        font-size: 24px;
+        right: 10px;
+        top: 10px;
+    }
+    
+    .pdf-btn {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+    
+    .pdf-btn i {
+        margin-right: 5px;
+    }
+}
