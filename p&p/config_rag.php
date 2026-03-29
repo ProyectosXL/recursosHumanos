@@ -40,6 +40,8 @@ class RagConfig {
                 'base_url' => 'https://app.xl.com.ar/administracion/recursosHumanos/p&p',
                 'timeout' => 60,
                 'retry_attempts' => 3,
+                'hf_api_token' => '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',
+                'hf_space_id'  => 'cfedetrejo/docugest-unified',
                 // Rutas de Python en el servidor (ajustar según instalación)
                 'python_path' => '/usr/bin/python3', // Linux: ruta típica de Python 3
                 'use_system_python' => true // Usar Python del sistema en lugar de conda
@@ -107,6 +109,14 @@ class RagConfig {
         return $this->config['base_url'];
     }
     
+    public function getHfApiToken() {
+        return $this->config['hf_api_token'] ?? null;
+    }
+
+    public function getHfSpaceId() {
+        return $this->config['hf_space_id'] ?? null;
+    }
+
     public function toArray() {
         return $this->config;
     }

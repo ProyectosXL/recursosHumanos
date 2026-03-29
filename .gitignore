@@ -1,2 +1,5 @@
 # Ignorar archivo de variables de entorno
 /.env
+
+# Ignorar archivos de configuración de Claude
+/.claude

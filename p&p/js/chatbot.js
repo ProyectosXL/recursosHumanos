@@ -191,13 +191,19 @@ async function verificarServicioRAG() {
             // Primera falla → activar modo wake-up
             ragWakingUp = true;
             ragWakeRetryCount = 0;
-            
+
+            // Enviar señal de reinicio al HF Space vía PHP (fire-and-forget, sin await)
+            fetch('Controller/wakeup_hf_space.php')
+                .then(r => r.json())
+                .then(d => console.log('🚀 HF Space wakeup:', d.message || d.reason))
+                .catch(e => console.warn('⚠️ wakeup_hf_space error:', e));
+
             agregarMensajeSistema(
                 '💤 El asistente está despertando…',
                 'El servicio estaba inactivo y se está reiniciando automáticamente. '
                 + 'Esto puede tomar entre 1 y 3 minutos. Por favor, esperá un momento.'
             );
-            
+
             // Deshabilitar input mientras despierta
             const inp = document.getElementById('chatbot-input');
             const btn = document.getElementById('chatbot-send-btn');
