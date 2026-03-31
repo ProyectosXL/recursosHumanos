@@ -1,7 +1,7 @@
 <?php
 /**
- * Endpoint para verificar qué documentos PDF de la carpeta /documentos
- * no están indexados en el servicio RAG por su título
+ * Endpoint para verificar qué documentos de PRODUCCION
+ * no están indexados en el servicio RAG por su título.
  */
 
 header('Content-Type: application/json');
@@ -44,25 +44,32 @@ try {
         exit;
     }
     
-    // 2. Obtener lista de PDFs en la carpeta /documentos
-    $documentos_dir = dirname(__FILE__, 2) . '/documentos/';
-    $pdfs = glob($documentos_dir . '*.pdf');
-    $response['total_pdfs'] = count($pdfs);
-    
-    // Extraer títulos de archivos (sin extensión ni timestamp)
-    $titulos_archivos = [];
-    foreach ($pdfs as $pdf_path) {
-        $filename = basename($pdf_path, '.pdf');
-        // Remover timestamp (números al final antes de la extensión)
-        $titulo_limpio = preg_replace('/-\d+$/', '', $filename);
-        // Normalizar: convertir guiones a espacios y capitalizar
-        $titulo_normalizado = ucwords(str_replace('-', ' ', $titulo_limpio));
-        $titulos_archivos[$pdf_path] = [
-            'filename' => basename($pdf_path),
-            'titulo_limpio' => $titulo_limpio,
-            'titulo_normalizado' => $titulo_normalizado
-        ];
+    // 2. Obtener lista de documentos desde PRODUCCION
+    $source_base_url = rtrim($config->getIndexSourceUrl(), '/');
+    $listar_url = $source_base_url . '/api/listar_documentos.php';
+
+    $ch = curl_init($listar_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    $listar_response = curl_exec($ch);
+    $listar_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($listar_http_code !== 200) {
+        $response['mensaje'] = "No se pudo obtener listado de producción";
+        echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        exit;
     }
+
+    $listar_data = json_decode($listar_response, true);
+    if (!$listar_data || !($listar_data['success'] ?? false) || !isset($listar_data['documentos'])) {
+        $response['mensaje'] = "Listado de producción inválido";
+        echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        exit;
+    }
+
+    $documentos_produccion = $listar_data['documentos'];
+    $response['total_pdfs'] = count($documentos_produccion);
     
     // 3. Obtener documentos indexados desde el servicio RAG
     $stats_url = $config->getRagServiceUrl('/api/stats');
@@ -84,14 +91,18 @@ try {
     
     // 4. Comparar títulos de archivos con documentos indexados
     $documentos_faltantes = [];
-    foreach ($titulos_archivos as $pdf_path => $info) {
+    foreach ($documentos_produccion as $doc_prod) {
+        $titulo_documento = trim((string)($doc_prod['titulo'] ?? ''));
+        if ($titulo_documento === '') {
+            continue;
+        }
         $encontrado = false;
         
         // Buscar por coincidencia de título (flexible)
         foreach ($documentos_indexados as $titulo_indexado => $chunks) {
             // Normalizar título indexado para comparación
             $titulo_indexado_normalizado = strtolower(trim($titulo_indexado));
-            $titulo_archivo_normalizado = strtolower(trim($info['titulo_normalizado']));
+            $titulo_archivo_normalizado = strtolower($titulo_documento);
             
             // Comparar versiones normalizadas
             if ($titulo_indexado_normalizado === $titulo_archivo_normalizado ||
@@ -104,15 +115,15 @@ try {
         
         if (!$encontrado) {
             $documentos_faltantes[] = [
-                'ruta' => $pdf_path,
-                'filename' => $info['filename'],
-                'titulo_esperado' => $info['titulo_normalizado']
+                'id' => (int)($doc_prod['id'] ?? 0),
+                'filename' => $doc_prod['archivo_nombre'] ?? '',
+                'titulo_esperado' => $titulo_documento
             ];
         }
     }
     
     $response['success'] = true;
-    $response['indexados'] = count($pdfs) - count($documentos_faltantes);
+    $response['indexados'] = count($documentos_produccion) - count($documentos_faltantes);
     $response['faltantes'] = count($documentos_faltantes);
     $response['documentos_faltantes'] = $documentos_faltantes;
     $response['mensaje'] = count($documentos_faltantes) > 0 

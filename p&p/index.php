@@ -5,9 +5,12 @@ session_start();
 
 // Incluir la clase Politica
 require_once 'Class/Politica.php';
+require_once 'config_rag.php';
 
 // Crear instancia de la clase
 $politicaObj = new Politica();
+$ragConfig = RagConfig::getInstance();
+$ragApiUrl = $ragConfig->getRagServiceUrl();
 
 // Obtener datos para la página principal
 $sectores = $politicaObj->obtenerSectores();
@@ -128,70 +131,12 @@ foreach ($sectores as $i => $s) {
     
     <!-- Auto-inicio del servicio RAG y auto-indexación -->
     <script>
-        // Variable global para controlar el estado de inicialización
-        window.ragInitializing = true;
+        window.RAG_API_URL = '<?php echo htmlspecialchars($ragApiUrl, ENT_QUOTES, 'UTF-8'); ?>';
+
+        // Modo ahorro: no inicializar/pingear RAG al cargar la página.
+        // El chequeo se hace on-demand cuando el usuario abre el chat.
+        window.ragInitializing = false;
         window.ragInitDetails = [];
-        
-        // Función para finalizar inicialización
-        function finalizarInicializacionRAG() {
-            console.log('🏁 Finalizando inicialización RAG');
-            window.ragInitializing = false;
-            window.ragInitDetails = [];
-            
-            // Forzar actualización del estado del chatbot
-            setTimeout(() => {
-                if (typeof verificarServicioRAG === 'function') {
-                    verificarServicioRAG();
-                }
-            }, 100);
-        }
-        
-        // TIMEOUT ABSOLUTO DE SEGURIDAD: 10 segundos máximo
-        setTimeout(() => {
-            if (window.ragInitializing) {
-                console.warn('⏱️ TIMEOUT FORZADO: Finalizando inicialización después de 10 segundos');
-                finalizarInicializacionRAG();
-            }
-        }, 10000);
-        
-        // Ejecutar auto-inicio en segundo plano cuando cargue la página
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Iniciando sistema RAG automáticamente...');
-            
-            // Usar un timeout muy corto para no bloquear la UI
-            const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout')), 3000)
-            );
-            
-            const fetchPromise = fetch('Controller/autostart_rag.php', {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            }).then(response => {
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return response.json();
-            });
-            
-            Promise.race([fetchPromise, timeoutPromise])
-                .then(data => {
-                    window.ragInitDetails = data.detalles || [];
-                    console.log('✅ Sistema RAG:', data.mensaje);
-                    
-                    if (data.success) {
-                        // Si hay indexación, solo mostrar en consola pero no bloquear
-                        if (data.documentos_indexados) {
-                            console.log('📚 Indexando documentos en segundo plano (no bloqueante)...');
-                        }
-                    }
-                    
-                    // Finalizar inmediatamente para no bloquear la UI
-                    setTimeout(() => finalizarInicializacionRAG(), 2000);
-                })
-                .catch(error => {
-                    console.warn('⚠️ No se pudo conectar con autostart:', error.message);
-                    // Finalizar inmediatamente en caso de error
-                    finalizarInicializacionRAG();
-                });
-        });
     </script>
     
 </head>

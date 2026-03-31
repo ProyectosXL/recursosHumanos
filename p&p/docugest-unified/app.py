@@ -122,7 +122,7 @@ async def startup_event():
     Al iniciar el servicio:
     1. Carga modelos de Tags/Glosario (KeyBERT + spaCy)
     2. Inicializa ChromaDB para RAG
-    3. Arranca scheduler de auto-refresh (solo en cloud)
+    3. Arranca scheduler de auto-refresh (si PHP_SERVER_URL está configurada)
     """
     global extractor, scorer
 
@@ -161,13 +161,15 @@ async def startup_event():
         logger.error(f"Error al inicializar RAG: {str(e)}")
         raise
 
-    # --- 3. Iniciar scheduler de auto-refresh (solo en cloud) ---
-    if IS_CLOUD:
+    # --- 3. Iniciar scheduler de auto-refresh (si hay PHP_SERVER_URL configurada) ---
+    if PHP_SERVER_URL:
         try:
             from utils.scheduler import start_scheduler
             start_scheduler()
         except Exception as e:
             logger.error(f"Error al iniciar scheduler: {str(e)}")
+    else:
+        logger.info("Auto-refresh deshabilitado: PHP_SERVER_URL no configurada")
 
     logger.info("=" * 80)
     logger.info("DocuGest Unified API lista")
@@ -868,6 +870,60 @@ async def get_statistics():
         )
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error al obtener stats: {str(e)}")
+
+
+# ============================================================================
+# ENDPOINTS - INDEXACIÓN DIRECTA DESDE PHP (push en base64)
+# ============================================================================
+
+class IndexBase64Request(BaseModel):
+    document_id: int
+    titulo: str
+    sector_nombre: str
+    tipo: str
+    contenido_base64: str  # PDF codificado en base64
+
+
+@app.post("/api/index-base64", status_code=status.HTTP_200_OK, tags=["Webhooks"])
+async def index_document_base64(payload: IndexBase64Request):
+    """
+    PHP envía el PDF directamente como base64 para indexar.
+    No requiere que PHP_SERVER_URL esté accesible desde el Space.
+    """
+    start_time = time.time()
+    try:
+        logger.info(f"index-base64: documento {payload.document_id} - {payload.titulo}")
+        pdf_bytes = base64.b64decode(payload.contenido_base64)
+        text, _ = extract_text_from_pdf_bytes(pdf_bytes)
+
+        metadata = {
+            'document_id': payload.document_id,
+            'titulo': payload.titulo,
+            'sector': payload.sector_nombre,
+            'tipo': payload.tipo
+        }
+        chunks = create_chunks(text, metadata)
+        chunk_texts = [chunk['text'] for chunk in chunks]
+        embeddings = generate_embeddings_batch(chunk_texts, show_progress=False)
+        chunk_ids = [f"doc_{payload.document_id}_{i}" for i in range(len(chunks))]
+
+        chroma_client = get_chroma_client()
+        # Eliminar chunks previos del mismo documento antes de re-indexar
+        chroma_client.delete_document_chunks(payload.document_id)
+        chroma_client.add_chunks(chunk_ids, embeddings, chunk_texts, [chunk['metadata'] for chunk in chunks])
+
+        elapsed_ms = (time.time() - start_time) * 1000
+        logger.info(f"index-base64: {payload.titulo} indexado en {elapsed_ms:.2f}ms, {len(chunks)} chunks")
+
+        return IndexingResponse(
+            status="success",
+            document_id=payload.document_id,
+            chunks_count=len(chunks),
+            tiempo_procesamiento_ms=elapsed_ms
+        )
+    except Exception as e:
+        logger.error(f"index-base64 error: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 # ============================================================================

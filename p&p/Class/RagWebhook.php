@@ -21,7 +21,7 @@ class RagWebhook
     /**
      * Envía notificación de documento nuevo al servicio RAG
      * 
-     * @param array $documento Datos del documento (debe incluir: id, titulo, tipo, sector_nombre, ruta_archivo)
+      * @param array $documento Datos del documento (debe incluir: id, titulo, tipo, sector_nombre, ruta_archivo)
      * @return array Resultado de la operación ['success' => bool, 'message' => string]
      */
     public function notificarDocumentoNuevo($documento)
@@ -40,25 +40,28 @@ class RagWebhook
             return ['success' => false, 'message' => 'El archivo no existe en el sistema'];
         }
         
-        $webhook_url = $this->rag_service_url . '/webhook/document-uploaded';
-        
-        // Preparar payload
+        $webhook_url = $this->rag_service_url . '/api/index-base64';
+
+        $pdf_bytes = @file_get_contents($documento['ruta_archivo']);
+        if ($pdf_bytes === false || strlen($pdf_bytes) === 0) {
+            return ['success' => false, 'message' => 'No se pudo leer el PDF para indexar'];
+        }
+
+        $tipo = isset($documento['tipo']) ? $documento['tipo'] : 'politica';
+        if (!in_array($tipo, ['politica', 'procedimiento'])) {
+            $tipo = 'politica';
+        }
+
+        // Payload push (evita que HF necesite acceder al filesystem del servidor PHP)
         $payload = [
-            'document_id' => $documento['id'],
-            'titulo' => $documento['titulo'],
-            'tipo' => $documento['tipo'],
-            'sector' => isset($documento['sector_nombre']) ? $documento['sector_nombre'] : 'General',
-            'ruta_pdf' => $documento['ruta_archivo'],
-            'descripcion' => isset($documento['descripcion']) ? $documento['descripcion'] : '',
-            'tags' => isset($documento['tags']) ? $documento['tags'] : '',
-            'fecha_creacion' => isset($documento['fecha_creacion']) ? 
-                ($documento['fecha_creacion'] instanceof DateTime ? 
-                    $documento['fecha_creacion']->format('Y-m-d') : 
-                    $documento['fecha_creacion']) : 
-                date('Y-m-d')
+            'document_id' => (int)$documento['id'],
+            'titulo' => isset($documento['titulo']) ? $documento['titulo'] : ('Documento ' . (int)$documento['id']),
+            'sector_nombre' => isset($documento['sector_nombre']) ? $documento['sector_nombre'] : (isset($documento['sector']) ? $documento['sector'] : 'General'),
+            'tipo' => $tipo,
+            'contenido_base64' => base64_encode($pdf_bytes)
         ];
-        
-        return $this->enviarWebhook($webhook_url, $payload);
+
+        return $this->enviarWebhook($webhook_url, $payload, 'POST', 180);
     }
     
     /**
@@ -90,13 +93,9 @@ class RagWebhook
             return ['success' => true, 'message' => 'Webhook deshabilitado'];
         }
         
-        $webhook_url = $this->rag_service_url . '/webhook/document-deleted';
-        
-        $payload = [
-            'document_id' => $document_id
-        ];
-        
-        return $this->enviarWebhook($webhook_url, $payload);
+        $webhook_url = $this->rag_service_url . '/api/document/' . urlencode((string)$document_id);
+
+        return $this->enviarWebhook($webhook_url, null, 'DELETE', 30);
     }
     
     /**
@@ -145,19 +144,33 @@ class RagWebhook
      * @param array $payload Datos a enviar
      * @return array Resultado de la operación
      */
-    private function enviarWebhook($url, $payload)
+    private function enviarWebhook($url, $payload = null, $method = 'POST', $timeout = 30)
     {
-        $json_payload = json_encode($payload);
-        
         $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $json_payload);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen($json_payload)
-        ]);
+        $method = strtoupper((string)$method);
+
+        if ($method === 'POST') {
+            $json_payload = json_encode($payload);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $json_payload);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($json_payload)
+            ]);
+        } else {
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+            if ($payload !== null) {
+                $json_payload = json_encode($payload);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $json_payload);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'Content-Type: application/json',
+                    'Content-Length: ' . strlen($json_payload)
+                ]);
+            }
+        }
+
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_TIMEOUT, (int)$timeout);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
         
         $response = curl_exec($ch);
@@ -165,7 +178,7 @@ class RagWebhook
         $error = curl_error($ch);
         curl_close($ch);
         
-        if ($http_code === 200) {
+        if ($http_code >= 200 && $http_code < 300) {
             $response_data = json_decode($response, true);
             return [
                 'success' => true,

@@ -25,6 +25,30 @@ if (!$token || !$space_id) {
     exit;
 }
 
+// Cooldown para evitar múltiples restarts en poco tiempo (ahorra créditos)
+$cooldown_seconds = 180;
+$cooldown_file = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'docugest_hf_wakeup_last.txt';
+$now = time();
+$last_wakeup = 0;
+
+if (file_exists($cooldown_file)) {
+    $raw = @file_get_contents($cooldown_file);
+    if ($raw !== false) {
+        $last_wakeup = (int)trim($raw);
+    }
+}
+
+if ($last_wakeup > 0 && ($now - $last_wakeup) < $cooldown_seconds) {
+    echo json_encode([
+        'success' => true,
+        'http_code' => 200,
+        'message' => 'Wake-up ya solicitado recientemente'
+    ]);
+    exit;
+}
+
+@file_put_contents($cooldown_file, (string)$now, LOCK_EX);
+
 // Llamar a la API de HF para reiniciar el Space
 $url = "https://huggingface.co/api/spaces/{$space_id}/restart";
 

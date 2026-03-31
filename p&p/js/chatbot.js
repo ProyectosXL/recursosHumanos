@@ -4,7 +4,7 @@
  */
 
 // Configuración
-const RAG_API_URL = 'https://cfedetrejo-docugest-unified.hf.space';
+const RAG_API_URL = (window.RAG_API_URL || 'https://cfedetrejo-docugest-unified.hf.space').replace(/\/$/, '');
 let chatbotOpen = false;
 let chatHistory = [];
 
@@ -15,9 +15,19 @@ const RAG_WAKE_MAX_RETRIES = 15;        // 15 intentos
 const RAG_WAKE_RETRY_INTERVAL = 20000;  // 20 segundos entre reintentos (~5 min máx)
 let ragWakeRetryTimer = null;
 
+// Estado de indexación post-wake-up
+let ragIndexingPoll = false;
+let ragIndexingPollTimer = null;
+const RAG_INDEXING_POLL_INTERVAL = 20000; // 20 segundos entre polls
+const RAG_INDEXING_MAX_POLLS = 30;        // máximo ~10 minutos esperando indexación
+let ragIndexingPollCount = 0;
+let ragIndexingTriggered = false;         // para no volver a llamar trigger_refresh más de una vez
+let ragHealthLastCheckAt = 0;             // último health-check exitoso o fallido
+const RAG_HEALTH_CHECK_TTL_MS = 180000;   // 3 minutos
+let ragHealthCheckInProgress = false;
+
 // Inicializar chatbot al cargar la página
 document.addEventListener('DOMContentLoaded', function() {
-    verificarServicioRAG();
     configurarInputChatbot();
 });
 
@@ -92,6 +102,9 @@ function ocultarOverlayCarga() {
  * Verifica el estado del servicio RAG
  */
 async function verificarServicioRAG() {
+    if (ragHealthCheckInProgress) return;
+    ragHealthCheckInProgress = true;
+
     const statusIcon = document.getElementById('chatbot-status-icon');
     const statusText = document.getElementById('chatbot-status-text');
     
@@ -145,40 +158,93 @@ async function verificarServicioRAG() {
         
         if (response.ok) {
             const data = await response.json();
-            
-            // --- Si estábamos en modo wake-up, notificar éxito ---
+
+            // --- Si estábamos en modo wake-up ---
+            const veníaDeWakeUp = ragWakingUp;
             if (ragWakingUp) {
                 ragWakingUp = false;
                 ragWakeRetryCount = 0;
                 if (ragWakeRetryTimer) { clearTimeout(ragWakeRetryTimer); ragWakeRetryTimer = null; }
-                
+
                 // Rehabilitar input
                 const inp = document.getElementById('chatbot-input');
                 const btn = document.getElementById('chatbot-send-btn');
                 if (inp) { inp.disabled = false; inp.placeholder = 'Escribe tu pregunta aquí...'; }
                 if (btn) btn.disabled = false;
-                
+            }
+
+            statusIcon.className = 'status-dot online';
+
+            // Si no hay documentos aún, disparar refresh y hacer polling
+            if (data.total_chunks === 0) {
+                ragIndexingPollCount++;
+
+                if (!ragIndexingPoll) {
+                    // Primera vez: iniciar polling y disparar indexación
+                    ragIndexingPoll = true;
+                    ragIndexingPollCount = 1;
+                    ragIndexingTriggered = false;
+                    agregarMensajeSistema(
+                        '📚 Indexando documentos…',
+                        'El asistente está cargando los documentos. Esto puede tomar algunos minutos. Por favor, esperá.'
+                    );
+                }
+
+                // Disparar trigger_refresh.php solo una vez por sesión
+                if (!ragIndexingTriggered) {
+                    ragIndexingTriggered = true;
+                    console.log('⏳ Disparando trigger_refresh.php...');
+                    fetch('Controller/trigger_refresh.php')
+                        .then(r => r.json())
+                        .then(d => console.log('🔄 trigger_refresh:', d.mensaje, '| total:', d.total))
+                        .catch(e => console.warn('⚠️ trigger_refresh error:', e));
+                }
+
+                statusText.textContent = `Indexando documentos… (${ragIndexingPollCount}/${RAG_INDEXING_MAX_POLLS})`;
+
+                if (ragIndexingPollCount < RAG_INDEXING_MAX_POLLS) {
+                    ragIndexingPollTimer = setTimeout(() => verificarServicioRAG(), RAG_INDEXING_POLL_INTERVAL);
+                } else {
+                    // Agotaron los polls — dejar usar el chat igual
+                    ragIndexingPoll = false;
+                    ragIndexingTriggered = false;
+                    statusText.textContent = 'En línea - Sin documentos indexados';
+                    agregarMensajeSistema(
+                        '⚠️ Sin documentos cargados',
+                        'No se encontraron documentos indexados. Podés intentar tus consultas de todos modos.'
+                    );
+                }
+
+                console.log(`⏳ total_chunks=0, polling... (${ragIndexingPollCount}/${RAG_INDEXING_MAX_POLLS})`);
+                return; // no mostrar "listo" todavía
+            }
+
+            // Hay documentos: asistente listo
+            if (ragIndexingPoll) {
+                // Recién terminó la indexación post wake-up
+                ragIndexingPoll = false;
+                ragIndexingPollCount = 0;
+                if (ragIndexingPollTimer) { clearTimeout(ragIndexingPollTimer); ragIndexingPollTimer = null; }
                 agregarMensajeSistema(
                     '✅ ¡Asistente listo!',
-                    'El servicio se ha iniciado correctamente. Ya puedes hacer tus consultas.'
+                    'Los documentos han sido indexados correctamente. Ya podés hacer tus consultas.'
+                );
+            } else if (veníaDeWakeUp) {
+                // Wake-up completado y ya había documentos disponibles
+                agregarMensajeSistema(
+                    '✅ ¡Asistente listo!',
+                    'El servicio se ha iniciado correctamente. Ya podés hacer tus consultas.'
                 );
             }
-            
+
             // Verificar documentos faltantes (sin esperar)
-            verificarDocumentosFaltantes(data.total_chunks).catch(err => 
+            verificarDocumentosFaltantes(data.total_chunks).catch(err =>
                 console.warn('Error verificando documentos faltantes:', err)
             );
-            
-            statusIcon.className = 'status-dot online';
-            
-            // Mostrar información detallada
-            if (data.total_chunks === 0) {
-                statusText.textContent = 'En línea - Sin documentos indexados';
-            } else {
-                const docCount = data.total_documentos || data.total_documents || Math.floor(data.total_chunks / 10);
-                statusText.textContent = `En línea - ${docCount} documentos (${data.total_chunks} chunks)`;
-            }
-            
+
+            const docCount = data.total_documentos || data.total_documents || Math.floor(data.total_chunks / 10);
+            statusText.textContent = `En línea - ${docCount} documentos (${data.total_chunks} chunks)`;
+
             console.log('✅ Servicio RAG conectado correctamente');
         } else {
             throw new Error('Servicio no disponible (HTTP ' + response.status + ')');
@@ -242,6 +308,9 @@ async function verificarServicioRAG() {
                 + 'Intenta recargar la página más tarde.'
             );
         }
+    } finally {
+        ragHealthLastCheckAt = Date.now();
+        ragHealthCheckInProgress = false;
     }
 }
 
@@ -279,6 +348,11 @@ function toggleChatbot() {
         toggleBtn.classList.add('hidden');
         badge.style.display = 'none';
         if (menuBtn) menuBtn.classList.add('active');
+
+        // Modo ahorro: sólo chequear RAG cuando el usuario abre el chat
+        if (Date.now() - ragHealthLastCheckAt > RAG_HEALTH_CHECK_TTL_MS) {
+            verificarServicioRAG();
+        }
         
         // Focus en el input
         setTimeout(() => {
@@ -350,6 +424,18 @@ async function sendChatbotMessage() {
             'El asistente aún se está iniciando. Por favor esperá a que esté disponible.'
         );
         return;
+    }
+
+    // Si pasó mucho tiempo sin chequeo, validar estado antes de consultar
+    if (!ragHealthCheckInProgress && (Date.now() - ragHealthLastCheckAt > RAG_HEALTH_CHECK_TTL_MS)) {
+        await verificarServicioRAG();
+        if (ragWakingUp) {
+            agregarMensajeSistema(
+                '⏳ Un momento…',
+                'El asistente se está iniciando. Enviá tu pregunta nuevamente en unos segundos.'
+            );
+            return;
+        }
     }
     
     // Agregar mensaje del usuario

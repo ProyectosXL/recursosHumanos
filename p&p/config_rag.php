@@ -37,7 +37,8 @@ class RagConfig {
                 'auto_start' => false, // HF Space se maneja solo
                 'auto_index' => true, // Auto-indexar si ChromaDB está vacío
                 'documentos_path' => __DIR__ . '/documentos',
-                'base_url' => 'https://app.xl.com.ar/administracion/recursosHumanos/p&p',
+                'base_url' => 'https://app.xl.com.ar/recursosHumanos/p&p',
+                'index_source_url' => 'https://app.xl.com.ar/recursosHumanos/p&p',
                 'timeout' => 60,
                 'retry_attempts' => 3,
                 'hf_api_token' => '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',
@@ -54,12 +55,13 @@ class RagConfig {
             
             $this->config = [
                 'environment' => 'local',
-                'rag_service_url' => 'http://localhost:8001',
+                'rag_service_url' => 'https://cfedetrejo-docugest-unified.hf.space',
                 'rag_enabled' => true,
-                'auto_start' => true, // Auto-iniciar en local
+                'auto_start' => false, // En local también usamos HF Space
                 'auto_index' => true, // Auto-indexar si hay pocos chunks
                 'documentos_path' => __DIR__ . '/documentos',
-                'base_url' => 'http://localhost/administracion/recursosHumanos/p&p',
+                'base_url' => 'http://localhost/recursosHumanos/p&p',
+                'index_source_url' => 'https://app.xl.com.ar/recursosHumanos/p&p',
                 'timeout' => 60,
                 'retry_attempts' => 2,
                 'python_path' => 'C:\\Users\\cfede\\miniconda3\\envs\\rag-docugest\\python.exe',
@@ -107,6 +109,10 @@ class RagConfig {
     
     public function getBaseUrl() {
         return $this->config['base_url'];
+    }
+
+    public function getIndexSourceUrl() {
+        return $this->config['index_source_url'] ?? $this->config['base_url'];
     }
     
     public function getHfApiToken() {

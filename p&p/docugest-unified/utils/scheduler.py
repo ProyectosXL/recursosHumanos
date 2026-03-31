@@ -1,6 +1,6 @@
 """
 Scheduler para auto-refresh de documentos cada 24 horas.
-Se activa en cualquier entorno cloud (HF Space o Railway).
+Se activa cuando PHP_SERVER_URL está configurada.
 """
 
 import logging
@@ -8,7 +8,7 @@ import time
 import threading
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
-from utils.config import IS_CLOUD, PORT
+from utils.config import PHP_SERVER_URL, PORT
 
 logger = logging.getLogger(__name__)
 
@@ -58,15 +58,15 @@ def refresh_documents():
 
 def start_scheduler():
     """
-    Inicia el scheduler si estamos en entorno cloud (HF Space o Railway).
+    Inicia el scheduler si PHP_SERVER_URL está configurada.
     El primer refresh se ejecuta en un hilo separado con 15s de delay,
     para que el servidor termine de iniciar antes de que se conecte a sí mismo.
 
     Returns:
-        Scheduler instance o None si no está en cloud
+        Scheduler instance o None si está deshabilitado
     """
-    if not IS_CLOUD:
-        logger.info("Scheduler deshabilitado (entorno local/producción)")
+    if not PHP_SERVER_URL:
+        logger.info("Scheduler deshabilitado (PHP_SERVER_URL no configurada)")
         return None
 
     try:
