@@ -1,0 +1,96 @@
+name: Warm Up HF Space
+
+on:
+  schedule:
+    # 07:00 America/Argentina/Buenos_Aires = 10:00 UTC
+    - cron: "0 10 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  warmup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      HF_SPACE_ID: cfedetrejo/docugest-unified
+      HF_API_TOKEN: ${{ secrets.HF_API_TOKEN }}
+      SPACE_HEALTH_URL: https://cfedetrejo-docugest-unified.hf.space/health
+      MAX_ATTEMPTS: "15"
+      SLEEP_SECONDS: "20"
+      REQUEST_TIMEOUT_SECONDS: "25"
+
+    steps:
+      - name: Wake up HF Space and wait until healthy
+        shell: bash
+        run: |
+          set -u
+          echo "Warming up: $SPACE_HEALTH_URL"
+
+          check_health() {
+            curl -sS -o /tmp/hf_health.json -w "%{http_code}" \
+              --max-time "$REQUEST_TIMEOUT_SECONDS" \
+              "$SPACE_HEALTH_URL" || echo "000"
+          }
+
+          initial_http_code=$(check_health)
+          echo "Initial health HTTP: $initial_http_code"
+
+          if [ "$initial_http_code" = "200" ]; then
+            echo "HF Space is already awake and healthy."
+            echo "Response snippet:"
+            head -c 300 /tmp/hf_health.json || true
+            echo
+            exit 0
+          fi
+
+          if [ -z "${HF_API_TOKEN:-}" ]; then
+            echo "Missing HF_API_TOKEN secret. Configure it in GitHub repository secrets."
+            exit 1
+          fi
+
+          restart_url="https://huggingface.co/api/spaces/${HF_SPACE_ID}/restart"
+          echo "Requesting restart: $restart_url"
+
+          restart_http_code=$(curl -sS -o /tmp/hf_restart.json -w "%{http_code}" \
+            --max-time "$REQUEST_TIMEOUT_SECONDS" \
+            -X POST \
+            -H "Authorization: Bearer ${HF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            "$restart_url" || echo "000")
+
+          echo "Restart HTTP: $restart_http_code"
+          if [ "$restart_http_code" -lt 200 ] || [ "$restart_http_code" -ge 300 ]; then
+            echo "Restart request failed. HF response snippet:"
+            head -c 300 /tmp/hf_restart.json || true
+            echo
+            exit 1
+          fi
+
+          attempt=1
+          while [ "$attempt" -le "$MAX_ATTEMPTS" ]; do
+            echo "Attempt $attempt/$MAX_ATTEMPTS"
+
+            http_code=$(check_health)
+
+            echo "HTTP: $http_code"
+            if [ "$http_code" = "200" ]; then
+              echo "HF Space is awake and healthy."
+              echo "Response snippet:"
+              head -c 300 /tmp/hf_health.json || true
+              echo
+              exit 0
+            fi
+
+            if [ "$attempt" -lt "$MAX_ATTEMPTS" ]; then
+              echo "Still waking up. Waiting $SLEEP_SECONDS seconds..."
+              sleep "$SLEEP_SECONDS"
+            fi
+
+            attempt=$((attempt + 1))
+          done
+
+          echo "HF Space did not become healthy in time."
+          exit 1
