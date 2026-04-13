@@ -29,11 +29,15 @@ jobs:
         run: |
           set -u
 
-          # Returns the HTTP code; outputs "000" on network/timeout error via -w format string
+          # Returns the HTTP code ("200", "000", etc.).
+          # Uses || true so a curl timeout/error doesn't abort the script
+          # (GitHub Actions runs bash with -e by default).
+          # curl always writes the -w format string even on failure, so "000" is
+          # returned for any network error or timeout.
           check_health() {
             curl -sS -o /tmp/hf_health.json -w "%{http_code}" \
               --max-time "$REQUEST_TIMEOUT_SECONDS" \
-              "$SPACE_HEALTH_URL"
+              "$SPACE_HEALTH_URL" || true
           }
 
           # ── 1. Initial health check ───────────────────────────────────────────
@@ -57,7 +61,7 @@ jobs:
               -H "Authorization: Bearer ${HF_API_TOKEN}" \
               -H "Content-Type: application/json" \
               -d '{}' \
-              "$restart_url")
+              "$restart_url" || true)
 
             echo "Restart HTTP: $restart_http_code"
             if [ "$restart_http_code" -lt 200 ] || [ "$restart_http_code" -ge 300 ]; then
@@ -103,10 +107,9 @@ jobs:
 
           # ── 5. No documents indexed — trigger indexation via PHP endpoint ────
           echo "Space healthy but 0 docs indexed. Triggering indexation..."
-          trigger_resp=$(curl -sS -o /tmp/hf_trigger.json -w "%{http_code}" \
+          curl -sS -o /tmp/hf_trigger.json -w "trigger_refresh HTTP: %{http_code}\n" \
             --max-time 30 \
-            "$TRIGGER_REFRESH_URL")
-          echo "trigger_refresh HTTP: $trigger_resp"
+            "$TRIGGER_REFRESH_URL" || true
           echo "trigger_refresh response:"
           cat /tmp/hf_trigger.json || true
           echo
