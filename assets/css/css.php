@@ -6,7 +6,7 @@ $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : '
 $host = $_SERVER['HTTP_HOST'];
 $basePath = dirname($_SERVER['PHP_SELF']);
 
-define('BASE_URL', $protocol.'://'. $host .'/administracion');
+define('BASE_URL', $protocol.'://'. $host .'/recursosHumanos');
 
 // RECORRER TODOS LOS ARCHIVOS CSS
 

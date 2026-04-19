@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reporte de Anticipos</title>
     <?php 
-            require_once $_SERVER['DOCUMENT_ROOT'].'/administracion/assets/css/css.php';
+            require_once '../assets/css/css.php';
     ?>
     
     <!-- CSS -->

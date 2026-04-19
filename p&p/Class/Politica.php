@@ -9,7 +9,7 @@ class Politica
 
     function __construct()
     {
-        require_once $_SERVER['DOCUMENT_ROOT'].'/administracion/Class/Conexion.php';
+        require_once __DIR__ . '/../../Class/conexion.php';
         $this->cid = new Conexion();
         $this->cid_central = $this->cid->conectar('central');
         

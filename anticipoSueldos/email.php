@@ -1,7 +1,7 @@
 <?php
 
-if($_SERVER['DOCUMENT_ROOT'] == ''){
-    $_SERVER['DOCUMENT_ROOT'] = 'D:/htdocs';
+if(empty($_SERVER['DOCUMENT_ROOT'])){
+    $_SERVER['DOCUMENT_ROOT'] = 'C:/xampp/htdocs';
 }
         
 require_once "Controller/emailController.php";

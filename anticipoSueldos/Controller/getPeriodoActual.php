@@ -2,10 +2,12 @@
 // Controller/getPeriodoActual.php
 
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 date_default_timezone_set('America/Argentina/Buenos_Aires');
 
 header('Content-Type: application/json');
+
+ob_start();
 
 try {
     require_once '../../Class/Anticipo.php';
@@ -13,6 +15,9 @@ try {
 
     // Obtener datos del período actual a través del método de la clase Anticipo
     $periodoData = $anticipo->obtenerPeriodoAnticipo();
+
+    // Limpiar cualquier salida previa (warnings, notices, etc.)
+    ob_clean();
 
     if ($periodoData) {
         $response = [
@@ -31,7 +36,8 @@ try {
 
     echo json_encode($response);
 
-} catch (Exception $e) {
+} catch (\Throwable $e) {
+    ob_clean();
     error_log("Error en getPeriodoActual: " . $e->getMessage());
     http_response_code(500);
     echo json_encode([
@@ -39,3 +45,5 @@ try {
         'message' => 'Error al obtener los datos: ' . $e->getMessage()
     ]);
 }
+
+ob_end_flush();

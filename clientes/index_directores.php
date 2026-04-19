@@ -2,111 +2,155 @@
 session_start();
 
 require_once 'config.php';
-$pageTitle = "Gestión de Referidos";
 
-$mainContainerClass = 'd-flex align-items-center justify-content-center';
+$pageTitle     = "Gestión de Referidos";
+$portalContext = 'referidos';
+$mainContainerClass = 'py-5';
 
 include_once ROOT_PATH . 'templates/header.php';
 ?>
 
-<div class="card shadow-sm mx-auto" style="max-width: 600px; position: relative;">
-    <div class="card-body text-center p-5">
+<div style="max-width: 860px; margin: 0 auto;">
 
-        <button type="button" class="btn btn-sm btn-outline-secondary" style="position: absolute; top: 1rem; right: 1rem;" data-bs-toggle="modal" data-bs-target="#ayudaModal">
-            <i class="bi bi-question-circle-fill"></i> Ayuda
-        </button>
+    <div class="portal-heading">
+        <h1>Portal de Referidos</h1>
+        <p>Seleccioná una opción para continuar.</p>
+    </div>
 
-        <h1 class="card-title h2 mb-3">Portal de Gestión de Referidos</h1>
-        <p class="card-text text-muted">Seleccione una de las siguientes opciones para continuar.</p>
+    <?php if (isset($_SESSION['feedback'])): ?>
+    <?php
+        $feedback = $_SESSION['feedback'];
+        $iconos = [
+            'success' => 'bi-check-circle-fill',
+            'danger'  => 'bi-x-circle-fill',
+            'warning' => 'bi-exclamation-triangle-fill',
+            'info'    => 'bi-info-circle-fill',
+            'primary' => 'bi-info-circle-fill',
+        ];
+        $icono = $iconos[$feedback['tipo']] ?? 'bi-bell-fill';
+        unset($_SESSION['feedback']);
+    ?>
+    <div class="alert alert-<?= htmlspecialchars($feedback['tipo']) ?> alert-feedback alert-dismissible fade show mb-4" role="alert">
+        <i class="bi <?= $icono ?>"></i>
+        <div><?= nl2br($feedback['mensaje']) ?></div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+    <?php endif; ?>
 
-        <?php
-        if (isset($_SESSION['feedback'])) {
-            $feedback = $_SESSION['feedback'];
-            echo '<div class="alert alert-' . htmlspecialchars($feedback['tipo']) . ' alert-dismissible fade show text-start mt-4" role="alert">';
-            // Usamos nl2br para interpretar los saltos de línea <br> en el mensaje de feedback
-            echo nl2br($feedback['mensaje']);
-            echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
-            echo '</div>';
-            unset($_SESSION['feedback']);
-        }
-        ?>
-        
-        <div class="d-grid gap-3 mt-4">
-            <a href="elige_crear.php?scope=directores" class="btn btn-primary btn-lg">Crear Referido</a>
-            <!-- ===== ELIMINADO: El botón "Enviar Referido" ya no es necesario =====
-            <a href="elige.php?scope=directores" class="btn btn-secondary btn-lg">Enviar Referido</a>
-            -->
-            <a href="consulta.php?scope=directores" class="btn btn-success btn-lg">Consultar Referidos</a>
-            <a href="consulta_individual.php?from=directores" class="btn btn-warning btn-lg">Consulta Individual</a>
-            <a href="control_descuentos.php?scope=directores" class="btn btn-danger btn-lg">Control de Descuentos</a>
-        </div>
+    <div class="portal-grid">
+
+        <a href="elige_crear.php?scope=directores" class="action-card action-card--ref">
+            <div class="action-card__icon"><i class="bi bi-person-plus-fill"></i></div>
+            <div>
+                <div class="action-card__title">Crear Referido</div>
+                <p class="action-card__desc">Alta en base central con descuento configurable hasta el 35%. Al crearse, se distribuye automáticamente a todas las sucursales habilitadas.</p>
+            </div>
+            <div class="action-card__badges">
+                <span class="badge-card badge-card--ref">Envío automático</span>
+                <span class="badge-card badge-card--neutral">Hasta 35% desc.</span>
+            </div>
+        </a>
+
+        <a href="consulta.php?scope=directores" class="action-card action-card--ref">
+            <div class="action-card__icon"><i class="bi bi-table"></i></div>
+            <div>
+                <div class="action-card__title">Consultar Referidos</div>
+                <p class="action-card__desc">Tabla interactiva con búsqueda, filtros por estado y switch para habilitar/inhabilitar sincronizado con todas las sucursales. Resalta CUITs duplicados. Exporta a Excel.</p>
+            </div>
+            <div class="action-card__badges">
+                <span class="badge-card badge-card--ref">Tiempo real</span>
+                <span class="badge-card badge-card--neutral">Exporta Excel</span>
+            </div>
+        </a>
+
+        <a href="consulta_individual.php?from=directores" class="action-card action-card--ref">
+            <div class="action-card__icon"><i class="bi bi-person-vcard-fill"></i></div>
+            <div>
+                <div class="action-card__title">Consulta Individual por DNI</div>
+                <p class="action-card__desc">Auditoría rápida: ingresá DNI, CUIT o buscá por nombre. El sistema muestra en qué sucursales está registrado ese cliente y en cuáles no.</p>
+            </div>
+            <div class="action-card__badges">
+                <span class="badge-card badge-card--neutral">Auditoría</span>
+            </div>
+        </a>
+
+        <a href="control_descuentos.php?scope=directores" class="action-card action-card--ref">
+            <div class="action-card__icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <div>
+                <div class="action-card__title">Control de Descuentos</div>
+                <p class="action-card__desc">Reporte de bonificaciones por rango de fechas: cantidad de usos, total bonificado y promedio % por referido.</p>
+            </div>
+            <div class="action-card__badges">
+                <span class="badge-card badge-card--neutral">Por rango de fechas</span>
+            </div>
+        </a>
+
     </div>
 </div>
 
-<!-- ===== INICIO: MODAL DE AYUDA ACTUALIZADO ===== -->
+<!-- Modal de ayuda -->
 <div class="modal fade" id="ayudaModal" tabindex="-1" aria-labelledby="ayudaModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="ayudaModalLabel"><i class="bi bi-info-circle-fill me-2"></i> Guía de Uso - Portal de Referidos</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title" id="ayudaModalLabel">
+                    <i class="bi bi-info-circle-fill me-2"></i>Guía de Uso — Portal de Referidos
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
-                <p>Esta plataforma permite gestionar el ciclo de vida de los clientes de tipo **Referido** en el sistema central y en las sucursales.</p>
-                
-                <div class="accordion mt-3" id="ayudaAccordion">
+                <p class="text-muted mb-3">Cada tarjeta de la pantalla principal lleva directo a la función. Acá encontrás más detalle sobre cada una.</p>
+
+                <div class="accordion" id="ayudaAccordion">
 
                     <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingCrear">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCrear" aria-expanded="true" aria-controls="collapseCrear">
-                                <i class="bi bi-person-plus-fill me-2"></i> Crear Referido
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCrear" aria-expanded="true">
+                                <i class="bi bi-person-plus-fill me-2" style="color: var(--ref-accent);"></i>Crear Referido
                             </button>
                         </h2>
-                        <div id="collapseCrear" class="accordion-collapse collapse show" aria-labelledby="headingCrear" data-bs-parent="#ayudaAccordion">
+                        <div id="collapseCrear" class="accordion-collapse collapse show" data-bs-parent="#ayudaAccordion">
                             <div class="accordion-body">
-                                <!-- ===== TEXTO ACTUALIZADO ===== -->
-                                Da de alta un nuevo Referido en el sistema central. <strong>Una vez creado, se distribuye automáticamente a todas las sucursales habilitadas.</strong> El sistema sugiere el siguiente código disponible y permite asignar un descuento de hasta el 35%.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ===== ELIMINADO: La sección de ayuda para "Enviar Referido" ya no es necesaria ===== -->
-
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingConsultar">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseConsultar" aria-expanded="false" aria-controls="collapseConsultar">
-                                <i class="bi bi-table me-2"></i> Consultar Referidos
-                            </button>
-                        </h2>
-                        <div id="collapseConsultar" class="accordion-collapse collapse" aria-labelledby="headingConsultar" data-bs-parent="#ayudaAccordion">
-                            <div class="accordion-body">
-                                Muestra una tabla interactiva con todos los Referidos. Permite buscar, filtrar por estado (Habilitado/Inhabilitado), y cambiar dicho estado al instante con el interruptor, cambiando el estado tanto en central como en sucursales. También puedes exportar la lista a Excel.
+                                Da de alta un nuevo referido en la base central. El sistema sugiere el siguiente código disponible y permite asignar un descuento de hasta el 35%. <strong>Al crearse, se distribuye automáticamente a todas las sucursales habilitadas</strong>, sin necesidad de un envío manual posterior.
                             </div>
                         </div>
                     </div>
 
                     <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingIndividual">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIndividual" aria-expanded="false" aria-controls="collapseIndividual">
-                                <i class="bi bi-person-vcard-fill me-2"></i> Consulta Individual
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseConsultar" aria-expanded="false">
+                                <i class="bi bi-table me-2" style="color: var(--ref-accent);"></i>Consultar Referidos
                             </button>
                         </h2>
-                        <div id="collapseIndividual" class="accordion-collapse collapse" aria-labelledby="headingIndividual" data-bs-parent="#ayudaAccordion">
+                        <div id="collapseConsultar" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
                             <div class="accordion-body">
-                                Herramienta de auditoría rápida. Ingresa un DNI/CUIT o el nombre y el sistema te mostrará en qué sucursales se encuentra registrado ese cliente y en cuáles no.
+                                Tabla interactiva con todos los referidos. Permite buscar, ordenar, paginar y filtrar por estado (Habilitado/Inhabilitado). El switch actúa en tiempo real y sincroniza el cambio en central y en todas las sucursales. CUITs duplicados se resaltan en rojo. Exporta la lista a Excel.
                             </div>
                         </div>
                     </div>
 
                     <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingDescuentos">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDescuentos" aria-expanded="false" aria-controls="collapseDescuentos">
-                                <i class="bi bi-graph-up-arrow me-2"></i> Control de Descuentos
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIndividual" aria-expanded="false">
+                                <i class="bi bi-person-vcard-fill me-2" style="color: var(--ref-accent);"></i>Consulta Individual por DNI
                             </button>
                         </h2>
-                        <div id="collapseDescuentos" class="accordion-collapse collapse" aria-labelledby="headingDescuentos" data-bs-parent="#ayudaAccordion">
+                        <div id="collapseIndividual" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
                             <div class="accordion-body">
-                                Genera un reporte que muestra cuántas veces ha recibido una bonificación cada Referido dentro de un rango de fechas. Puedes filtrar por fecha para analizar períodos específicos.
+                                Herramienta de auditoría: ingresá un DNI, CUIT, o buscá por nombre usando el selector. El sistema muestra en qué sucursales está registrado ese cliente y en cuáles no está presente.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDescuentos" aria-expanded="false">
+                                <i class="bi bi-graph-up-arrow me-2" style="color: var(--ref-accent);"></i>Control de Descuentos
+                            </button>
+                        </h2>
+                        <div id="collapseDescuentos" class="accordion-collapse collapse" data-bs-parent="#ayudaAccordion">
+                            <div class="accordion-body">
+                                Reporte de bonificaciones por rango de fechas. Muestra para cada referido: código, nombre, cantidad de usos, total bonificado y promedio %.
                             </div>
                         </div>
                     </div>
@@ -114,11 +158,10 @@ include_once ROOT_PATH . 'templates/header.php';
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">Entendido</button>
             </div>
         </div>
     </div>
 </div>
-<!-- ===== FIN: MODAL DE AYUDA ===== -->
 
 <?php include_once ROOT_PATH . 'templates/footer.php'; ?>

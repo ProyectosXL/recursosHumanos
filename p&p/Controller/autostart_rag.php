@@ -126,7 +126,7 @@ try {
             $response['detalles'][] = "Verificando documentos en carpeta /documentos...";
             
             // Verificar documentos faltantes por título de archivo
-            $verificar_url = 'http://localhost/administracion/recursosHumanos/p&p/Controller/verificar_documentos_faltantes.php';
+            $verificar_url = 'http://localhost/recursosHumanos/p&p/Controller/verificar_documentos_faltantes.php';
             $ch = curl_init($verificar_url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 10);
@@ -152,7 +152,7 @@ try {
                         $response['detalles'][] = "Documentos sin indexar: " . implode(', ', array_slice($nombres_faltantes, 0, 3)) . ($faltantes > 3 ? "... (+" . ($faltantes - 3) . " más)" : "");
                         
                         // Lanzar indexación en segundo plano
-                        $indexer_url = 'http://localhost/administracion/recursosHumanos/p&p/Controller/indexar_pdfs_faltantes.php';
+                        $indexer_url = 'http://localhost/recursosHumanos/p&p/Controller/indexar_pdfs_faltantes.php';
                         
                         $ch = curl_init($indexer_url);
                         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

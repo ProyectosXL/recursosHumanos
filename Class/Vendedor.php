@@ -11,7 +11,7 @@ class Vendedor
     function __construct()
     {
 
-        require_once $_SERVER['DOCUMENT_ROOT'].'/administracion/Class/Conexion.php';
+        require_once __DIR__ . '/conexion.php';
         $this->cid = new Conexion();
         $this->cid_central = $this->cid->conectar('central');
       
@@ -190,7 +190,7 @@ class Vendedor
     
     public function localConexion($num_suc){
     
-        require_once $_SERVER['DOCUMENT_ROOT'].'/administracion/Class/Conexion.php';
+        require_once __DIR__ . '/conexion.php';
 
 
         $cid = new Conexion();
@@ -250,7 +250,7 @@ class Vendedor
 
     public function habilitarVendedorPorSucursal($cod, $nombre){
 
-        require_once $_SERVER['DOCUMENT_ROOT'].'/administracion/Class/Conexion.php';
+        require_once __DIR__ . '/conexion.php';
 
         $cid = new Conexion();
         
@@ -315,7 +315,7 @@ class Vendedor
 
     public function inhabilitarVendedorPorSucursal($cod, $nombre){
 
-        require_once $_SERVER['DOCUMENT_ROOT'].'/administracion/Class/Conexion.php';
+        require_once __DIR__ . '/conexion.php';
 
         $cid = new Conexion();
 

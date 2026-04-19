@@ -116,27 +116,19 @@ try {
 
                 // CONSULTA OPTIMIZADA
                 $sqlCheck = "SELECT TOP 1 CUIT FROM GVA14 WHERE CUIT = ?";
-                $stmtCheck = @odbc_prepare($cid, $sqlCheck);
-                
-                if (!$stmtCheck) {
-                    $error = odbc_errormsg($cid);
-                    throw new Exception("Error preparando consulta: " . $error);
-                }
-                
                 $executeStart = microtime(true);
-                $ejecutado = @odbc_execute($stmtCheck, [$dniBuscado]);
+                $stmtCheck = sqlsrv_query($cid, $sqlCheck, [$dniBuscado]);
                 $executeTime = microtime(true) - $executeStart;
-                
-                if (!$ejecutado) {
-                    $error = odbc_errormsg($cid);
-                    throw new Exception("Error ejecutando consulta: " . $error);
+
+                if ($stmtCheck === false) {
+                    throw new Exception("Error en consulta: " . Conexion::errorMsg());
                 }
-                
+
                 if ($executeTime > 3) {
                     error_log("Consulta lenta en {$sucursal->NRO_SUCURSAL}: {$executeTime}s");
                 }
-                
-                $result = @odbc_fetch_array($stmtCheck);
+
+                $result = sqlsrv_fetch_array($stmtCheck, SQLSRV_FETCH_ASSOC);
 
                 if ($result && isset($result['CUIT'])) {
                     $sucursalesConDni[] = $infoSucursalDisplay;
@@ -151,7 +143,7 @@ try {
                 error_log("✗ Error en {$sucursal->NRO_SUCURSAL}: {$mensajeError}");
             } finally {
                 if ($cid) {
-                    @odbc_close($cid);
+                    sqlsrv_close($cid);
                 }
             }
             

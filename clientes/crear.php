@@ -43,10 +43,8 @@ if ($codClient === 'AS' || $codClient === 'E') {
                 AND PATINDEX('%[0-9][0-9][0-9][0-9]', COD_CLIENT) > 0
         ";
         
-        $stmt = odbc_prepare($cid, $sql);
-        odbc_execute($stmt, [$codClient . '%']);
-        
-        if ($v = odbc_fetch_object($stmt)) {
+        $stmt = sqlsrv_query($cid, $sql, [$codClient . '%']);
+        if ($stmt && ($v = sqlsrv_fetch_object($stmt))) {
             $nextNum = $v->SiguienteNumero;
         }
 

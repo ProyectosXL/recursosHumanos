@@ -266,7 +266,7 @@ $dataUy = $dataUy[0]['sinonimos'];
        
         </script>
 
-        <script src="/administracion/assets/js/controlHorario.js"></script>
+        <script src="/assets/js/controlHorario.js"></script>
 
 
 

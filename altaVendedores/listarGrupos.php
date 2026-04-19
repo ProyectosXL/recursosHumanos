@@ -12,7 +12,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Grupo vendedores</title>
         <?php 
-            require_once $_SERVER['DOCUMENT_ROOT'].'/administracion/assets/css/css.php';
+            require_once '../assets/css/css.php';
         ?>
         <style>
             .dataTables_length{
@@ -66,7 +66,7 @@
             </div>
         </div>
         <?php 
-            require_once $_SERVER['DOCUMENT_ROOT'].'/administracion/assets/js/js.php';
+            require_once '../assets/js/js.php';
         ?>
     </body>
 
