@@ -1,5 +1,6 @@
 
 <?php
+session_start();
 
 if (!isset($_SESSION['numsuc'])) {
     $_SESSION['numsuc'] = 'Casa Central';

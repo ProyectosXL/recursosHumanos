@@ -26,17 +26,17 @@ try {
 define('ROOT_PATH', __DIR__ . '/'); 
 define('BASE_URL', '/recursosHumanos/clientes/');
 
-define('DB_HOST_SERVIDOR', $_ENV['DB_HOST_CENTRAL']);
-define('DB_NAME_SERVIDOR', $_ENV['DB_NAME_CENTRAL']);
-define('DB_USER_SERVIDOR', $_ENV['DB_USER_CENTRAL']);
-define('DB_PASS_SERVIDOR', $_ENV['DB_PASS_CENTRAL']);
+define('DB_HOST_SERVIDOR', $_ENV['HOST_CENTRAL']);
+define('DB_NAME_SERVIDOR', $_ENV['DATABASE_CENTRAL']);
+define('DB_USER_SERVIDOR', $_ENV['USER']);
+define('DB_PASS_SERVIDOR', $_ENV['PASS']);
 
-define('DB_NAME_CENTRAL', $_ENV['DB_NAME_CENTRAL']);
+define('DB_NAME_CENTRAL', $_ENV['DATABASE_CENTRAL']);
 
-define('DB_HOST_LOCALES', $_ENV['DB_HOST_LOCALES']);
-define('DB_NAME_LOCALES', $_ENV['DB_NAME_LOCALES']);
-define('DB_USER_LOCALES', $_ENV['DB_USER_LOCALES']);
-define('DB_PASS_LOCALES', $_ENV['DB_PASS_LOCALES']);
+define('DB_HOST_LOCALES', $_ENV['HOST_LOCALES']);
+define('DB_NAME_LOCALES', $_ENV['DATABASE_LOCALES']);
+define('DB_USER_LOCALES', $_ENV['USER']);
+define('DB_PASS_LOCALES', $_ENV['PASS_LOCALES']);
 
 // Definiciones para el envío de correos
 define('MAIL_HOST', $_ENV['MAIL_HOST']);

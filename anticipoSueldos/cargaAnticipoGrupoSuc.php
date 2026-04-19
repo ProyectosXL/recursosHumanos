@@ -17,7 +17,7 @@ if ($usuarioAutorizado) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carga de Anticipo de Sueldo Grupal</title>
     <?php 
-            require_once $_SERVER['DOCUMENT_ROOT'].'/administracion/assets/css/css.php';
+            require_once __DIR__ . '/../assets/css/css.php';
     ?>
     
     <!-- CSS -->
