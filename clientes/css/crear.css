@@ -1,0 +1,283 @@
+/* ================================================================
+   crear.css — Formulario de alta de clientes (Empleados y Referidos)
+   Incluido exclusivamente en crear.php
+   Depende de los tokens definidos en app.css
+   ================================================================ */
+
+/* ----------------------------------------------------------------
+   Card contenedora del formulario
+   ---------------------------------------------------------------- */
+.form-card {
+  border: none;
+  border-radius: .875rem;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+/* ---- Header coloreado ---- */
+.form-card__header {
+  padding: 1.4rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #fff;
+}
+
+.form-card__header--emp { background: var(--emp-accent); }
+.form-card__header--ref { background: var(--ref-accent); }
+
+.form-card__header-icon {
+  font-size: 1.85rem;
+  opacity: .9;
+  flex-shrink: 0;
+}
+
+.form-card__header h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -.02em;
+}
+
+.form-card__header p {
+  font-size: .78rem;
+  opacity: .85;
+  margin: .15rem 0 0;
+}
+
+/* ----------------------------------------------------------------
+   Separadores de sección
+   ---------------------------------------------------------------- */
+.form-section-label {
+  font-size: .67rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: .9rem;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.form-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+/* ----------------------------------------------------------------
+   Inputs con ícono de estado (nombre, DNI)
+   ---------------------------------------------------------------- */
+.input-wrap {
+  position: relative;
+}
+
+/* El input necesita padding derecho para no solapar el ícono */
+.input-wrap > .form-control {
+  padding-right: 2.4rem;
+}
+
+/* DNI: padding extra para el contador + ícono */
+.input-wrap--dni > .form-control {
+  padding-right: 4.5rem;
+}
+
+.status-icon {
+  position: absolute;
+  right: .8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  pointer-events: none;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.dni-counter {
+  position: absolute;
+  right: 2.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: .68rem;
+  color: var(--color-muted);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----------------------------------------------------------------
+   Mensajes de validación bajo los campos
+   ---------------------------------------------------------------- */
+.field-feedback {
+  font-size: .775rem;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  margin-top: .3rem;
+  min-height: 1.2rem;
+  line-height: 1.3;
+}
+
+.field-feedback--ok      { color: #059669; }
+.field-feedback--err     { color: #dc2626; }
+.field-feedback--neutral { color: var(--color-muted); }
+
+/* ----------------------------------------------------------------
+   Helper text bajo campos
+   ---------------------------------------------------------------- */
+.field-helper {
+  font-size: .74rem;
+  color: var(--color-muted);
+  margin-top: .3rem;
+}
+
+/* ----------------------------------------------------------------
+   Prefix badge en input-group del código
+   ---------------------------------------------------------------- */
+.prefix-badge--emp {
+  background: var(--emp-accent-soft);
+  color: var(--emp-accent);
+  border-color: #c7d2fe;
+  font-weight: 700;
+}
+
+.prefix-badge--ref {
+  background: var(--ref-accent-soft);
+  color: var(--ref-accent);
+  border-color: #a7f3d0;
+  font-weight: 700;
+}
+
+/* Celda del ícono de estado al final del input-group */
+.status-icon-group {
+  background: transparent;
+  min-width: 2.5rem;
+  justify-content: center;
+}
+
+/* ----------------------------------------------------------------
+   Spinner mini (para el estado "verificando" en campos)
+   ---------------------------------------------------------------- */
+.mini-spinner {
+  display: inline-block;
+  width: .75rem;
+  height: .75rem;
+  border: 2px solid #d1d5db;
+  border-top-color: var(--color-muted);
+  border-radius: 50%;
+  animation: crear-spin .6s linear infinite;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+@keyframes crear-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ----------------------------------------------------------------
+   Badge de descuento fijo (Empleados)
+   ---------------------------------------------------------------- */
+.desc-badge {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  background: var(--emp-accent-soft);
+  border: 1px solid #c7d2fe;
+  border-radius: .55rem;
+  padding: 1rem 1.25rem;
+}
+
+.desc-badge__pct {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--emp-accent);
+  line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.desc-badge__info .title {
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--emp-accent-dark);
+}
+
+.desc-badge__info .sub {
+  font-size: .75rem;
+  color: #6366f1;
+  margin-top: .15rem;
+}
+
+/* ----------------------------------------------------------------
+   Slider + input numérico de descuento (Referidos)
+   ---------------------------------------------------------------- */
+.desc-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.desc-slider-row input[type="range"] {
+  flex: 1;
+  accent-color: var(--ref-accent);
+}
+
+.desc-number-group {
+  display: flex;
+  flex-shrink: 0;
+  width: 6rem;
+}
+
+.desc-number-group .form-control {
+  text-align: center;
+  font-weight: 600;
+  border-radius: .375rem 0 0 .375rem !important;
+}
+
+.desc-number-group .input-group-text {
+  border-radius: 0 .375rem .375rem 0 !important;
+  background: #f9fafb;
+}
+
+/* ----------------------------------------------------------------
+   Callout de replicación (Referidos)
+   ---------------------------------------------------------------- */
+.replica-callout {
+  display: flex;
+  gap: .75rem;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-left: 4px solid #f59e0b;
+  border-radius: .5rem;
+  padding: .875rem 1rem;
+  font-size: .825rem;
+  color: #78350f;
+  line-height: 1.55;
+}
+
+.replica-callout .callout-icon {
+  font-size: 1.15rem;
+  color: #d97706;
+  flex-shrink: 0;
+  margin-top: .1rem;
+}
+
+/* .btn-crear, .btn-spinner, .btn-hint, .btn-volver → ver app.css */
+
+/* ----------------------------------------------------------------
+   Focus visible accesible
+   ---------------------------------------------------------------- */
+.form-card .form-control:focus,
+.form-card .form-range:focus-visible {
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, .2);
+  border-color: var(--emp-accent);
+  outline: none;
+}
+
+.form-card--ref .form-control:focus {
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, .2);
+  border-color: var(--ref-accent);
+}

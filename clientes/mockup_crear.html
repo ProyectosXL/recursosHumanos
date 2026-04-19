@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockup — Formulario Crear Cliente</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ---- Tokens (copiados de app.css) ---- */
+    :root {
+      --font-base: 'Inter', system-ui, sans-serif;
+      --color-bg:      #f0f2f5;
+      --color-surface: #ffffff;
+      --color-border:  #e2e6ea;
+      --color-text:    #1a1d23;
+      --color-muted:   #6b7280;
+      --emp-accent:      #4f46e5;
+      --emp-accent-soft: #eef2ff;
+      --emp-accent-dark: #3730a3;
+      --ref-accent:      #059669;
+      --ref-accent-soft: #ecfdf5;
+      --ref-accent-dark: #047857;
+      --shadow-card: 0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.05);
+      --navbar-bg: #111827;
+    }
+
+    body {
+      background-color: var(--color-bg);
+      font-family: var(--font-base);
+      color: var(--color-text);
+    }
+
+    /* ---- Navbar simulada ---- */
+    .mock-navbar {
+      background: var(--navbar-bg);
+      padding: .75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0;
+    }
+    .mock-navbar .brand {
+      color: #f9fafb;
+      font-weight: 600;
+      font-size: .95rem;
+      text-decoration: none;
+    }
+    .portal-badge {
+      display: inline-block;
+      font-size: .63rem;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      padding: .18rem .5rem;
+      border-radius: 999px;
+      vertical-align: middle;
+      margin-left: .4rem;
+    }
+    .portal-badge--emp { background: var(--emp-accent); color: #fff; }
+    .portal-badge--ref { background: var(--ref-accent); color: #fff; }
+
+    /* ---- Selector de variante (control de mockup) ---- */
+    .mockup-bar {
+      background: #fff;
+      border-bottom: 1px solid var(--color-border);
+      padding: .6rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .mockup-bar .label {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+    }
+
+    /* ---- Card formulario ---- */
+    .form-card {
+      border: none;
+      border-radius: .875rem;
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      background: var(--color-surface);
+    }
+
+    .form-card__header {
+      padding: 1.4rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: #fff;
+    }
+    .form-card__header--emp { background: var(--emp-accent); }
+    .form-card__header--ref { background: var(--ref-accent); }
+
+    .form-card__header-icon { font-size: 1.85rem; opacity: .9; }
+
+    .form-card__header h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -.02em;
+    }
+    .form-card__header p {
+      font-size: .78rem;
+      opacity: .85;
+      margin: .15rem 0 0;
+    }
+
+    /* ---- Sección headers ---- */
+    .form-section-label {
+      font-size: .67rem;
+      font-weight: 700;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: .9rem;
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+    .form-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--color-border);
+    }
+
+    /* ---- Inputs con ícono de estado ---- */
+    .input-wrap { position: relative; }
+    .input-wrap .status-icon {
+      position: absolute;
+      right: .8rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: .95rem;
+      pointer-events: none;
+    }
+    .input-wrap input { padding-right: 2.2rem; }
+    .input-wrap .dni-counter {
+      position: absolute;
+      right: 2.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: .68rem;
+      color: var(--color-muted);
+      pointer-events: none;
+    }
+
+    .status-icon--ok   { color: #059669; }
+    .status-icon--err  { color: #dc2626; }
+    .status-icon--wait { color: #9ca3af; }
+
+    /* ---- Mensajes de feedback de campo ---- */
+    .field-feedback {
+      font-size: .77rem;
+      display: flex;
+      align-items: center;
+      gap: .3rem;
+      margin-top: .3rem;
+      min-height: 1.15rem;
+    }
+    .field-feedback--ok  { color: #059669; }
+    .field-feedback--err { color: #dc2626; }
+    .field-feedback--neutral { color: var(--color-muted); }
+
+    /* ---- Helper text bajo campo ---- */
+    .field-helper {
+      font-size: .74rem;
+      color: var(--color-muted);
+      margin-top: .3rem;
+    }
+
+    /* ---- Badge de descuento fijo (Empleados) ---- */
+    .desc-badge {
+      display: flex;
+      align-items: center;
+      gap: .9rem;
+      background: var(--emp-accent-soft);
+      border: 1px solid #c7d2fe;
+      border-radius: .55rem;
+      padding: 1rem 1.25rem;
+    }
+    .desc-badge__pct {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--emp-accent);
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .desc-badge__info .title {
+      font-size: .875rem;
+      font-weight: 600;
+      color: var(--emp-accent-dark);
+    }
+    .desc-badge__info .sub {
+      font-size: .75rem;
+      color: #6366f1;
+      margin-top: .1rem;
+    }
+
+    /* ---- Slider + número (Referidos) ---- */
+    .desc-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .desc-slider-row input[type="range"] {
+      flex: 1;
+      accent-color: var(--ref-accent);
+    }
+    .desc-number-group {
+      display: flex;
+      align-items: center;
+      width: 5.5rem;
+      flex-shrink: 0;
+    }
+    .desc-number-group input {
+      text-align: center;
+      font-weight: 600;
+      border-radius: .375rem 0 0 .375rem !important;
+    }
+    .desc-number-group .input-group-text {
+      border-radius: 0 .375rem .375rem 0 !important;
+      background: #f9fafb;
+      font-size: .9rem;
+    }
+
+    /* ---- Callout replicación (Referidos) ---- */
+    .replica-callout {
+      display: flex;
+      gap: .75rem;
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-left: 4px solid #f59e0b;
+      border-radius: .5rem;
+      padding: .875rem 1rem;
+      font-size: .825rem;
+      color: #78350f;
+      line-height: 1.5;
+    }
+    .replica-callout .callout-icon {
+      font-size: 1.15rem;
+      color: #d97706;
+      flex-shrink: 0;
+      margin-top: .05rem;
+    }
+
+    /* ---- Botón Crear ---- */
+    .btn-crear {
+      min-width: 11rem;
+      font-weight: 600;
+      letter-spacing: -.01em;
+    }
+    .btn-crear--emp { background: var(--emp-accent); border-color: var(--emp-accent); color: #fff; }
+    .btn-crear--emp:hover:not(:disabled) { background: var(--emp-accent-dark); border-color: var(--emp-accent-dark); color: #fff; }
+    .btn-crear--ref { background: var(--ref-accent); border-color: var(--ref-accent); color: #fff; }
+    .btn-crear--ref:hover:not(:disabled) { background: var(--ref-accent-dark); border-color: var(--ref-accent-dark); color: #fff; }
+    .btn-crear:disabled { opacity: .45; cursor: not-allowed; }
+
+    /* ---- Hint botón deshabilitado ---- */
+    .btn-hint {
+      font-size: .72rem;
+      color: var(--color-muted);
+      text-align: right;
+      margin-top: .4rem;
+    }
+
+    /* ---- Volver ---- */
+    .btn-volver {
+      color: var(--color-muted);
+      font-size: .84rem;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      transition: color .15s;
+    }
+    .btn-volver:hover { color: var(--color-text); }
+
+    /* ---- Prefix badge en input-group código ---- */
+    .prefix-badge--emp {
+      background: var(--emp-accent-soft);
+      color: var(--emp-accent);
+      border-color: #c7d2fe;
+      font-weight: 700;
+    }
+    .prefix-badge--ref {
+      background: var(--ref-accent-soft);
+      color: var(--ref-accent);
+      border-color: #a7f3d0;
+      font-weight: 700;
+    }
+
+    /* ---- Spinner inline en botón ---- */
+    .btn-spinner {
+      display: none;
+      width: .95rem;
+      height: .95rem;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      margin-right: .4rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- Navbar simulada -->
+<nav class="mock-navbar">
+  <a href="#" class="brand">
+    <i class="bi bi-people-fill me-2 opacity-75"></i>Gestión de Clientes
+    <span class="portal-badge portal-badge--emp" id="navbar-badge-emp">Empleados</span>
+    <span class="portal-badge portal-badge--ref" id="navbar-badge-ref" style="display:none;">Referidos</span>
+  </a>
+</nav>
+
+<!-- Barra de control del mockup -->
+<div class="mockup-bar">
+  <span class="label"><i class="bi bi-eye me-1"></i>Mockup — elegí la variante:</span>
+  <div class="btn-group btn-group-sm" role="group" aria-label="Variante">
+    <button class="btn btn-primary active" onclick="showVariant('emp')" id="btn-emp">
+      <i class="bi bi-person-badge me-1"></i>Empleado (E)
+    </button>
+    <button class="btn btn-outline-success" onclick="showVariant('ref')" id="btn-ref">
+      <i class="bi bi-person-fill-add me-1"></i>Referido (AS)
+    </button>
+  </div>
+  <span class="label ms-3"><i class="bi bi-info-circle me-1"></i>Estado del botón:</span>
+  <div class="btn-group btn-group-sm" role="group">
+    <button class="btn btn-outline-secondary active" onclick="setFormState('valid')" id="state-valid">Válido</button>
+    <button class="btn btn-outline-secondary" onclick="setFormState('invalid')" id="state-invalid">Con errores</button>
+    <button class="btn btn-outline-secondary" onclick="setFormState('submitting')" id="state-submitting">Enviando…</button>
+  </div>
+</div>
+
+<main class="container py-5" style="max-width: 700px;">
+
+  <!-- ============================================================
+       VARIANTE EMPLEADO
+       ============================================================ -->
+  <div id="variant-emp">
+
+    <div class="d-flex align-items-center mb-4">
+      <a href="#" class="btn-volver"><i class="bi bi-arrow-left"></i> Volver al portal</a>
+    </div>
+
+    <div class="form-card">
+      <div class="form-card__header form-card__header--emp">
+        <div class="form-card__header-icon"><i class="bi bi-person-plus-fill"></i></div>
+        <div>
+          <h1>Nuevo Empleado</h1>
+          <p>Completá los datos para dar de alta en la base central.</p>
+        </div>
+      </div>
+
+      <div class="p-4 p-md-5">
+
+        <!-- A: Datos del cliente -->
+        <div class="form-section-label"><i class="bi bi-person-fill"></i> Datos del cliente</div>
+
+        <div class="mb-3">
+          <label for="nombre-emp" class="form-label fw-medium">
+            Nombre Completo <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <div class="input-wrap">
+            <input type="text"
+                   class="form-control form-control-lg"
+                   id="nombre-emp"
+                   placeholder="Ej: García, María Laura"
+                   value="Rodriguez Martin"
+                   autocomplete="name"
+                   aria-required="true">
+            <span class="status-icon status-icon--ok"><i class="bi bi-check-circle-fill"></i></span>
+          </div>
+          <div class="field-helper">Se sugiere Título Case al salir del campo (podés modificarlo).</div>
+        </div>
+
+        <div class="mb-4">
+          <label for="dni-emp" class="form-label fw-medium">
+            DNI / CUIT <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <div class="input-wrap" aria-live="polite" aria-atomic="true">
+            <input type="text"
+                   class="form-control form-control-lg"
+                   id="dni-emp"
+                   placeholder="Solo dígitos, sin puntos ni guiones"
+                   value="32145678"
+                   maxlength="11"
+                   inputmode="numeric"
+                   aria-describedby="dni-emp-feedback">
+            <span class="status-icon status-icon--ok"><i class="bi bi-check-circle-fill"></i></span>
+            <span class="dni-counter">8/11</span>
+          </div>
+          <div class="field-feedback field-feedback--ok" id="dni-emp-feedback" role="status">
+            <i class="bi bi-check-circle-fill"></i> DNI disponible
+          </div>
+        </div>
+
+        <!-- B: Código asignado -->
+        <div class="form-section-label"><i class="bi bi-hash"></i> Código asignado</div>
+
+        <div class="mb-4">
+          <label for="codnum-emp" class="form-label fw-medium">
+            Código <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <div class="input-group input-group-lg" style="max-width: 16rem;">
+            <span class="input-group-text prefix-badge--emp">E</span>
+            <input type="text"
+                   class="form-control"
+                   id="codnum-emp"
+                   value="0042"
+                   maxlength="4"
+                   pattern="[0-9]{4}"
+                   inputmode="numeric"
+                   aria-describedby="codnum-emp-helper codnum-emp-feedback"
+                   style="letter-spacing:.15em; font-weight:600;">
+            <span class="input-group-text" style="background:transparent;">
+              <i class="bi bi-check-circle-fill text-success"></i>
+            </span>
+          </div>
+          <div class="field-helper" id="codnum-emp-helper">
+            <i class="bi bi-info-circle me-1"></i>Sugerido automáticamente. Podés modificarlo si necesitás.
+          </div>
+          <div class="field-feedback field-feedback--ok" id="codnum-emp-feedback" role="status">
+            <i class="bi bi-check-circle-fill"></i> Código E0042 disponible
+          </div>
+        </div>
+
+        <!-- C: Descuento -->
+        <div class="form-section-label"><i class="bi bi-percent"></i> Descuento</div>
+
+        <div class="mb-5">
+          <div class="desc-badge">
+            <div class="desc-badge__pct">35%</div>
+            <div class="desc-badge__info">
+              <div class="title">Descuento fijo para empleados</div>
+              <div class="sub">Aplicado automáticamente — no modificable.</div>
+            </div>
+            <i class="bi bi-lock-fill ms-auto" style="color:#6366f1; opacity:.5; font-size:1.1rem;"></i>
+          </div>
+          <input type="hidden" name="porcDesc" value="35">
+        </div>
+
+        <!-- Acciones -->
+        <hr class="mb-4">
+        <div class="d-flex gap-2 justify-content-end align-items-center flex-wrap">
+          <a href="#" class="btn btn-light btn-lg border me-auto">Cancelar</a>
+          <div class="text-end">
+            <button type="submit" class="btn btn-lg btn-crear btn-crear--emp" id="btn-crear-emp">
+              <span class="btn-spinner" id="spinner-emp"></span>
+              <i class="bi bi-person-plus-fill me-2" id="btn-icon-emp"></i>
+              <span id="btn-text-emp">Crear Empleado</span>
+            </button>
+            <div class="btn-hint" id="btn-hint-emp" style="display:none;">
+              <i class="bi bi-lock me-1"></i>Completá todos los campos válidos para continuar.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div><!-- /variant-emp -->
+
+
+  <!-- ============================================================
+       VARIANTE REFERIDO
+       ============================================================ -->
+  <div id="variant-ref" style="display:none;">
+
+    <div class="d-flex align-items-center mb-4">
+      <a href="#" class="btn-volver"><i class="bi bi-arrow-left"></i> Volver al portal</a>
+    </div>
+
+    <div class="form-card">
+      <div class="form-card__header form-card__header--ref">
+        <div class="form-card__header-icon"><i class="bi bi-person-plus-fill"></i></div>
+        <div>
+          <h1>Nuevo Referido</h1>
+          <p>Completá los datos para dar de alta en la base central.</p>
+        </div>
+      </div>
+
+      <div class="p-4 p-md-5">
+
+        <!-- A: Datos del cliente -->
+        <div class="form-section-label"><i class="bi bi-person-fill"></i> Datos del cliente</div>
+
+        <div class="mb-3">
+          <label for="nombre-ref" class="form-label fw-medium">
+            Nombre Completo <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <div class="input-wrap">
+            <!-- Estado "con error": campo vacío -->
+            <input type="text"
+                   class="form-control form-control-lg"
+                   id="nombre-ref"
+                   placeholder="Ej: García, María Laura"
+                   value=""
+                   autocomplete="name"
+                   aria-required="true">
+            <!-- Sin ícono cuando el campo está vacío y no se tocó aún -->
+          </div>
+          <div class="field-helper">Se sugiere Título Case al salir del campo (podés modificarlo).</div>
+        </div>
+
+        <div class="mb-4">
+          <label for="dni-ref" class="form-label fw-medium">
+            DNI / CUIT <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <div class="input-wrap" aria-live="polite" aria-atomic="true">
+            <!-- Estado de error: DNI duplicado -->
+            <input type="text"
+                   class="form-control form-control-lg"
+                   id="dni-ref"
+                   placeholder="Solo dígitos, sin puntos ni guiones"
+                   value="20123456789"
+                   maxlength="11"
+                   inputmode="numeric"
+                   aria-describedby="dni-ref-feedback"
+                   aria-invalid="true">
+            <span class="status-icon status-icon--err"><i class="bi bi-x-circle-fill"></i></span>
+            <span class="dni-counter">11/11</span>
+          </div>
+          <div class="field-feedback field-feedback--err" id="dni-ref-feedback" role="alert">
+            <i class="bi bi-x-circle-fill"></i> El DNI/CUIT ya está registrado
+          </div>
+        </div>
+
+        <!-- B: Código asignado -->
+        <div class="form-section-label"><i class="bi bi-hash"></i> Código asignado</div>
+
+        <div class="mb-4">
+          <label for="codnum-ref" class="form-label fw-medium">
+            Código <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <div class="input-group input-group-lg" style="max-width: 16rem;">
+            <span class="input-group-text prefix-badge--ref">AS</span>
+            <input type="text"
+                   class="form-control"
+                   id="codnum-ref"
+                   value="0018"
+                   maxlength="4"
+                   pattern="[0-9]{4}"
+                   inputmode="numeric"
+                   aria-describedby="codnum-ref-helper codnum-ref-feedback"
+                   style="letter-spacing:.15em; font-weight:600;">
+            <span class="input-group-text" style="background:transparent;">
+              <i class="bi bi-check-circle-fill text-success"></i>
+            </span>
+          </div>
+          <div class="field-helper" id="codnum-ref-helper">
+            <i class="bi bi-info-circle me-1"></i>Sugerido automáticamente. Podés modificarlo si necesitás.
+          </div>
+          <div class="field-feedback field-feedback--ok" id="codnum-ref-feedback" role="status">
+            <i class="bi bi-check-circle-fill"></i> Código AS0018 disponible
+          </div>
+        </div>
+
+        <!-- C: Descuento -->
+        <div class="form-section-label"><i class="bi bi-percent"></i> Descuento</div>
+
+        <div class="mb-4">
+          <label for="porc-ref" class="form-label fw-medium">Porcentaje de descuento</label>
+          <div class="desc-slider-row">
+            <input type="range" class="form-range" min="0" max="35" step="0.5" value="20" id="porc-ref-range" aria-label="Slider descuento">
+            <div class="input-group desc-number-group">
+              <input type="number" class="form-control" id="porc-ref" value="20" min="0" max="35" step="0.5" aria-label="Porcentaje numérico">
+              <span class="input-group-text">%</span>
+            </div>
+          </div>
+          <div class="field-helper">Máximo permitido: 35%.</div>
+        </div>
+
+        <!-- Callout replicación -->
+        <div class="replica-callout mb-4" role="note">
+          <i class="bi bi-broadcast callout-icon"></i>
+          <div>
+            <strong>Envío automático a todas las sucursales.</strong><br>
+            Al crear el referido, los datos se replicarán en cada sucursal habilitada. Esta operación puede tardar unos segundos.
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <hr class="mb-4">
+        <div class="d-flex gap-2 justify-content-end align-items-start flex-wrap">
+          <a href="#" class="btn btn-light btn-lg border me-auto">Cancelar</a>
+          <div class="text-end">
+            <button type="submit" class="btn btn-lg btn-crear btn-crear--ref" id="btn-crear-ref" disabled>
+              <span class="btn-spinner" id="spinner-ref"></span>
+              <i class="bi bi-person-plus-fill me-2" id="btn-icon-ref"></i>
+              <span id="btn-text-ref">Crear Referido</span>
+            </button>
+            <div class="btn-hint" id="btn-hint-ref">
+              <i class="bi bi-lock me-1"></i>Completá todos los campos válidos para habilitar.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div><!-- /variant-ref -->
+
+</main>
+
+<!-- SweetAlert2 — se incluirá en la implementación real -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  /* ---- Control del mockup ---- */
+  function showVariant(v) {
+    document.getElementById('variant-emp').style.display = v === 'emp' ? '' : 'none';
+    document.getElementById('variant-ref').style.display = v === 'ref' ? '' : 'none';
+
+    // Navbar badge
+    document.getElementById('navbar-badge-emp').style.display = v === 'emp' ? '' : 'none';
+    document.getElementById('navbar-badge-ref').style.display = v === 'ref' ? '' : 'none';
+
+    // Botones del control
+    document.getElementById('btn-emp').className = 'btn ' + (v === 'emp' ? 'btn-primary active' : 'btn-outline-primary');
+    document.getElementById('btn-ref').className = 'btn ' + (v === 'ref' ? 'btn-success active' : 'btn-outline-success');
+
+    // Resetear estado
+    setFormState('valid');
+    currentVariant = v;
+  }
+
+  let currentVariant = 'emp';
+
+  function setFormState(state) {
+    // Marcar botón de estado activo
+    ['valid','invalid','submitting'].forEach(s => {
+      document.getElementById('state-' + s).classList.toggle('active', s === state);
+    });
+
+    const v = currentVariant;
+    const btnCrear    = document.getElementById('btn-crear-' + v);
+    const spinner     = document.getElementById('spinner-' + v);
+    const btnIcon     = document.getElementById('btn-icon-' + v);
+    const btnText     = document.getElementById('btn-text-' + v);
+    const btnHint     = document.getElementById('btn-hint-' + v);
+
+    if (!btnCrear) return;
+
+    if (state === 'valid') {
+      btnCrear.disabled = false;
+      spinner.style.display = 'none';
+      btnIcon.style.display = '';
+      btnText.textContent = v === 'emp' ? 'Crear Empleado' : 'Crear Referido';
+      if (btnHint) btnHint.style.display = 'none';
+    } else if (state === 'invalid') {
+      btnCrear.disabled = true;
+      spinner.style.display = 'none';
+      btnIcon.style.display = '';
+      btnText.textContent = v === 'emp' ? 'Crear Empleado' : 'Crear Referido';
+      if (btnHint) btnHint.style.display = '';
+    } else if (state === 'submitting') {
+      btnCrear.disabled = true;
+      spinner.style.display = 'inline-block';
+      btnIcon.style.display = 'none';
+      btnText.textContent = v === 'ref' ? 'Replicando a sucursales…' : 'Creando…';
+      if (btnHint) btnHint.style.display = 'none';
+    }
+  }
+
+  /* ---- Slider ↔ número (Referidos) ---- */
+  const rangeRef = document.getElementById('porc-ref-range');
+  const numRef   = document.getElementById('porc-ref');
+  if (rangeRef && numRef) {
+    rangeRef.addEventListener('input', () => numRef.value = rangeRef.value);
+    numRef.addEventListener('input', () => {
+      if (parseFloat(numRef.value) <= 35) rangeRef.value = numRef.value;
+    });
+  }
+
+  /* ---- Demo SweetAlert2 (confirmación antes de enviar) ---- */
+  document.getElementById('btn-crear-emp').addEventListener('click', function(e) {
+    if (this.disabled) return;
+    e.preventDefault();
+    Swal.fire({
+      title: '¿Confirmás la creación?',
+      html: `
+        <div class="text-start small">
+          <div class="mb-2"><strong>Nombre:</strong> Rodriguez Martin</div>
+          <div class="mb-2"><strong>Código:</strong> E0042</div>
+          <div class="mb-2"><strong>DNI/CUIT:</strong> 32145678</div>
+          <div class="mb-0"><strong>Descuento:</strong> 35% (fijo)</div>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: '<i class="bi bi-person-plus-fill me-1"></i> Sí, crear',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#4f46e5',
+      cancelButtonColor: '#6c757d',
+      reverseButtons: true,
+    }).then(r => {
+      if (r.isConfirmed) setFormState('submitting');
+    });
+  });
+
+  document.getElementById('btn-crear-ref').addEventListener('click', function(e) {
+    if (this.disabled) return;
+    e.preventDefault();
+    Swal.fire({
+      title: '¿Confirmás la creación?',
+      html: `
+        <div class="text-start small">
+          <div class="mb-2"><strong>Nombre:</strong> López Susana</div>
+          <div class="mb-2"><strong>Código:</strong> AS0018</div>
+          <div class="mb-2"><strong>DNI/CUIT:</strong> 27987654</div>
+          <div class="mb-2"><strong>Descuento:</strong> 20%</div>
+          <div class="mb-0 text-warning-emphasis"><i class="bi bi-broadcast me-1"></i>+ Envío automático a todas las sucursales habilitadas.</div>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: '<i class="bi bi-person-plus-fill me-1"></i> Sí, crear y replicar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#059669',
+      cancelButtonColor: '#6c757d',
+      reverseButtons: true,
+    }).then(r => {
+      if (r.isConfirmed) setFormState('submitting');
+    });
+  });
+</script>
+</body>
+</html>

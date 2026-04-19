@@ -39,7 +39,23 @@ class Conexion {
         return $this->conectar(DB_HOST_SERVIDOR, $nombreDB, DB_USER_SERVIDOR, DB_PASS_SERVIDOR);
     }
 
-    public function conexionSucursalPorHost($host, $dbName, $user, $pass) {
-        return $this->conectar($host, $dbName, $user, $pass);
+    public function conexionSucursalPorHost($host, $dbName, $user, $pass, $loginTimeout = 5) {
+        $connectionInfo = [
+            'Database'               => $dbName,
+            'UID'                    => $user,
+            'PWD'                    => $pass,
+            'CharacterSet'           => 'UTF-8',
+            'Encrypt'                => false,
+            'TrustServerCertificate' => true,
+            'LoginTimeout'           => $loginTimeout,
+        ];
+
+        $cid = sqlsrv_connect($host, $connectionInfo);
+
+        if (!$cid) {
+            throw new Exception("Imposible conectarse a {$dbName}: " . self::errorMsg());
+        }
+
+        return $cid;
     }
 }

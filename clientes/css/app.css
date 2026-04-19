@@ -292,6 +292,370 @@ main { flex-grow: 1; }
 }
 
 /* ----------------------------------------------------------------
+   Botones de acción — compartidos entre formularios
+   ---------------------------------------------------------------- */
+
+.btn-crear {
+  font-weight: 600;
+  min-width: 11rem;
+  letter-spacing: -.01em;
+  transition: background-color .15s, border-color .15s, opacity .15s;
+}
+
+.btn-crear--emp { background: var(--emp-accent); border-color: var(--emp-accent); color: #fff; }
+.btn-crear--emp:hover:not(:disabled) { background: var(--emp-accent-dark); border-color: var(--emp-accent-dark); color: #fff; }
+
+.btn-crear--ref { background: var(--ref-accent); border-color: var(--ref-accent); color: #fff; }
+.btn-crear--ref:hover:not(:disabled) { background: var(--ref-accent-dark); border-color: var(--ref-accent-dark); color: #fff; }
+
+.btn-crear:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Spinner dentro del botón durante el envío */
+.btn-spinner {
+  display: none;
+  width: .95rem;
+  height: .95rem;
+  border: 2px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: form-spin .6s linear infinite;
+  margin-right: .5rem;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+@keyframes form-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Hint bajo el botón cuando está deshabilitado */
+.btn-hint {
+  font-size: .72rem;
+  color: var(--color-muted);
+  text-align: right;
+  margin-top: .4rem;
+}
+
+/* Link "Volver al portal" */
+.btn-volver {
+  color: var(--color-muted);
+  font-size: .84rem;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  transition: color .15s;
+}
+
+.btn-volver:hover { color: var(--color-text); }
+
+/* ----------------------------------------------------------------
+   Pantalla: Enviar a Sucursales (clientes.php)
+   ---------------------------------------------------------------- */
+
+/* ---- Encabezado de columna (título + contador) ---- */
+.list-col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .6rem;
+}
+
+.list-col-title {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* ---- Badge de conteo ---- */
+.counter-badge {
+  display: inline-block;
+  font-size: .67rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  padding: .22rem .7rem;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: var(--color-muted);
+  transition: background-color .2s, color .2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.counter-badge--active {
+  background: var(--emp-accent-soft);
+  color: var(--emp-accent-dark);
+}
+
+/* Variante referidos — se aplica vía form data-accent="ref" */
+[data-accent="ref"] .counter-badge--active {
+  background: var(--ref-accent-soft);
+  color: var(--ref-accent-dark);
+}
+
+/* ---- Chips de región ---- */
+.region-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.region-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  padding: .28rem .75rem;
+  border-radius: 999px;
+  border: 1.5px solid currentColor;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color .15s, color .15s;
+  font-family: var(--font-base);
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+/* Colores por portal (empleados) */
+.region-chips--emp .region-chip {
+  color: var(--emp-accent);
+  border-color: var(--emp-accent);
+}
+
+.region-chips--emp .region-chip:hover {
+  background: var(--emp-accent-soft);
+}
+
+.region-chips--emp .region-chip--active {
+  background: var(--emp-accent);
+  color: #fff;
+  border-color: var(--emp-accent);
+}
+
+/* Colores por portal (referidos) */
+.region-chips--ref .region-chip {
+  color: var(--ref-accent);
+  border-color: var(--ref-accent);
+}
+
+.region-chips--ref .region-chip:hover {
+  background: var(--ref-accent-soft);
+}
+
+.region-chips--ref .region-chip--active {
+  background: var(--ref-accent);
+  color: #fff;
+  border-color: var(--ref-accent);
+}
+
+/* ---- Listas de checkboxes ---- */
+.check-list {
+  height: 350px;
+  overflow-y: auto;
+  /* Padding izquierdo generoso para que el checkbox no quede recortado
+     por el border-radius del contenedor (overflow: hidden implícito) */
+  padding: .5rem 1rem .5rem 1.75rem;
+}
+
+/* Hover en ítems (empleados) */
+[data-accent="emp"] .cliente-item,
+[data-accent="emp"] .sucursal-item {
+  border-radius: .375rem;
+  padding: .3rem .4rem;
+  cursor: pointer;
+  transition: background-color .12s;
+}
+
+[data-accent="emp"] .cliente-item:hover,
+[data-accent="emp"] .sucursal-item:hover {
+  background-color: var(--emp-accent-soft);
+}
+
+/* Hover en ítems (referidos) */
+[data-accent="ref"] .cliente-item,
+[data-accent="ref"] .sucursal-item {
+  border-radius: .375rem;
+  padding: .3rem .4rem;
+  cursor: pointer;
+  transition: background-color .12s;
+}
+
+[data-accent="ref"] .cliente-item:hover,
+[data-accent="ref"] .sucursal-item:hover {
+  background-color: var(--ref-accent-soft);
+}
+
+/* Código de cliente/sucursal dentro del label */
+.check-code {
+  display: inline-block;
+  font-size: .72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-muted);
+  min-width: 3.5rem;
+  margin-right: .35rem;
+}
+
+/* ---- Callout de resumen de operaciones ---- */
+.resumen-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid #3b82f6;
+  border-radius: .5rem;
+  padding: .8rem 1rem;
+  font-size: .85rem;
+  color: #1e40af;
+  margin-bottom: .75rem;
+}
+
+.resumen-callout .bi {
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  margin-top: .1rem;
+  color: #3b82f6;
+}
+
+/* ---- Switch de estado con spinner ---- */
+.switch-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.spin-icon {
+  animation: form-spin .7s linear infinite;
+  font-size: 1rem;
+  color: var(--color-muted);
+}
+
+/* ----------------------------------------------------------------
+   Consulta Individual — callout de demora
+   ---------------------------------------------------------------- */
+.delay-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-left: 4px solid #f59e0b;
+  border-radius: .5rem;
+  padding: .875rem 1rem;
+  font-size: .825rem;
+  color: #78350f;
+  line-height: 1.55;
+}
+
+.delay-callout .callout-icon {
+  font-size: 1.15rem;
+  color: #d97706;
+  flex-shrink: 0;
+  margin-top: .1rem;
+}
+
+/* ----------------------------------------------------------------
+   Consulta Individual — estado de carga (dentro del card)
+   ---------------------------------------------------------------- */
+.ci-loading {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+
+.ci-loading .spinner-border {
+  width: 3rem;
+  height: 3rem;
+  color: var(--emp-accent);
+  margin-bottom: 1.25rem;
+}
+
+.ci-loading__title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: .35rem;
+}
+
+.ci-loading__sub {
+  font-size: .85rem;
+  color: var(--color-muted);
+  margin-bottom: 1.5rem;
+}
+
+.ci-progress {
+  max-width: 320px;
+  margin: 0 auto;
+  height: 6px;
+  background: #f3f4f6;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.ci-progress__bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--emp-accent), #7c3aed);
+  border-radius: 999px;
+  animation: ci-fake-progress 35s ease-out forwards;
+}
+
+@keyframes ci-fake-progress {
+  0%   { width:  0%; }
+  5%   { width: 10%; }
+  20%  { width: 35%; }
+  40%  { width: 55%; }
+  65%  { width: 72%; }
+  85%  { width: 85%; }
+  100% { width: 90%; }
+}
+
+/* ----------------------------------------------------------------
+   Consulta Individual — cards de resumen estadístico
+   ---------------------------------------------------------------- */
+.stat-card {
+  background: var(--color-surface);
+  border-radius: .75rem;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  padding: 1.4rem 1rem;
+  text-align: center;
+}
+
+.stat-card__icon { font-size: 1.85rem; margin-bottom: .35rem; }
+.stat-card__num  { font-size: 2.5rem;  font-weight: 800; line-height: 1; }
+.stat-card__lbl  { font-size: .78rem;  color: var(--color-muted); margin-top: .25rem; }
+
+.stat-card--blue  .stat-card__icon,
+.stat-card--blue  .stat-card__num  { color: #3b82f6; }
+
+.stat-card--green .stat-card__icon,
+.stat-card--green .stat-card__num  { color: #059669; }
+
+.stat-card--amber .stat-card__icon,
+.stat-card--amber .stat-card__num  { color: #d97706; }
+
+.stat-progress {
+  height: 5px;
+  background: #f3f4f6;
+  border-radius: 999px;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.stat-progress__fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width .8s ease;
+}
+
+.stat-card--blue  .stat-progress__fill { background: #3b82f6; }
+.stat-card--green .stat-progress__fill { background: #059669; }
+.stat-card--amber .stat-progress__fill { background: #d97706; }
+
+/* ----------------------------------------------------------------
    Estilos heredados — mantener selectores exactos
    ---------------------------------------------------------------- */
 
@@ -300,6 +664,18 @@ main { flex-grow: 1; }
   background-color: #f8d7da !important;
   color: #721c24 !important;
   font-weight: bold;
+}
+
+/* ----------------------------------------------------------------
+   Control de Descuentos — variante roja de stat-card
+   ---------------------------------------------------------------- */
+.stat-card--red .stat-card__icon,
+.stat-card--red .stat-card__num  { color: #ef4444; }
+.stat-card--red .stat-progress__fill { background: #ef4444; }
+
+/* Fila con bonificaciones excedidas */
+.fila-excedida td {
+  background-color: rgba(239, 68, 68, .07) !important;
 }
 
 /* Ajuste de altura de Select2 para que coincida con inputs Bootstrap lg */

@@ -108,6 +108,16 @@ class Cliente {
         return ($result && $result['total'] > 0);
     }
 
+    public function codigoDisponible($codCompleto) {
+        $sql = "SELECT COUNT(*) AS total FROM GVA14 WHERE COD_CLIENT = ?";
+        $stmt = sqlsrv_query($this->cid, $sql, [$codCompleto]);
+        if ($stmt === false) {
+            throw new Exception("Error al verificar código: " . Conexion::errorMsg());
+        }
+        $result = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+        return ($result && (int)$result['total'] === 0);
+    }
+
     public function obtenerResumenDescuentos($tipoCliente, $fechaDesde, $fechaHasta) {
         $sql = "
             SELECT

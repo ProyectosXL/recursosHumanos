@@ -3,236 +3,305 @@ require_once 'config.php';
 require_once ROOT_PATH . 'Class/Cliente.php';
 
 $scope = $_GET['scope'] ?? '';
-$filtroTipo = '';
-$pageTitle = "Consulta de Clientes";
 
 if ($scope === 'empleados') {
-    $filtroTipo = 'E';
-    $pageTitle = "Consulta de Empleados";
+    $filtroTipo    = 'E';
+    $pageTitle     = "Consulta de Empleados";
+    $accentClass   = 'emp';
+    $labelTipos    = 'empleados';
+    $urlVolver     = 'index.php';
+    $portalContext = 'empleados';
 } elseif ($scope === 'directores') {
-    $filtroTipo = 'AS';
-    $pageTitle = "Consulta de Referidos";
+    $filtroTipo    = 'AS';
+    $pageTitle     = "Consulta de Referidos";
+    $accentClass   = 'ref';
+    $labelTipos    = 'referidos';
+    $urlVolver     = 'index_directores.php';
+    $portalContext = 'referidos';
 } else {
     header('Location: index.php');
     exit();
 }
 
-// Función de ayuda para asegurar UTF-8 sin usar utf8_encode()
 function asegurarUTF8($string) {
-    if ($string === null || $string === '') {
-        return $string;
-    }
-    
-    // Si ya está en UTF-8, devolver tal cual
-    if (mb_check_encoding($string, 'UTF-8')) {
-        return $string;
-    }
-    
-    // Intentar convertir desde ISO-8859-1 (Latin-1)
+    if ($string === null || $string === '') return $string;
+    if (mb_check_encoding($string, 'UTF-8')) return $string;
     return mb_convert_encoding($string, 'UTF-8', 'ISO-8859-1');
 }
 
-$error = null;
-$clientes = [];
+function formatearFecha($fecha) {
+    if ($fecha instanceof DateTime) {
+        return $fecha->format('d/m/Y');
+    }
+    if (is_string($fecha) && $fecha !== '') {
+        $ts = strtotime($fecha);
+        return $ts !== false ? date('d/m/Y', $ts) : 'N/A';
+    }
+    return 'N/A';
+}
+
+$error        = null;
+$clientes     = [];
 $filtroEstado = $_GET['estado'] ?? '';
 
 try {
-    $cliente = new Cliente();
-    $filtros = ['tipo' => $filtroTipo, 'estado' => $filtroEstado];
+    $cliente  = new Cliente();
+    $filtros  = ['tipo' => $filtroTipo, 'estado' => $filtroEstado];
     $clientes = $cliente->consultarClientes($filtros);
 } catch (Exception $e) {
     $error = "Error al cargar los datos: " . $e->getMessage();
     error_log("Error en consulta.php: " . $e->getMessage());
 }
 
+$totalClientes      = count($clientes);
+$totalHabilitados   = count(array_filter($clientes, fn($c) => $c->Habilitado));
+$totalInhabilitados = $totalClientes - $totalHabilitados;
+
 $cuitsDuplicados = [];
 if (!empty($clientes)) {
-    $todosLosCuits = array_map(function($cli) {
-        return (isset($cli->Cuit) && !empty(trim($cli->Cuit)) && trim($cli->Cuit) !== '0') ? trim($cli->Cuit) : null;
-    }, $clientes);
+    $todosLosCuits = array_map(fn($cli) =>
+        (isset($cli->Cuit) && !empty(trim($cli->Cuit)) && trim($cli->Cuit) !== '0')
+            ? trim($cli->Cuit) : null,
+        $clientes
+    );
     $cuitsValidos = array_filter($todosLosCuits);
     if (!empty($cuitsValidos)) {
-        $conteoCuits = array_count_values($cuitsValidos);
-        $cuitsDuplicados = array_keys(array_filter($conteoCuits, function($count) {
-            return $count > 1;
-        }));
+        $conteoCuits     = array_count_values($cuitsValidos);
+        $cuitsDuplicados = array_keys(array_filter($conteoCuits, fn($count) => $count > 1));
     }
 }
 
 $extraHeaders = '
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 ';
 
-$pageScripts = "
-<script src=\"https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js\"></script>
-<script src=\"https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js\"></script>
+$mainContainerClass = 'py-5';
+
+ob_start();
+?>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 <script>
-$(document).ready(function() {
-    var table = $('#tablaClientes').DataTable({
-    pageLength: 100,
+$(document).ready(function () {
+
+    $('#tablaClientes').DataTable({
+        pageLength: 100,
         language: {
-            \"processing\": \"Procesando...\",
-            \"lengthMenu\": \"Mostrar _MENU_ registros\",
-            \"zeroRecords\": \"No se encontraron resultados\",
-            \"emptyTable\": \"Ningún dato disponible en esta tabla\",
-            \"info\": \"Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros\",
-            \"infoEmpty\": \"Mostrando registros del 0 al 0 de un total de 0 registros\",
-            \"infoFiltered\": \"(filtrado de un total de _MAX_ registros)\",
-            \"search\": \"Buscar:\",
-            \"loadingRecords\": \"Cargando...\",
-            \"paginate\": {
-                \"first\": \"Primero\",
-                \"last\": \"Último\",
-                \"next\": \"Siguiente\",
-                \"previous\": \"Anterior\"
-            },
-            \"aria\": {
-                \"sortAscending\": \": Activar para ordenar la columna de manera ascendente\",
-                \"sortDescending\": \": Activar para ordenar la columna de manera descendente\"
-            }
+            processing:   'Procesando...',
+            lengthMenu:   'Mostrar _MENU_ registros',
+            zeroRecords:  'No se encontraron resultados',
+            emptyTable:   'Ningún dato disponible',
+            info:         'Mostrando _START_ al _END_ de _TOTAL_ registros',
+            infoEmpty:    'Mostrando 0 registros',
+            infoFiltered: '(filtrado de _MAX_)',
+            search:       'Buscar:',
+            paginate:     { first: 'Primero', last: 'Último', next: 'Siguiente', previous: 'Anterior' }
         }
     });
 
-    const toastEl = document.getElementById('liveToast');
-    const toast = new bootstrap.Toast(toastEl);
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+        new bootstrap.Tooltip(el);
+    });
 
-    $('#tablaClientes tbody').on('change', '.estado-switch', function() {
-        const checkbox = $(this);
-        const codigoCliente = checkbox.data('codigo-cliente');
-        const nuevoEstado = checkbox.is(':checked');
-        
+    var accentColor = '<?= $accentClass === 'ref' ? '#059669' : '#4f46e5' ?>';
+
+    $('#tablaClientes tbody').on('change', '.estado-switch', function () {
+        var checkbox      = $(this);
+        var cell          = checkbox.closest('.switch-cell');
+        var spinner       = cell.find('.switch-spinner');
+        var codigoCli     = checkbox.data('codigo-cliente');
+        var nuevoEstado   = checkbox.is(':checked');
+
         checkbox.prop('disabled', true);
-        
+        spinner.show();
+
         fetch('ajax_toggle_estado.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                codigo_cliente: codigoCliente,
-                nuevo_estado: nuevoEstado
-            })
+            body: JSON.stringify({ codigo_cliente: codigoCli, nuevo_estado: nuevoEstado })
         })
-        .then(response => response.json())
-        .then(data => {
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
             if (data.success) {
-                $('#toastTitle').text('Éxito').removeClass('text-danger').addClass('text-success');
-                $('#toastBody').html(data.message);
-                toast.show();
+                Swal.fire({
+                    toast: true, position: 'top-end',
+                    icon: 'success', title: data.message,
+                    showConfirmButton: false, timer: 4000,
+                    timerProgressBar: true, iconColor: accentColor
+                });
             } else {
                 checkbox.prop('checked', !nuevoEstado);
-                $('#toastTitle').text('Error').removeClass('text-success').addClass('text-danger');
-                $('#toastBody').html(data.message);
-                toast.show();
+                Swal.fire({
+                    toast: true, position: 'top-end',
+                    icon: 'error', title: data.message,
+                    showConfirmButton: false, timer: 4000,
+                    timerProgressBar: true
+                });
             }
         })
-        .catch(error => {
+        .catch(function () {
             checkbox.prop('checked', !nuevoEstado);
-            $('#toastTitle').text('Error').removeClass('text-success').addClass('text-danger');
-            $('#toastBody').text('Error de conexión con el servidor.');
-            toast.show();
-            console.error('Error:', error);
+            Swal.fire({
+                toast: true, position: 'top-end',
+                icon: 'error', title: 'Error de conexión con el servidor.',
+                showConfirmButton: false, timer: 4000,
+                timerProgressBar: true
+            });
         })
-        .finally(() => {
+        .finally(function () {
             checkbox.prop('disabled', false);
+            spinner.hide();
         });
     });
+
+    document.getElementById('btn-exportar').addEventListener('click', function () {
+        var btn     = this;
+        var icon    = btn.querySelector('.export-icon');
+        var spinner = btn.querySelector('.btn-spinner');
+        btn.disabled          = true;
+        icon.style.display    = 'none';
+        spinner.style.display = 'inline-block';
+        setTimeout(function () {
+            window.open(btn.dataset.href, '_blank');
+            btn.disabled          = false;
+            icon.style.display    = 'inline-block';
+            spinner.style.display = 'none';
+        }, 500);
+    });
+
 });
 </script>
-";
+<?php
+$pageScripts = ob_get_clean();
 
 include_once ROOT_PATH . 'templates/header.php';
 ?>
 
 <div class="mx-auto" style="max-width: 1400px;">
-    
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <a href="<?= ($scope === 'empleados') ? 'index.php' : 'index_directores.php' ?>" class="btn btn-light border"><i class="bi bi-arrow-left"></i> Volver</a>
-        <h1 class="h3 mb-0 text-center"><?= htmlspecialchars($pageTitle) ?></h1>
-        <div style="width: 88px;"></div>
+
+    <div class="d-flex align-items-center mb-3">
+        <a href="<?= htmlspecialchars($urlVolver) ?>" class="btn-volver">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver al portal
+        </a>
     </div>
-    
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form action="consulta.php" method="GET">
-                <input type="hidden" name="scope" value="<?= htmlspecialchars($scope) ?>">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-4">
-                        <label for="estado" class="form-label">Filtrar por Estado</label>
-                        <select name="estado" id="estado" class="form-select">
-                            <option value="">Cualquier Estado</option>
-                            <option value="1" <?= ($filtroEstado == '1') ? 'selected' : '' ?>>Habilitado</option>
-                            <option value="0" <?= ($filtroEstado == '0') ? 'selected' : '' ?>>Inhabilitado</option>
-                        </select>
-                    </div>
-                    <div class="col-md-8 d-flex">
-                        <button type="submit" class="btn btn-primary w-100 me-2"><i class="bi bi-funnel-fill me-1"></i>Filtrar</button>
-                        <a href="consulta.php?scope=<?= htmlspecialchars($scope) ?>" class="btn btn-secondary w-100 me-2"><i class="bi bi-arrow-clockwise me-1"></i>Limpiar</a>
-                        <a href="exportar_excel.php?tipo=<?= htmlspecialchars($filtroTipo) ?>&estado=<?= htmlspecialchars($filtroEstado) ?>" class="btn btn-success w-100" target="_blank">
-                            <i class="bi bi-file-earmark-excel-fill me-1"></i>Exportar
-                        </a>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <?php if ($error): ?>
-                <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+
+    <div class="portal-heading d-flex align-items-start justify-content-between flex-wrap gap-3">
+        <div>
+            <h1><?= htmlspecialchars($pageTitle) ?></h1>
+            <?php if (!$error): ?>
+            <p>
+                <?= $totalClientes ?> <?= htmlspecialchars($labelTipos) ?>
+                &nbsp;&middot;&nbsp;
+                <span class="text-success fw-semibold"><?= $totalHabilitados ?> habilitados</span>
+                &nbsp;/&nbsp;
+                <span class="text-danger fw-semibold"><?= $totalInhabilitados ?> inhabilitados</span>
+            </p>
             <?php else: ?>
-                <div class="table-responsive">
-                    <table id="tablaClientes" class="table table-striped table-hover align-middle" style="width:100%;">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Código</th>
-                                <th>Nombre</th>
-                                <th>DNI / CUIT</th>
-                                <th class="text-end">% Descuento</th>
-                                <th>Fecha de Alta</th>
-                                <th class="text-center">Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($clientes as $cli): ?>
-                                <tr id="cliente-<?= htmlspecialchars(asegurarUTF8($cli->Codigo ?? ''), ENT_QUOTES, 'UTF-8') ?>">
-                                    <td><?= htmlspecialchars(asegurarUTF8($cli->Codigo ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
-                                    <td><?= htmlspecialchars(mb_convert_encoding($cli->Nombre ?? '', 'UTF-8', 'ISO-8859-1'), ENT_QUOTES, 'UTF-8') ?></td>
-                                    <?php
-                                    $cuitActual = isset($cli->Cuit) ? trim($cli->Cuit) : '';
-                                    $esDuplicado = !empty($cuitActual) && in_array($cuitActual, $cuitsDuplicados);
-                                    ?>
-                                    <td class="<?= $esDuplicado ? 'duplicado' : '' ?>">
-                                        <?= htmlspecialchars(asegurarUTF8($cuitActual), ENT_QUOTES, 'UTF-8') ?>
-                                    </td>
-                                    <td class="text-end"><?= number_format((float)($cli->PorcentajeDescuento ?? 0), 2) ?>%</td>
-                                    <td><?= ($cli->FechaAlta ?? null) ? date('d/m/Y', strtotime($cli->FechaAlta)) : 'N/A'; ?></td>
-                                    <td class="text-center">
-                                        <div class="form-check form-switch d-inline-block">
-                                            <input class="form-check-input estado-switch" type="checkbox" 
-                                                   role="switch" 
-                                                   data-codigo-cliente="<?= htmlspecialchars(asegurarUTF8($cli->Codigo ?? ''), ENT_QUOTES, 'UTF-8') ?>"
-                                                   <?= ($cli->Habilitado) ? 'checked' : '' ?>>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+            <p>Consultá y gestioná el estado de los <?= htmlspecialchars($labelTipos) ?>.</p>
             <?php endif; ?>
         </div>
-    </div>
-</div>
 
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header">
-            <strong class="me-auto" id="toastTitle"></strong>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        <div class="region-chips region-chips--<?= $accentClass ?>"
+             role="group"
+             aria-label="Filtrar por estado">
+            <a href="consulta.php?scope=<?= urlencode($scope) ?>"
+               class="region-chip <?= ($filtroEstado === '') ? 'region-chip--active' : '' ?>">
+                Todos
+            </a>
+            <a href="consulta.php?scope=<?= urlencode($scope) ?>&estado=1"
+               class="region-chip <?= ($filtroEstado === '1') ? 'region-chip--active' : '' ?>">
+                <i class="bi bi-check-circle me-1" aria-hidden="true"></i>Habilitados
+            </a>
+            <a href="consulta.php?scope=<?= urlencode($scope) ?>&estado=0"
+               class="region-chip <?= ($filtroEstado === '0') ? 'region-chip--active' : '' ?>">
+                <i class="bi bi-x-circle me-1" aria-hidden="true"></i>Inhabilitados
+            </a>
         </div>
-        <div class="toast-body" id="toastBody"></div>
     </div>
+
+    <?php if ($error): ?>
+    <div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+        <i class="bi bi-exclamation-triangle-fill flex-shrink-0" aria-hidden="true"></i>
+        <div><?= htmlspecialchars($error) ?></div>
+    </div>
+    <?php else: ?>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+
+            <div class="d-flex justify-content-end p-3 border-bottom">
+                <button type="button"
+                        id="btn-exportar"
+                        class="btn btn-success btn-sm"
+                        data-href="exportar_excel.php?tipo=<?= urlencode($filtroTipo) ?>&estado=<?= urlencode($filtroEstado) ?>">
+                    <i class="bi bi-file-earmark-excel-fill export-icon me-1" aria-hidden="true"></i>
+                    <span class="btn-spinner" style="display:none;" aria-hidden="true"></span>
+                    Exportar a Excel
+                </button>
+            </div>
+
+            <div class="table-responsive p-3">
+                <table id="tablaClientes"
+                       class="table table-striped table-hover align-middle"
+                       style="width:100%;">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>DNI / CUIT</th>
+                            <th class="text-end">% Desc.</th>
+                            <th>Fecha de Alta</th>
+                            <th class="text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($clientes as $cli): ?>
+                        <?php
+                        $cuitActual  = isset($cli->Cuit) ? trim($cli->Cuit) : '';
+                        $esDuplicado = !empty($cuitActual) && $cuitActual !== '0' && in_array($cuitActual, $cuitsDuplicados);
+                        $codigoCli   = htmlspecialchars(asegurarUTF8($cli->Codigo ?? ''), ENT_QUOTES, 'UTF-8');
+                        ?>
+                        <tr id="cliente-<?= $codigoCli ?>">
+                            <td><?= $codigoCli ?></td>
+                            <td><?= htmlspecialchars(mb_convert_encoding($cli->Nombre ?? '', 'UTF-8', 'ISO-8859-1'), ENT_QUOTES, 'UTF-8') ?></td>
+                            <td>
+                                <?php if ($esDuplicado): ?>
+                                <span class="duplicado"
+                                      data-bs-toggle="tooltip"
+                                      data-bs-title="CUIT duplicado en la lista">
+                                    <?= htmlspecialchars(asegurarUTF8($cuitActual), ENT_QUOTES, 'UTF-8') ?>
+                                </span>
+                                <?php else: ?>
+                                <?= htmlspecialchars(asegurarUTF8($cuitActual), ENT_QUOTES, 'UTF-8') ?>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-end"><?= number_format((float)($cli->PorcentajeDescuento ?? 0), 2) ?>%</td>
+                            <td><?= formatearFecha($cli->FechaAlta ?? null) ?></td>
+                            <td class="text-center">
+                                <div class="switch-cell">
+                                    <div class="form-check form-switch d-inline-block mb-0">
+                                        <input class="form-check-input estado-switch"
+                                               type="checkbox"
+                                               role="switch"
+                                               data-codigo-cliente="<?= $codigoCli ?>"
+                                               <?= ($cli->Habilitado) ? 'checked' : '' ?>>
+                                    </div>
+                                    <i class="bi bi-arrow-repeat switch-spinner spin-icon"
+                                       style="display:none;"
+                                       aria-hidden="true"></i>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <?php endif; ?>
 </div>
 
 <?php include_once ROOT_PATH . 'templates/footer.php'; ?>
