@@ -40,15 +40,6 @@ $hasPortal   = $isEmpleados || $isReferidos;
 
         <?php if ($hasPortal): ?>
         <div class="d-flex align-items-center gap-3">
-            <?php if ($isEmpleados): ?>
-                <a href="<?= BASE_URL ?>index_directores.php" class="navbar-link-portal">
-                    Portal Referidos <i class="bi bi-arrow-right-short"></i>
-                </a>
-            <?php else: ?>
-                <a href="<?= BASE_URL ?>index.php" class="navbar-link-portal">
-                    Portal Empleados <i class="bi bi-arrow-right-short"></i>
-                </a>
-            <?php endif; ?>
             <button type="button" class="btn-navbar-help" data-bs-toggle="modal" data-bs-target="#ayudaModal">
                 <i class="bi bi-question-circle me-1"></i>Ayuda
             </button>
