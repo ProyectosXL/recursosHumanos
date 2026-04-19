@@ -52,10 +52,9 @@ try {
                 );
                 
                 $sqlUpdateSucursal = "UPDATE GVA14 SET FECHA_INHA = ? WHERE COD_CLIENT = ?";
-                $stmt = odbc_prepare($cidSucursal, $sqlUpdateSucursal);
-                
-                if (!$stmt || !odbc_execute($stmt, [$fechaInha, $codigoCliente])) {
-                    throw new Exception("Error al ejecutar UPDATE en {$sucursal->DbName}: " . odbc_errormsg($cidSucursal));
+                $stmt = sqlsrv_query($cidSucursal, $sqlUpdateSucursal, [$fechaInha, $codigoCliente]);
+                if ($stmt === false) {
+                    throw new Exception("Error al ejecutar UPDATE en {$sucursal->DbName}: " . Conexion::errorMsg());
                 }
                 
                 $resultadosSync['exito']++;
