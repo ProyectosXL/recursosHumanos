@@ -51,6 +51,7 @@ from term_scoring import TermScorer
 from utils.config import (
     IS_CLOUD, IS_HF_SPACE, IS_RAILWAY,
     PORT, PHP_SERVER_URL, GOOGLE_API_KEY,
+    TAGS_GLOSSARY_PIPELINE_MODE,
     CHROMA_DB_PATH, LOG_LEVEL, LOG_FILE
 )
 from utils.models import (
@@ -65,6 +66,7 @@ from utils.chunking import create_chunks, generate_chunk_id, ChunkingError
 from utils.embeddings import generate_embeddings_batch, test_gemini_connection, EmbeddingError
 from utils.database import get_chroma_client, ChromaDBError
 from utils.rag import generate_rag_response, RAGError
+from utils.tags_glossary_llm import run_llm_tags_glossary_pipeline
 
 # ============================================================================
 # CONFIGURACIÓN DE LOGGING
@@ -131,6 +133,7 @@ async def startup_event():
     logger.info(f"  Entorno: {'HF Space' if IS_HF_SPACE else 'Railway' if IS_RAILWAY else 'local'}")
     logger.info(f"  Puerto: {PORT}")
     logger.info(f"  ChromaDB: {CHROMA_DB_PATH}")
+    logger.info(f"  Tags/Glosario pipeline mode: {TAGS_GLOSSARY_PIPELINE_MODE}")
     logger.info("=" * 80)
 
     # --- 1. Cargar modelos Tags/Glosario ---
@@ -508,22 +511,35 @@ def procesar_documento_texto(texto: str, sector: Optional[str] = None) -> tuple:
         if 2 <= len(acr) <= 10 and normalize_candidate(acr) not in {normalize_candidate(c) for c in candidatos_list}:
             candidatos_list.append(acr)
 
-    # Scoring ML
-    scored_terms = scorer.score_and_rank_terms(candidates=candidatos_list, full_text=texto, sector=sector)
+    # Scoring ML (all scored terms for LLM candidates + legacy filtering)
+    scored_terms_all = scorer.score_and_rank_terms(
+        candidates=candidatos_list,
+        full_text=texto,
+        sector=sector,
+        return_all_scored=True,
+    )
+    valid_scored_terms = [t for t in scored_terms_all if t.is_valid]
 
-    tags = []
-    glosario = []
+    term_score_by_norm = {}
+    term_context_map = {}
+    for term_score in scored_terms_all:
+        norm = normalize_candidate(term_score.term)
+        if norm not in term_score_by_norm:
+            term_score_by_norm[norm] = term_score
+        if norm not in term_context_map and term_score.context_snippet:
+            term_context_map[norm] = limpiar_definicion(term_score.context_snippet, max_chars=200)
+
+    legacy_tags = []
+    legacy_glosario = []
     valid_terms_count = 0
     typology_counts = {}
 
-    for term_score in scored_terms:
-        if not term_score.is_valid:
-            continue
+    for term_score in valid_scored_terms:
         valid_terms_count += 1
         typology = term_score.term_typology
         typology_counts[typology] = typology_counts.get(typology, 0) + 1
 
-        tags.append(TerminoTag(
+        legacy_tags.append(TerminoTag(
             termino=term_score.term,
             score=round(term_score.total_score, 3),
             occurrences=term_score.occurrences,
@@ -539,24 +555,15 @@ def procesar_documento_texto(texto: str, sector: Optional[str] = None) -> tuple:
             and term_score.total_score >= 0.60
             and term_score.features.get('short_tech_evidence', 0.0) >= 1.0
         )
-        # Siglas técnicas reales: ALL CAPS, 2-4 chars, sin contexto definitorio necesario.
-        # Restricciones estrictas para 0 FP:
-        #   - term.isupper(): excluye "Accedé", "Observada", "Repetí" (verbos argentinos
-        #     con mayúscula inicial que el sistema confunde con acronym)
-        #   - len <= 4: excluye "RETIRA"(6), "FALLA"(5), "CENTRAL"(7) — palabras
-        #     castellanas en ALL CAPS que son section labels, no siglas técnicas
-        #   - len >= 2: excluye tokens de 1 char
-        # Captura: HTML(4), PHP(3), SQL(3), API(3), CSS(3), SSMS(4)
         is_high_confidence_acronym = (
             term_score.term_typology == "acronym"
-            and term_score.term.isupper()               # estrictamente all-caps
-            and 2 <= len(term_score.term) <= 4          # sigla corta, no palabra completa
+            and term_score.term.isupper()
+            and 2 <= len(term_score.term) <= 4
             and term_score.total_score >= 0.62
         )
-        # CamelCase/techshape de 1 sola palabra (JavaScript, PostgreSQL, OAuth, etc.)
         is_high_confidence_techshape = (
             term_score.term_typology == "techshape"
-            and len(term_score.term.split()) == 1       # solo palabras simples, no compuestos
+            and len(term_score.term.split()) == 1
             and term_score.total_score >= 0.65
         )
         is_glossary = (
@@ -564,8 +571,8 @@ def procesar_documento_texto(texto: str, sector: Optional[str] = None) -> tuple:
             or is_high_confidence_acronym
             or is_high_confidence_techshape
             or (
-                context_patterns_score >= 0.25      # era 0.30
-                and term_score.total_score >= 0.65  # era 0.72
+                context_patterns_score >= 0.25
+                and term_score.total_score >= 0.65
                 and (is_multiword or is_technical)
             )
         )
@@ -576,7 +583,7 @@ def procesar_documento_texto(texto: str, sector: Optional[str] = None) -> tuple:
             definicion_final = shorten_definition(wiki_extract, max_chars=250) if wiki_extract else None
             contexto_limpio = limpiar_definicion(contexto_documento, max_chars=200)
 
-            glosario.append(TerminoGlosario(
+            legacy_glosario.append(TerminoGlosario(
                 termino=term_score.term,
                 score=round(term_score.total_score, 3),
                 occurrences=term_score.occurrences,
@@ -586,25 +593,142 @@ def procesar_documento_texto(texto: str, sector: Optional[str] = None) -> tuple:
                 definicion=definicion_final
             ))
 
-    tags.sort(key=lambda x: x.score, reverse=True)
-    glosario.sort(key=lambda x: x.score, reverse=True)
-    tags = tags[:20]
-    glosario = glosario[:10]
+    legacy_tags.sort(key=lambda x: x.score, reverse=True)
+    legacy_glosario.sort(key=lambda x: x.score, reverse=True)
+    legacy_tags = legacy_tags[:20]
+    legacy_glosario = legacy_glosario[:10]
+
+    final_tags = legacy_tags
+    final_glosario = legacy_glosario
 
     metadata = {
         "candidatos_extraidos": len(candidatos_list),
-        "candidatos_scored": len(scored_terms),
+        "candidatos_scored": len(scored_terms_all),
         "valid_terms_count": valid_terms_count,
-        "tags_generados": len(tags),
-        "glosario_generados": len(glosario),
         "caracteres_procesados": len(texto),
-        "modelo_version": "3.2.0",
+        "modelo_version": "3.3.0",
         "mode": "in_doc_candidate",
+        "pipeline_mode": TAGS_GLOSSARY_PIPELINE_MODE,
+        "pipeline_mode_applied": "legacy",
+        "legacy_tags_generados": len(legacy_tags),
+        "legacy_glosario_generados": len(legacy_glosario),
     }
+
+    if TAGS_GLOSSARY_PIPELINE_MODE in ("shadow", "hybrid"):
+        llm_candidates = []
+        for term_score in scored_terms_all[:80]:
+            norm = normalize_candidate(term_score.term)
+            llm_candidates.append({
+                "termino": term_score.term,
+                "score": term_score.total_score,
+                "occurrences": term_score.occurrences,
+                "tipologia": term_score.term_typology,
+                "contexto": term_context_map.get(norm, ""),
+            })
+
+        llm_result = run_llm_tags_glossary_pipeline(
+            document_text=texto,
+            sector=sector,
+            candidates=llm_candidates,
+            legacy_tags=[t.termino for t in legacy_tags],
+            legacy_glossary=[g.termino for g in legacy_glosario],
+            term_context_map={
+                ts.term: term_context_map.get(normalize_candidate(ts.term), "")
+                for ts in scored_terms_all
+            },
+        )
+
+        metadata["llm_ok"] = llm_result.get("ok", False)
+        metadata["llm_model"] = llm_result.get("model", "")
+
+        if TAGS_GLOSSARY_PIPELINE_MODE == "shadow":
+            metadata["pipeline_mode_applied"] = "shadow_legacy_response"
+            metadata["llm_shadow_tags"] = len(llm_result.get("tags", []))
+            metadata["llm_shadow_glosario"] = len(llm_result.get("glossary", []))
+            if not llm_result.get("ok", False):
+                metadata["llm_error"] = llm_result.get("error", "unknown_error")
+
+        if TAGS_GLOSSARY_PIPELINE_MODE == "hybrid":
+            if llm_result.get("ok", False):
+                llm_tags = []
+                for term in llm_result.get("tags", []):
+                    norm = normalize_candidate(term)
+                    score_ref = term_score_by_norm.get(norm)
+                    if score_ref is None:
+                        llm_tags.append(TerminoTag(
+                            termino=term,
+                            score=0.5,
+                            occurrences=1,
+                            threshold=0.0,
+                            threshold_type="llm"
+                        ))
+                    else:
+                        llm_tags.append(TerminoTag(
+                            termino=score_ref.term,
+                            score=round(score_ref.total_score, 3),
+                            occurrences=score_ref.occurrences,
+                            threshold=round(score_ref.threshold_used, 2),
+                            threshold_type=score_ref.term_typology
+                        ))
+
+                legacy_def_by_norm = {
+                    normalize_candidate(item.termino): item.definicion or ""
+                    for item in legacy_glosario
+                }
+                llm_glossary = []
+                for item in llm_result.get("glossary", []):
+                    term = item.get("termino", "")
+                    if not term:
+                        continue
+
+                    norm = normalize_candidate(term)
+                    score_ref = term_score_by_norm.get(norm)
+                    definicion = (item.get("definicion", "") or "").strip()
+                    if not definicion:
+                        definicion = legacy_def_by_norm.get(norm, "")
+
+                    if score_ref is None:
+                        llm_glossary.append(TerminoGlosario(
+                            termino=term,
+                            score=0.5,
+                            occurrences=1,
+                            threshold=0.0,
+                            threshold_type="llm",
+                            contexto=term_context_map.get(norm, ""),
+                            definicion=definicion
+                        ))
+                    else:
+                        llm_glossary.append(TerminoGlosario(
+                            termino=score_ref.term,
+                            score=round(score_ref.total_score, 3),
+                            occurrences=score_ref.occurrences,
+                            threshold=round(score_ref.threshold_used, 2),
+                            threshold_type=score_ref.term_typology,
+                            contexto=term_context_map.get(norm, ""),
+                            definicion=definicion
+                        ))
+
+                if llm_tags or llm_glossary:
+                    llm_tags.sort(key=lambda x: x.score, reverse=True)
+                    llm_glossary.sort(key=lambda x: x.score, reverse=True)
+                    final_tags = llm_tags[:20]
+                    final_glosario = llm_glossary[:10]
+                    metadata["pipeline_mode_applied"] = "hybrid_llm"
+                    metadata["hybrid_tags_generados"] = len(final_tags)
+                    metadata["hybrid_glosario_generados"] = len(final_glosario)
+                else:
+                    metadata["pipeline_mode_applied"] = "hybrid_legacy_fallback"
+            else:
+                metadata["pipeline_mode_applied"] = "hybrid_legacy_fallback"
+                metadata["llm_error"] = llm_result.get("error", "unknown_error")
+
+    metadata["tags_generados"] = len(final_tags)
+    metadata["glosario_generados"] = len(final_glosario)
+
     if DEBUG:
         metadata["debug_typology_distribution"] = typology_counts
 
-    return tags, glosario, metadata
+    return final_tags, final_glosario, metadata
 
 
 def extraer_texto_pdf_base64(contenido_base64: str) -> str:
@@ -635,6 +759,7 @@ async def root():
         "version": "1.0.0",
         "status": "running",
         "tags_modelo": "ML Engineering v3.2 (KeyBERT + YAKE + spaCy, 0 FP)",
+        "tags_pipeline_mode": TAGS_GLOSSARY_PIPELINE_MODE,
         "rag_modelo": "Gemini text-embedding-004 + ChromaDB + Gemma 3-27B",
         "documentation": "/docs",
         "entorno": "hf_space" if IS_HF_SPACE else "railway" if IS_RAILWAY else "local"
@@ -651,6 +776,7 @@ async def health_check():
         return {
             "status": "healthy",
             "tags_modelos_cargados": extractor is not None and scorer is not None,
+            "tags_pipeline_mode": TAGS_GLOSSARY_PIPELINE_MODE,
             "chromadb_ok": True,
             "total_chunks": chroma_stats['total_chunks'],
             "total_documentos": chroma_stats['total_documentos_indexados'],

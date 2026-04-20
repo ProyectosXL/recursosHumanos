@@ -34,8 +34,8 @@ register_shutdown_function(function() {
 });
 
 try {
-    require_once __DIR__ . '/../../../class/conexion.php';
-} catch (Exception $e) {
+    require_once __DIR__ . '/../../Class/conexion.php';
+} catch (Throwable $e) {
     sendJsonResponse([
         'status' => 'error',
         'message' => 'Error al cargar archivos necesarios: ' . $e->getMessage(),
