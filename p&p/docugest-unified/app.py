@@ -622,6 +622,8 @@ def procesar_documento_texto(texto: str, sector: Optional[str] = None) -> tuple:
                 "termino": term_score.term,
                 "score": term_score.total_score,
                 "occurrences": term_score.occurrences,
+                "threshold": term_score.threshold_used,
+                "is_valid": term_score.is_valid,
                 "tipologia": term_score.term_typology,
                 "contexto": term_context_map.get(norm, ""),
             })

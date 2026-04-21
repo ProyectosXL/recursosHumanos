@@ -96,6 +96,8 @@ _DEFINITION_CACHE: Dict[str, Dict[str, Any]] = {}
 # - llm_first: más libertad al modelo, gate mínimo anti-ruido
 # - strict: mantiene umbrales más conservadores
 GLOSSARY_SELECTION_STRATEGY = "llm_first"
+CLASSIFICATION_PROMPT_VERSION = "2026-04-21-semantic-v3"
+DEFINITION_PROMPT_VERSION = "2026-04-21-general-definitions-v2"
 
 
 class TagsGlossaryLLMError(Exception):
@@ -117,6 +119,25 @@ def _safe_excerpt(text: str, max_chars: int) -> str:
     if len(cleaned) <= max_chars:
         return cleaned
     return cleaned[:max_chars]
+
+
+def _looks_like_acronym(term: str) -> bool:
+    compact = re.sub(r"[^A-Za-z0-9]", "", term or "")
+    if not compact:
+        return False
+    if any(ch.isdigit() for ch in compact):
+        return True
+    return compact.isupper() and len(compact) <= 4
+
+
+def _format_term_for_output(term: str) -> str:
+    """Evita salida en MAYUSCULA salvo acrónimos técnicos reales."""
+    clean = _normalize_space(term)
+    if not clean:
+        return ""
+    if clean.isupper() and not _looks_like_acronym(clean):
+        return clean.title()
+    return clean
 
 
 def _safe_json_load(raw: str) -> Dict[str, Any]:
@@ -203,6 +224,8 @@ def _compact_candidates(candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]
                 "termino": term,
                 "score": round(float(candidate.get("score", 0.0)), 4),
                 "occurrences": int(candidate.get("occurrences", 0) or 0),
+                "threshold": round(float(candidate.get("threshold", 0.0) or 0.0), 4),
+                "is_valid": bool(candidate.get("is_valid", False)),
                 "tipologia": candidate.get("tipologia", "default"),
                 "contexto": _safe_excerpt(candidate.get("contexto", ""), 180),
             }
@@ -224,6 +247,7 @@ def _classification_cache_key(
         "legacy_tags": legacy_tags[:10],
         "legacy_glossary": legacy_glossary[:10],
         "model": TAGS_GLOSSARY_LLM_MODEL,
+        "prompt_version": CLASSIFICATION_PROMPT_VERSION,
     }
     payload = json.dumps(data, ensure_ascii=True, sort_keys=True)
     return hashlib.sha1(payload.encode("utf-8")).hexdigest()
@@ -320,6 +344,35 @@ Lineamientos:
     - Incluir conceptos que aporten valor reutilizable al glosario.
     - Admitir términos contextuales si son relevantes para el dominio.
     - Evitar solo ruido evidente (tokens sueltos, basura de formato o URL).
+
+Regla semántica principal para GLOSARIO:
+- Incluir solo términos que un empleado nuevo probablemente necesite consultar.
+- Si un término es demasiado amplio, cotidiano o autoexplicativo, EXCLUIR.
+- Si un término describe una acción operativa genérica (enviar, devolver, retirar,
+  comprar, despachar) o una categoría administrativa amplia, EXCLUIR salvo que
+  sea un concepto técnico formal claramente especializado.
+
+Criterios fuertes de EXCLUSION para glosario (semánticos):
+- Palabras de estructura documental o de maquetación: encabezados, secciones,
+    títulos, índices, carátulas, numeraciones.
+- Sustantivos de negocio demasiado generales que no representan un concepto
+    técnico/especializado por sí mismos.
+- Palabras en MAYUSCULA usadas como título o énfasis, cuando no son acrónimos
+    técnicos claros (ejemplo de acrónimo válido: "SLA", "KPI", "GDPR").
+- Términos que podrían aparecer en casi cualquier procedimiento de cualquier área.
+
+Chequeo mental antes de incluir cada término en glosario:
+1) ¿Es específico del dominio/proceso y no solo una palabra general?
+2) ¿Su significado podría no ser obvio para alguien nuevo?
+3) ¿Aporta valor en un glosario corporativo reusable?
+Si no cumple claramente al menos 2 de 3, EXCLUIR.
+
+Ejemplos de EXCLUSION (orientativos):
+- "MANUAL" (estructura documental)
+- "FLUJO" (concepto demasiado amplio si no está especializado)
+- "COMPRA" (sustantivo de negocio genérico si no está especializado)
+- "ENVIOS", "DEVOLUCION", "RETIRO", "REMISION" cuando se usan como motivo
+    operativo general y no como término técnico de taxonomía formal.
 - Limite tags: {TAGS_GLOSSARY_LLM_MAX_TAGS}
 - Limite glosario: {TAGS_GLOSSARY_LLM_MAX_GLOSSARY}
 
@@ -373,6 +426,14 @@ CANDIDATOS:
                 continue
             glossary_terms.append(term)
 
+    if glossary_terms:
+        glossary_terms = _review_glossary_terms_with_llm(
+            sector=sector,
+            excerpt=excerpt,
+            glossary_terms=glossary_terms,
+            candidate_info_by_term=candidate_info_by_term,
+        )
+
     parsed = {
         "tags": tags,
         "glossary_terms": glossary_terms,
@@ -380,6 +441,87 @@ CANDIDATOS:
     }
     _CLASSIFICATION_CACHE[cache_key] = parsed
     return parsed
+
+
+def _review_glossary_terms_with_llm(
+    sector: Optional[str],
+    excerpt: str,
+    glossary_terms: List[str],
+    candidate_info_by_term: Dict[str, Dict[str, Any]],
+) -> List[str]:
+    """Segunda pasada LLM para depurar términos genéricos del glosario."""
+    if not glossary_terms:
+        return []
+
+    review_payload = []
+    for term in glossary_terms:
+        info = candidate_info_by_term.get(term, {})
+        review_payload.append(
+            {
+                "termino": term,
+                "score": round(float(info.get("score", 0.0) or 0.0), 4),
+                "occurrences": int(info.get("occurrences", 0) or 0),
+                "tipologia": str(info.get("tipologia", "default") or "default"),
+                "contexto": _safe_excerpt(str(info.get("contexto", "")), 180),
+            }
+        )
+
+    prompt = f"""
+Sos revisor semántico de glosario para DocuGest.
+Responde SOLO JSON valido.
+
+Objetivo:
+- Revisar terminos ya preseleccionados para glosario.
+- Eliminar terminos demasiado generales, estructurales o autoexplicativos.
+- Conservar terminos tecnicos/especializados con valor para onboarding.
+
+Criterios de exclusion:
+- Encabezados o estructura documental (manual, indice, seccion, titulo, etc.).
+- Palabras de negocio amplias y no especializadas.
+- Terminos cuya definicion seria obvia para casi cualquier persona.
+- Motivos operativos generales o etiquetas de logística que no constituyen
+    conceptos técnicos estables de un glosario corporativo.
+
+Criterios de inclusion:
+- Conceptos tecnicos o de dominio que ayuden a comprender procesos.
+- Terminos que aporten valor en un glosario reutilizable.
+
+Formato obligatorio:
+{{
+  "approved_glossary_terms": ["termino1", "termino2"]
+}}
+
+Reglas de salida:
+- Devolver términos exactamente como aparecen en TERMINOS PRESELECCIONADOS.
+- Si ninguno califica, devolver lista vacía [].
+
+SECTOR: {sector or "N/A"}
+EXTRACTO DOCUMENTO:
+{excerpt}
+
+TERMINOS PRESELECCIONADOS:
+{json.dumps(review_payload, ensure_ascii=True)}
+"""
+
+    try:
+        result = _llm_generate_json(prompt)
+        if "approved_glossary_terms" not in result:
+            return glossary_terms
+
+        approved = []
+        input_set = set(glossary_terms)
+        for item in result.get("approved_glossary_terms", [])[:TAGS_GLOSSARY_LLM_MAX_GLOSSARY]:
+            if isinstance(item, dict):
+                term = _normalize_space(str(item.get("termino", "")))
+            else:
+                term = _normalize_space(str(item))
+            if term and term in input_set and term not in approved:
+                approved.append(term)
+
+        return approved
+    except Exception as exc:
+        logger.warning(f"Review LLM de glosario falló, se conserva preselección: {exc}")
+        return glossary_terms
 
 
 def _definition_cache_key(
@@ -390,6 +532,7 @@ def _definition_cache_key(
         "sector": sector,
         "terms": terms_payload,
         "model": TAGS_GLOSSARY_LLM_MODEL,
+        "prompt_version": DEFINITION_PROMPT_VERSION,
     }
     payload = json.dumps(data, ensure_ascii=True, sort_keys=True)
     return hashlib.sha1(payload.encode("utf-8")).hexdigest()
@@ -524,9 +667,15 @@ Reglas:
 - Definiciones en espanol, claras, maximo {TAGS_GLOSSARY_LLM_MAX_DEFINITION_CHARS} caracteres.
 - Mantener tono corporativo y concreto.
 - La definicion debe ser GENERALIZABLE y reusable en otros documentos.
+- Redactar en estilo de diccionario corporativo (atemporal), no como descripción
+    de este documento puntual.
 - No describir pasos de la pantalla ni rutas de menu.
 - Evitar frases hiper-contextuales como: "en este sistema", "en esta interfaz",
     "accesible desde", "se refiere a un formato".
+- Evitar ejemplos situacionales del documento (sucursales, casa central,
+    remitente puntual, listado de motivos, pasos operativos específicos).
+- Evitar definiciones ancladas a una sola operación tipo "motivo de remito para..."
+    salvo que el término sea explícitamente un código o categoría formal.
 - Estructura sugerida: "<termino> es ..." + funcion general del concepto.
 - Si la evidencia es limitada, inferir una definicion breve pero util segun el contexto.
 
@@ -666,9 +815,10 @@ def run_llm_tags_glossary_pipeline(
         glossary_items = []
         for term in selected_glossary[:TAGS_GLOSSARY_LLM_MAX_GLOSSARY]:
             item = definitions.get(term, {})
+            output_term = _format_term_for_output(term)
             glossary_items.append(
                 {
-                    "termino": term,
+                    "termino": output_term,
                     "definicion": item.get("definicion", ""),
                     "confidence": float(item.get("confidence", 0.0) or 0.0),
                     "needs_review": bool(item.get("needs_review", False)),
