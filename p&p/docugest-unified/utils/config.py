@@ -67,7 +67,7 @@ if IS_CLOUD:
     if not PHP_SERVER_URL:
         raise ValueError(
             "PHP_SERVER_URL no configurada. "
-            "Configurar en Space Settings → Variables (ej: https://app.xl.com.ar/administracion/recursosHumanos/p&p)"
+            "Configurar en Space Settings → Variables (ej: https://app.xl.com.ar/recursosHumanos/p&p)"
         )
     # Eliminar trailing slash
     PHP_SERVER_URL = PHP_SERVER_URL.rstrip("/")
@@ -141,6 +141,29 @@ GENERATION_MAX_TOKENS = 2048
 # ============================================================================
 
 DEFAULT_TOP_K = 5
+
+# ============================================================================
+# CONFIGURACIÓN DE TAGS/GLOSARIO LLM (ROLLING UPDATE)
+# ============================================================================
+
+# Modos:
+# - legacy: usa solo pipeline clásico (actual)
+# - shadow: ejecuta pipeline LLM en paralelo pero responde con legacy
+# - hybrid: usa pipeline LLM con fallback automático a legacy
+TAGS_GLOSSARY_PIPELINE_MODE = "hybrid"
+
+# Modelo recomendado costo/calidad para esta tarea.
+TAGS_GLOSSARY_LLM_MODEL = "models/gemini-2.5-flash-lite"
+TAGS_GLOSSARY_LLM_TEMPERATURE = 0.1
+TAGS_GLOSSARY_LLM_MAX_OUTPUT_TOKENS = 1200
+
+# Límites para controlar costo/tokens.
+TAGS_GLOSSARY_LLM_MAX_CANDIDATES = 40
+TAGS_GLOSSARY_LLM_MAX_TAGS = 20
+TAGS_GLOSSARY_LLM_MAX_GLOSSARY = 10
+TAGS_GLOSSARY_LLM_DOC_EXCERPT_CHARS = 3500
+TAGS_GLOSSARY_LLM_MAX_DEFINITION_CHARS = 260
+TAGS_GLOSSARY_LLM_ENABLE_FEWSHOT = True
 
 # ============================================================================
 # CONFIGURACIÓN DE RATE LIMITING Y RETRIES
