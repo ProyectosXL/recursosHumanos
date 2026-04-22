@@ -29,7 +29,7 @@ $nroSucurs = $_SESSION['numsuc'];
     
 </head>
 <body class="bg-light">
-    <div class="container mt-4">
+    <div class="container-fluid container-md mt-3 mt-md-4 px-2 px-md-3">
     <div class="header-section mb-4">
     <div class="card">
         <div class="card-header bg-primary text-white">
@@ -129,7 +129,7 @@ $nroSucurs = $_SESSION['numsuc'];
             </div>
 
             <div class="text-end mt-3">
-                <button type="submit" class="btn btn-primary" onclick = "cargarAnticipo()">    
+                <button type="button" class="btn btn-primary" onclick="cargarAnticipo()">    
                     <i class="fas fa-paper-plane me-2"></i>Enviar
                 </button>
             </div>

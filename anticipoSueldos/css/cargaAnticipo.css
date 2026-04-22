@@ -10,7 +10,7 @@
             height: 36px;
         }
         .table-responsive {
-            overflow-x: hidden;
+            overflow-x: auto;
         }
         .alert {
             border-left: 4px solid;
@@ -37,7 +37,7 @@
             .alert {
                 margin-bottom: 0.5rem;
             }
-            
+
             .row.mb-4 {
                 margin-bottom: 1rem !important;
             }
@@ -89,3 +89,128 @@
             text-align: center;
         }
     }
+
+/* =========================================
+   TABLA RESPONSIVE — LAYOUT DE TARJETAS
+   ========================================= */
+@media (max-width: 768px) {
+
+    /* Ocultar encabezados de columna */
+    #registrosTable thead {
+        display: none;
+    }
+
+    /* Tabla y tbody como bloques */
+    #registrosTable,
+    #registrosTable tbody {
+        display: block;
+        width: 100%;
+    }
+
+    /* Cada fila = tarjeta */
+    #registrosTable tbody tr {
+        display: block;
+        position: relative;
+        background: #fff;
+        border: 1px solid #dee2e6 !important;
+        border-radius: 0.5rem;
+        margin-bottom: 0.75rem;
+        padding: 0.75rem 0.75rem 0.5rem;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+    }
+
+    /* Todas las celdas como bloques sin bordes */
+    #registrosTable tbody td {
+        display: block;
+        border: none !important;
+        padding: 0.2rem 0;
+    }
+
+    /* --- Celda 1: Legajo --- */
+    #registrosTable tbody td:nth-child(1) {
+        font-size: 0.75rem;
+        color: #6c757d;
+        padding-bottom: 0;
+    }
+
+    #registrosTable tbody td:nth-child(1)::before {
+        content: "Leg. ";
+        font-weight: 700;
+    }
+
+    /* --- Celda 2: Nombre y Apellido --- */
+    #registrosTable tbody td:nth-child(2) {
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding-right: 44px; /* espacio para el botón eliminar */
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #f0f0f0 !important;
+        margin-bottom: 0.25rem;
+    }
+
+    /* --- Celda 3: DNI --- */
+    #registrosTable tbody td:nth-child(3)::before {
+        content: "DNI";
+        display: block;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 700;
+        color: #6c757d;
+        margin-top: 0.25rem;
+        margin-bottom: 0.2rem;
+    }
+
+    #registrosTable tbody td:nth-child(3) .input-group {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    #registrosTable tbody td:nth-child(3) .input-group .dni-input {
+        min-width: unset !important;
+        flex: 1 1 100%;
+        border-radius: 0.375rem !important;
+        border: 1px solid #ced4da !important;
+    }
+
+    #registrosTable tbody td:nth-child(3) .input-group .validate-dni {
+        flex: 1 1 100%;
+        border-radius: 0.375rem !important;
+    }
+
+    /* --- Celda 4: Importe --- */
+    #registrosTable tbody td:nth-child(4)::before {
+        content: "Importe Adelanto";
+        display: block;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 700;
+        color: #6c757d;
+        margin-top: 0.4rem;
+        margin-bottom: 0.2rem;
+    }
+
+    #registrosTable tbody td:nth-child(4) .importe-input {
+        width: 100%;
+    }
+
+    /* --- Celda 5: Acciones (eliminar) — esquina superior derecha --- */
+    #registrosTable tbody td:nth-child(5) {
+        position: absolute;
+        top: 0.6rem;
+        right: 0.6rem;
+        width: auto;
+        padding: 0;
+    }
+
+    /* Feedback de validación DNI */
+    #registrosTable tbody td:nth-child(3) .invalid-feedback {
+        display: none;
+    }
+
+    #registrosTable tbody td:nth-child(3) .dni-input.is-invalid ~ .invalid-feedback,
+    #registrosTable tbody td:nth-child(3) .is-invalid + * + .invalid-feedback {
+        display: block;
+    }
+}

@@ -153,12 +153,12 @@ const cargarAnticipo = () => {
                 let validacionResponse = error
                 console.log('Respuesta validación:', validacionResponse.responseJSON);
         
-                if (!validacionResponse.responseJSON.success) {
+                if (!validacionResponse.responseJSON || !validacionResponse.responseJSON.success) {
                     let errorTitle = 'Error de Validación';
-                    let errorMessage = validacionResponse.responseJSON.message || 'Error desconocido';
+                    let errorMessage = (validacionResponse.responseJSON && validacionResponse.responseJSON.message) || 'Error al conectar con el servidor (código: ' + validacionResponse.status + ')';
                     
                     // Verificar si es un anticipo duplicado
-                    if (validacionResponse.responseJSON.message && validacionResponse.responseJSON.message.includes('Ya existe un anticipo')) {
+                    if (validacionResponse.responseJSON && validacionResponse.responseJSON.message && validacionResponse.responseJSON.message.includes('Ya existe un anticipo')) {
                         errorTitle = 'Anticipo Duplicado';
                         // El mensaje ya viene formateado del servidor, solo reemplazamos los saltos de línea
                         errorMessage = validacionResponse.responseJSON.message.replace(/\n/g, '<br>');
@@ -228,7 +228,7 @@ const guardarAnticipo = (formData) =>{
         },
         error: function (error) {
             console.log(error);
-            let text = error.responseJSON.message || 'Error al guardar los datos';
+            let text = (error.responseJSON && error.responseJSON.message) || 'Error al guardar los datos';
 
             Swal.fire({
                 icon: 'error',

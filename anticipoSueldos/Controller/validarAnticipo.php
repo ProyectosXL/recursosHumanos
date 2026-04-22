@@ -1,7 +1,8 @@
 <?php
 // Controller/validarAnticipo.php
+ob_start();
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 date_default_timezone_set('America/Argentina/Buenos_Aires');
 
 header('Content-Type: application/json');
@@ -62,10 +63,12 @@ foreach ($registros as $registro) {
         'vigHasta' => $periodoData['VIG_HASTA']->format('d/m/Y H:i')
     );
 
+    ob_end_clean();
     echo json_encode($response);
 
 } catch (Exception $e) {
     error_log("Error en validación: " . $e->getMessage());
+    ob_end_clean();
     http_response_code(400);
     echo json_encode([
         'success' => false,

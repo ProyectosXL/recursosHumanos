@@ -9,6 +9,7 @@ function iniciarEnvioAutomatico($periodoActual) {
     $emails = $anticipo->getEmails($periodoActual);
 
     $fechaHoy = date('Y-m-d');
+
     
     if ($fechaHoy == $fechas['fechaDesde']) {
         enviarEmailInicio($emails);
