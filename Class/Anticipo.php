@@ -206,6 +206,28 @@ class Anticipo
         return sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
     }
 
+    public function obtenerDepartamentos()
+    {
+        $sql = "SELECT DISTINCT b.DESC_DEPARTAMENTO
+                FROM RO_T_DETALLE_ANTICIPOS a
+                INNER JOIN [XL-SUELDOS].LAKERS_CORP_SA.DBO.RO_V_LEGAJO b ON a.NRO_LEGAJO = b.NRO_LEGAJO
+                WHERE b.DESC_DEPARTAMENTO IS NOT NULL AND b.DESC_DEPARTAMENTO <> ''
+                ORDER BY b.DESC_DEPARTAMENTO";
+
+        $stmt = sqlsrv_query($this->cid_central, $sql);
+
+        if ($stmt === false) {
+            throw new Exception("Error al obtener departamentos: " . print_r(sqlsrv_errors(), true));
+        }
+
+        $departamentos = array();
+        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            $departamentos[] = $row['DESC_DEPARTAMENTO'];
+        }
+
+        return $departamentos;
+    }
+
      // Método para obtener los períodos
      public function obtenerPeriodos()
         {
@@ -235,26 +257,35 @@ class Anticipo
      }
  
      // Método para obtener los anticipos
-     public function obtenerAnticipos($start, $length, $search = '', $periodo = '')
+     public function obtenerAnticipos($start, $length, $search = '', $periodo = '', $orderColumn = 'FECHA_CARGA', $orderDir = 'desc', $departamento = '')
     {
+        $allowedColumns = ['NRO_LEGAJO', 'APELLIDO_Y_NOMBRE', 'DNI', 'PERIODO', 'IMPORTE', 'FECHA_CARGA', 'DESC_DEPARTAMENTO'];
+        $orderColumn = in_array($orderColumn, $allowedColumns) ? $orderColumn : 'FECHA_CARGA';
+        $orderDir = strtolower($orderDir) === 'asc' ? 'ASC' : 'DESC';
+
         $sql = "SELECT a.NRO_LEGAJO,
                     a.APELLIDO_Y_NOMBRE,
                     a.DNI,
                     a.PERIODO,
-                    CONVERT(decimal(10,2), a.IMPORTE) as IMPORTE,
+                    CONVERT(decimal(18,2), a.IMPORTE) as IMPORTE,
                     FORMAT(a.FECHA_CARGA, 'dd/MM/yyyy HH:mm') as FECHA_CARGA,
                     b.DESC_DEPARTAMENTO
             FROM RO_T_DETALLE_ANTICIPOS a
             LEFT JOIN [XL-SUELDOS].LAKERS_CORP_SA.DBO.RO_V_LEGAJO b ON a.NRO_LEGAJO = b.NRO_LEGAJO
             WHERE 1=1";
-        
+
         $params = array();
-        
+
         if (!empty($periodo)) {
             $sql .= " AND a.PERIODO = ?";
             $params[] = $periodo;
         }
-        
+
+        if (!empty($departamento)) {
+            $sql .= " AND b.DESC_DEPARTAMENTO = ?";
+            $params[] = $departamento;
+        }
+
         if (!empty($search)) {
             $sql .= " AND (a.APELLIDO_Y_NOMBRE LIKE ? OR CAST(a.DNI as VARCHAR) LIKE ? OR CAST(a.NRO_LEGAJO as VARCHAR) LIKE ?)";
             $searchParam = '%' . $search . '%';
@@ -262,49 +293,57 @@ class Anticipo
             $params[] = $searchParam;
             $params[] = $searchParam;
         }
-        
-        $sql .= " ORDER BY a.FECHA_CARGA DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+        $sql .= " ORDER BY $orderColumn $orderDir OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         $params[] = (int)$start;
         $params[] = (int)$length;
-        
+
         $stmt = sqlsrv_query($this->cid_central, $sql, $params);
-        
+
         if ($stmt === false) {
             throw new Exception("Error al obtener anticipos: " . print_r(sqlsrv_errors(), true));
         }
-        
+
         $data = array();
         while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
             $data[] = $row;
         }
-        
+
         return $data;
     }
      // Método para contar total de registros
-     public function contarAnticipos($search = '', $periodo = '')
+     public function contarAnticipos($search = '', $periodo = '', $departamento = '')
      {
-         $sql = "SELECT COUNT(*) as total FROM RO_T_DETALLE_ANTICIPOS WHERE 1=1";
+         $sql = "SELECT COUNT(*) as total
+                 FROM RO_T_DETALLE_ANTICIPOS a
+                 LEFT JOIN [XL-SUELDOS].LAKERS_CORP_SA.DBO.RO_V_LEGAJO b ON a.NRO_LEGAJO = b.NRO_LEGAJO
+                 WHERE 1=1";
          $params = array();
-         
+
          if (!empty($periodo)) {
-             $sql .= " AND PERIODO = ?";
+             $sql .= " AND a.PERIODO = ?";
              $params[] = $periodo;
          }
-         
+
+         if (!empty($departamento)) {
+             $sql .= " AND b.DESC_DEPARTAMENTO = ?";
+             $params[] = $departamento;
+         }
+
          if (!empty($search)) {
-             $sql .= " AND (APELLIDO_Y_NOMBRE LIKE ? OR CAST(DNI as VARCHAR) LIKE ? OR CAST(NRO_LEGAJO as VARCHAR) LIKE ?)";
+             $sql .= " AND (a.APELLIDO_Y_NOMBRE LIKE ? OR CAST(a.DNI as VARCHAR) LIKE ? OR CAST(a.NRO_LEGAJO as VARCHAR) LIKE ?)";
              $searchParam = '%' . $search . '%';
              $params[] = $searchParam;
              $params[] = $searchParam;
              $params[] = $searchParam;
          }
-         
+
          $stmt = sqlsrv_query($this->cid_central, $sql, $params);
-         
+
          if ($stmt === false) {
              throw new Exception("Error al contar anticipos: " . print_r(sqlsrv_errors(), true));
          }
-         
+
          $row = sqlsrv_fetch_array($stmt);
          return $row['total'];
      }

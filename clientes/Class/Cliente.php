@@ -131,6 +131,7 @@ class Cliente {
                 COD_CLIENT LIKE ?
                 AND CAST(FECHA_EMIS AS DATE) BETWEEN ? AND ?
                 AND PORC_BONIF > 0
+                AND T_COMP = 'FAC'
             GROUP BY
                 COD_CLIENT,
                 NOMBRE_CLI
@@ -153,6 +154,7 @@ class Cliente {
                 COD_CLIENT LIKE 'E%'
                 AND CAST(FECHA_EMIS AS DATE) BETWEEN ? AND ?
                 AND PORC_BONIF > 0
+                AND T_COMP = 'FAC'
             GROUP BY
                 COD_CLIENT,
                 NOMBRE_CLI
