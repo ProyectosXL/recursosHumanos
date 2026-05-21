@@ -121,6 +121,27 @@ def _safe_excerpt(text: str, max_chars: int) -> str:
     return cleaned[:max_chars]
 
 
+def _extract_document_title(document_text: str) -> str:
+    """Intenta inferir el título o encabezado principal del documento."""
+    if not document_text:
+        return ""
+
+    lines = [line.strip() for line in document_text.splitlines() if line.strip()]
+    if not lines:
+        return ""
+
+    first_lines = lines[:8]
+
+    # Priorizar líneas cortas tipo título/encabezado.
+    for line in first_lines:
+        cleaned = _normalize_space(line)
+        if 6 <= len(cleaned) <= 140:
+            if re.search(r"\b(manual|procedimiento|pol[ií]tica|instructivo|proceso|gu[ií]a|norma|reglamento|reglas?)\b", cleaned, re.IGNORECASE):
+                return cleaned
+
+    return _normalize_space(first_lines[0])[:140]
+
+
 def _looks_like_acronym(term: str) -> bool:
     compact = re.sub(r"[^A-Za-z0-9]", "", term or "")
     if not compact:
@@ -310,6 +331,7 @@ def classify_candidates_with_llm(
         }
     """
     excerpt = _safe_excerpt(document_text, TAGS_GLOSSARY_LLM_DOC_EXCERPT_CHARS)
+    document_title = _extract_document_title(document_text)
     compact_candidates = _compact_candidates(candidates)
 
     cache_key = _classification_cache_key(excerpt, sector, compact_candidates, legacy_tags, legacy_glossary)
@@ -334,11 +356,17 @@ Responde SOLO JSON valido.
 Objetivo:
 1) Seleccionar tags de negocio/tecnicos para el documento.
 2) Seleccionar SOLO terminos raros o tecnicos especificos para glosario.
+3) Para tags, intentar devolver al menos {max(5, TAGS_GLOSSARY_LLM_MAX_TAGS if TAGS_GLOSSARY_LLM_MAX_TAGS < 5 else 5)} elementos útiles; si el cuerpo no alcanza,
+     apoyarte en el titulo/encabezado del documento.
 
 Lineamientos:
 - Usa exclusivamente terminos presentes en el arreglo 'candidates'.
 - Exclui personas, nombres propios de empleados y palabras genericas.
 - No inventes terminos nuevos.
+- Para tags, podes usar palabras generales del procedimiento/política solo si
+    ayudan a describir el documento y son conservadoras (ej: "compras", "egreso",
+    "remitos", "proveedores"), pero evita tags vacíos o demasiado amplios como
+    "documento", "manual", "flujo" o "proceso" salvo que el título lo justifique.
 - Priorizá utilidad y coherencia semántica en contexto de negocio.
 - Para glosario, decidí con criterio semántico del documento:
     - Incluir conceptos que aporten valor reutilizable al glosario.
@@ -386,6 +414,9 @@ Formato de salida obligatorio:
 
 TAGS LEGACY ACTUALES (referencia):
 {json.dumps(legacy_tags[:20], ensure_ascii=True)}
+
+TITULO/ENCABEZADO INFERIDO DEL DOCUMENTO:
+{document_title or "N/A"}
 
 GLOSARIO LEGACY ACTUAL (referencia):
 {json.dumps(legacy_glossary[:10], ensure_ascii=True)}
