@@ -3,7 +3,7 @@ Configuración unificada del servicio DocuGest.
 Soporta 4 entornos:
 - HF Space: Lee GOOGLE_API_KEY y PHP_SERVER_URL de variables de entorno (SPACE_ID auto-set)
 - Railway: Lee variables de entorno (RAILWAY_PROJECT_ID auto-set)
-- Producción (app.xl.com.ar): API key hardcodeada
+- Producción (app.xl.com.ar): Carga GOOGLE_API_KEY del .env compartido
 - Local: Carga GOOGLE_API_KEY del .env compartido
 """
 
@@ -73,8 +73,14 @@ if IS_CLOUD:
     PHP_SERVER_URL = PHP_SERVER_URL.rstrip("/")
 
 elif IS_PRODUCTION:
-    # Producción: API key hardcodeada (no necesita .env)
-    GOOGLE_API_KEY = "AIzaSyDUAWRkNRV4s11G2w4M3AG1Bu5H1h482DE"
+    # Producción: leer de entorno (.env fuera del repo). NUNCA hardcodear secretos.
+    env_path = Path(__file__).resolve().parent.parent.parent.parent.parent / ".env"
+    load_dotenv(env_path)
+    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+    if not GOOGLE_API_KEY:
+        raise ValueError(
+            "GOOGLE_API_KEY no configurada (variable de entorno / .env)."
+        )
     PHP_SERVER_URL = None
     PORT = 8000
 
