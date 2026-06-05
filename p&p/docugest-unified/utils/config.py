@@ -138,7 +138,7 @@ EMBEDDING_BATCH_SIZE = 10
 # CONFIGURACIÓN DE GENERACIÓN DE RESPUESTAS
 # ============================================================================
 
-GENERATION_MODEL = "models/gemma-3-27b-it"
+GENERATION_MODEL = "models/gemini-2.5-flash-lite"
 GENERATION_TEMPERATURE = 0.7
 GENERATION_MAX_TOKENS = 2048
 
