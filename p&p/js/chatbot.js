@@ -243,7 +243,7 @@ async function verificarServicioRAG() {
             );
 
             const docCount = data.total_documentos || data.total_documents || Math.floor(data.total_chunks / 10);
-            statusText.textContent = `En línea - ${docCount} documentos (${data.total_chunks} chunks)`;
+            statusText.textContent = `En línea`;
 
             console.log('✅ Servicio RAG conectado correctamente');
         } else {

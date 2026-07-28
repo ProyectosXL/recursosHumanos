@@ -144,7 +144,7 @@ foreach ($sectores as $i => $s) {
     <div class="container">
         <aside class="sidebar">
             <div class="logo">
-                <h1>DocuGest</h1>
+                <h1>XL DocuGest</h1>
             </div>
             
             <ul class="sidebar-menu">
@@ -1106,7 +1106,7 @@ foreach ($sectores as $i => $s) {
             <div class="chatbot-header-content">
                 <i class="fas fa-headset"></i>
                 <div>
-                    <h3>Asistente DocuGest</h3>
+                    <h3>Asistente XL DocuGest</h3>
                     <p class="chatbot-status">
                         <span id="chatbot-status-icon" class="status-dot"></span>
                         <span id="chatbot-status-text">Verificando...</span>
