@@ -24,14 +24,20 @@ from utils.config import (
     TAGS_GLOSSARY_LLM_MAX_GLOSSARY,
     TAGS_GLOSSARY_LLM_MAX_OUTPUT_TOKENS,
     TAGS_GLOSSARY_LLM_MAX_TAGS,
-    TAGS_GLOSSARY_LLM_MODEL,
+    TAGS_GLOSSARY_LLM_MODEL_CANDIDATES,
     TAGS_GLOSSARY_LLM_TEMPERATURE,
 )
+from utils.llm_models import active_model, generate_content
 
 logger = logging.getLogger(__name__)
 
 # Configuracion global Gemini para este modulo.
 genai.configure(api_key=GOOGLE_API_KEY)
+
+
+def _active_model() -> str:
+    """Modelo efectivamente disponible (ver utils/llm_models.py)."""
+    return active_model(TAGS_GLOSSARY_LLM_MODEL_CANDIDATES, "tags-glossary")
 
 
 # Ejemplos de estilo de glosario entregados por el usuario (subset corto para no inflar tokens).
@@ -214,8 +220,9 @@ def _safe_json_load(raw: str) -> Dict[str, Any]:
 
 def _llm_generate_json(prompt: str) -> Dict[str, Any]:
     """Llamada unificada a Gemini con salida JSON."""
-    model = genai.GenerativeModel(TAGS_GLOSSARY_LLM_MODEL)
-    response = model.generate_content(
+    response = generate_content(
+        TAGS_GLOSSARY_LLM_MODEL_CANDIDATES,
+        "tags-glossary",
         prompt,
         generation_config=genai.GenerationConfig(
             temperature=TAGS_GLOSSARY_LLM_TEMPERATURE,
@@ -267,7 +274,7 @@ def _classification_cache_key(
         "candidates": candidates,
         "legacy_tags": legacy_tags[:10],
         "legacy_glossary": legacy_glossary[:10],
-        "model": TAGS_GLOSSARY_LLM_MODEL,
+        "model": _active_model(),
         "prompt_version": CLASSIFICATION_PROMPT_VERSION,
     }
     payload = json.dumps(data, ensure_ascii=True, sort_keys=True)
@@ -562,7 +569,7 @@ def _definition_cache_key(
     data = {
         "sector": sector,
         "terms": terms_payload,
-        "model": TAGS_GLOSSARY_LLM_MODEL,
+        "model": _active_model(),
         "prompt_version": DEFINITION_PROMPT_VERSION,
     }
     payload = json.dumps(data, ensure_ascii=True, sort_keys=True)
@@ -858,7 +865,7 @@ def run_llm_tags_glossary_pipeline(
 
         return {
             "ok": True,
-            "model": TAGS_GLOSSARY_LLM_MODEL,
+            "model": _active_model(),
             "tags": classification.get("tags", [])[:TAGS_GLOSSARY_LLM_MAX_TAGS],
             "glossary": glossary_items,
             "classification_raw": classification.get("raw", {}),
@@ -869,7 +876,7 @@ def run_llm_tags_glossary_pipeline(
         logger.error(f"Error en pipeline LLM tags/glosario: {exc}")
         return {
             "ok": False,
-            "model": TAGS_GLOSSARY_LLM_MODEL,
+            "model": _active_model(),
             "tags": [],
             "glossary": [],
             "error": str(exc),

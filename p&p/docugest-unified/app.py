@@ -52,8 +52,10 @@ from utils.config import (
     IS_CLOUD, IS_HF_SPACE, IS_RAILWAY,
     PORT, PHP_SERVER_URL, GOOGLE_API_KEY,
     TAGS_GLOSSARY_PIPELINE_MODE,
+    GENERATION_MODEL_CANDIDATES, TAGS_GLOSSARY_LLM_MODEL_CANDIDATES,
     CHROMA_DB_PATH, LOG_LEVEL, LOG_FILE
 )
+from utils.llm_models import active_model, diagnostics as llm_diagnostics
 from utils.models import (
     DocumentUploadedWebhook, DocumentUpdatedWebhook,
     QueryRequest, QueryResponse,
@@ -789,6 +791,26 @@ async def health_check():
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Servicio no disponible: {str(e)}"
         )
+
+
+@app.get("/api/modelos", tags=["Sistema"])
+async def modelos_disponibles():
+    """
+    Modelos de Gemini habilitados con la API key actual y cuál se está usando.
+    Útil cuando Google retira un modelo y las consultas empiezan a fallar con 404.
+    """
+    info = llm_diagnostics()
+    return {
+        **info,
+        "generacion": {
+            "candidatos": GENERATION_MODEL_CANDIDATES,
+            "en_uso": active_model(GENERATION_MODEL_CANDIDATES, "generation"),
+        },
+        "tags_glosario": {
+            "candidatos": TAGS_GLOSSARY_LLM_MODEL_CANDIDATES,
+            "en_uso": active_model(TAGS_GLOSSARY_LLM_MODEL_CANDIDATES, "tags-glossary"),
+        },
+    }
 
 
 # ============================================================================

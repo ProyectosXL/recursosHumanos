@@ -126,7 +126,11 @@ USE_LOCAL_EMBEDDINGS = True
 
 LOCAL_EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
 
-GEMINI_EMBEDDING_MODEL = "models/text-embedding-004"
+# Solo se usa si falla la carga del modelo local (ver utils/embeddings.py).
+# OJO: text-embedding-004 fue retirado (404). El reemplazo es gemini-embedding-001,
+# pero devuelve 3072 dims contra las 384 de EMBEDDING_DIMENSION: si alguna vez se
+# activa este fallback hay que ajustar la dimensión y reindexar ChromaDB.
+GEMINI_EMBEDDING_MODEL = "models/gemini-embedding-001"
 EMBEDDING_DIMENSION = 384  # paraphrase-multilingual-MiniLM-L12-v2 produce 384 dims
 
 EMBEDDING_TASK_DOCUMENT = "retrieval_document"
@@ -138,7 +142,33 @@ EMBEDDING_BATCH_SIZE = 10
 # CONFIGURACIÓN DE GENERACIÓN DE RESPUESTAS
 # ============================================================================
 
-GENERATION_MODEL = "models/gemini-2.5-flash-lite"
+# Google retira modelos periódicamente: gemini-2.5-flash-lite Y gemini-2.5-flash
+# devuelven 404 "no longer available to new users" (verificado 2026-07-28 contra
+# la API con la key del proyecto), y la serie 2.0 ya no tiene cuota free.
+#
+# Límites free tier medidos con esta key (por modelo, buckets independientes):
+#   gemini-3.5-flash-lite  → 15 RPM   (mejor calidad dentro de los de 15 RPM)
+#   gemini-3.1-flash-lite  → 15 RPM   (cuota aparte: sirve de desborde)
+#   gemini-3.6-flash       →  5 RPM   (más capaz, pero un tercio de throughput)
+#
+# El orden importa: utils/llm_models.py usa el primero disponible y, si devuelve
+# 404 (retirado) o 429 (RPM agotado), pasa al siguiente. Como cada modelo tiene
+# su propia cuota, la lista funciona además como desborde de rate limit.
+# Para fijar uno puntual: variable de entorno GENERATION_MODEL (acepta lista).
+GENERATION_MODEL_CANDIDATES = [
+    m.strip()
+    for m in os.getenv(
+        "GENERATION_MODEL",
+        "models/gemini-3.5-flash-lite,"
+        "models/gemini-3.1-flash-lite,"
+        "models/gemini-flash-lite-latest,"
+        "models/gemini-3.6-flash",
+    ).split(",")
+    if m.strip()
+]
+
+# Preferido (el que se usa si no se puede consultar la lista de modelos).
+GENERATION_MODEL = GENERATION_MODEL_CANDIDATES[0]
 GENERATION_TEMPERATURE = 0.7
 GENERATION_MAX_TOKENS = 2048
 
@@ -158,8 +188,22 @@ DEFAULT_TOP_K = 5
 # - hybrid: usa pipeline LLM con fallback automático a legacy
 TAGS_GLOSSARY_PIPELINE_MODE = "hybrid"
 
-# Modelo recomendado costo/calidad para esta tarea.
-TAGS_GLOSSARY_LLM_MODEL = "models/gemini-2.5-flash-lite"
+# Mismo criterio que GENERATION_MODEL_CANDIDATES, pero arrancando por el modelo
+# de cuota "secundaria": así el indexado de documentos no le come los 15 RPM al
+# chat, que es lo que ve el usuario. Override: TAGS_GLOSSARY_LLM_MODEL.
+TAGS_GLOSSARY_LLM_MODEL_CANDIDATES = [
+    m.strip()
+    for m in os.getenv(
+        "TAGS_GLOSSARY_LLM_MODEL",
+        "models/gemini-3.1-flash-lite,"
+        "models/gemini-3.5-flash-lite,"
+        "models/gemini-flash-lite-latest,"
+        "models/gemini-3.6-flash",
+    ).split(",")
+    if m.strip()
+]
+
+TAGS_GLOSSARY_LLM_MODEL = TAGS_GLOSSARY_LLM_MODEL_CANDIDATES[0]
 TAGS_GLOSSARY_LLM_TEMPERATURE = 0.1
 TAGS_GLOSSARY_LLM_MAX_OUTPUT_TOKENS = 1200
 
@@ -175,6 +219,8 @@ TAGS_GLOSSARY_LLM_ENABLE_FEWSHOT = True
 # CONFIGURACIÓN DE RATE LIMITING Y RETRIES
 # ============================================================================
 
+# Free tier: 15 RPM por modelo flash-lite (quotaId
+# GenerateRequestsPerMinutePerProjectPerModel-FreeTier).
 GEMINI_RPM_LIMIT = 15
 MAX_RETRIES = 3
 RETRY_MIN_WAIT = 1

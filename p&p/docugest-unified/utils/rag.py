@@ -10,12 +10,13 @@ import google.generativeai as genai
 
 from utils.config import (
     GOOGLE_API_KEY,
-    GENERATION_MODEL,
+    GENERATION_MODEL_CANDIDATES,
     GENERATION_TEMPERATURE,
     GENERATION_MAX_TOKENS,
     RAG_PROMPT_TEMPLATE,
     DEFAULT_TOP_K
 )
+from utils.llm_models import generate_content
 from utils.embeddings import generate_query_embedding, EmbeddingError
 from utils.database import get_chroma_client, ChromaDBError
 from utils.models import DocumentSource
@@ -248,8 +249,9 @@ def generate_rag_response(
         start_gen = time.time()
         
         try:
-            model = genai.GenerativeModel(GENERATION_MODEL)
-            response = model.generate_content(
+            response = generate_content(
+                GENERATION_MODEL_CANDIDATES,
+                "generation",
                 prompt,
                 generation_config=genai.GenerationConfig(
                     temperature=GENERATION_TEMPERATURE,
