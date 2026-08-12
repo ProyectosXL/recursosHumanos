@@ -21,10 +21,10 @@ $nroSucurs = $_SESSION['numsuc'];
     <link rel="icon" type="image/jpg" href="../../image/icono.jpg">
     
     <!-- CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="css/libs/bootstrap.min.css" rel="stylesheet">
+    <link href="css/libs/select2.min.css" rel="stylesheet">
+    <link href="css/libs/all.min.css" rel="stylesheet">
+    <link href="css/libs/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/cargaAnticipo.css" class="rel">
     
 </head>
@@ -137,13 +137,13 @@ $nroSucurs = $_SESSION['numsuc'];
     </div>
 
     <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cleave.js/1.6.0/cleave.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/libs/jquery-3.6.0.min.js"></script>
+    <script src="js/libs/bootstrap.bundle.min.js"></script>
+    <script src="js/libs/select2.min.js"></script>
+    <script src="js/libs/jquery.dataTables.min.js"></script>
+    <script src="js/libs/dataTables.bootstrap5.min.js"></script>
+    <script src="js/libs/cleave.min.js"></script>
+    <script src="js/libs/sweetalert2.min.js"></script>
     <script src="js/mostrarDatos.js"></script>
     <script src="js/cargarAnticipo.js"></script>
 
