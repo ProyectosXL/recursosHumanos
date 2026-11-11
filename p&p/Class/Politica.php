@@ -910,14 +910,28 @@ class Politica
         if (!$this->obtenerSectorPorId($id)) {
             return ['status' => 'error', 'message' => 'El sector no existe'];
         }
+        $anterior = $this->obtenerSectorPorId($id);
         list($sector, $error) = $this->normalizarSector($datos, $id);
         if ($error) {
             return ['status' => 'error', 'message' => $error];
         }
-        return $this->ejecutar(
+        $resultado = $this->ejecutar(
             "UPDATE Sectores SET nombre = ?, descripcion = ?, icono = ? WHERE id = ?",
             [$sector['nombre'], $sector['descripcion'], $sector['icono'], $id]
         );
+
+        // El nombre del sector es metadato del servicio de IA: reindexar los documentos activos del sector
+        if ($resultado['status'] === 'success' && trim((string)$anterior['nombre']) !== $sector['nombre']) {
+            $documentos = $this->consultar(
+                "SELECT id FROM Politicas_Procedimientos WHERE sector_id = ? AND estado = 'activo'",
+                [$id]
+            ) ?: [];
+            foreach ($documentos as $doc) {
+                $this->notificarRag('actualizado', (int)$doc['id']);
+            }
+        }
+
+        return $resultado;
     }
 
     /**
