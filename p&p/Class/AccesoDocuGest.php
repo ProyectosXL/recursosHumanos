@@ -15,14 +15,12 @@
 
 if (!class_exists('AccesoDocuGest')) {
 
-    // Cargar el entorno de Conexion (htdocs/.env + respaldo recursosHumanos/.env) ANTES que el hub.
+    // Cargar el entorno de Conexion (htdocs/.env) ANTES que el hub.
     // Auth (ConexionApps) vuelca su .env en $_ENV sin putenv(), y DotEnv no pisa claves ya
     // presentes: si el hub carga primero, getenv() queda vacío y Conexion no conecta.
     require_once dirname(__DIR__, 2) . '/Class/classEnv.php';
     try {
-        if (DotEnv::archivos()) {
-            (new DotEnv(DotEnv::archivos()[0]))->listVars();
-        }
+        (new DotEnv(DotEnv::archivo()))->listVars();
     } catch (Throwable $e) {
         error_log('AccesoDocuGest: no se pudo leer el .env: ' . $e->getMessage());
     }
