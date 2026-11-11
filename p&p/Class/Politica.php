@@ -673,76 +673,240 @@ class Politica
      * Obtiene un sector por su ID
      */
     public function obtenerSectorPorId($id) {
-        $sql = "SELECT * FROM Sectores WHERE id = $id";
-        $resultado = $this->retornarArray($sql);
-        
-        if (count($resultado) > 0) {
-            return $resultado[0];
-        }
-        
-        return false;
+        $resultado = $this->consultar("SELECT * FROM Sectores WHERE id = ?", [(int)$id]);
+        return ($resultado && count($resultado) > 0) ? $resultado[0] : false;
     }
-    
+
+    /**
+     * Valida y normaliza los datos de un sector. Devuelve [datos, error].
+     */
+    private function normalizarSector($datos, $idExcluir = null) {
+        $nombre = trim((string)($datos['nombre'] ?? ''));
+        if ($nombre === '') {
+            return [null, 'El nombre del sector es obligatorio'];
+        }
+        if (mb_strlen($nombre) > 100) {
+            return [null, 'El nombre del sector es demasiado largo'];
+        }
+        $icono = trim((string)($datos['icono'] ?? ''));
+        if (!preg_match('/^fa-[a-z0-9-]{1,40}$/', $icono)) {
+            $icono = 'fa-folder';
+        }
+
+        $sql = "SELECT COUNT(*) AS cantidad FROM Sectores WHERE LOWER(LTRIM(RTRIM(nombre))) = LOWER(?)";
+        $params = [$nombre];
+        if ($idExcluir !== null) {
+            $sql .= " AND id <> ?";
+            $params[] = (int)$idExcluir;
+        }
+        $repetido = $this->consultar($sql, $params);
+        if ($repetido && (int)$repetido[0]['cantidad'] > 0) {
+            return [null, 'Ya existe un sector con ese nombre'];
+        }
+
+        return [[
+            'nombre'      => $nombre,
+            'descripcion' => trim((string)($datos['descripcion'] ?? '')),
+            'icono'       => $icono,
+        ], null];
+    }
+
     /**
      * Guarda un nuevo sector
      */
     public function guardarSector($datos) {
-        if (empty($datos['nombre'])) {
-            return [
-                'status' => 'error',
-                'message' => 'El nombre del sector es obligatorio'
-            ];
+        list($sector, $error) = $this->normalizarSector($datos);
+        if ($error) {
+            return ['status' => 'error', 'message' => $error];
         }
-        
-        $descripcion = isset($datos['descripcion']) ? $datos['descripcion'] : '';
-        $icono = isset($datos['icono']) ? $datos['icono'] : 'fa-folder';
-        
-        $sql = "INSERT INTO Sectores (nombre, descripcion, icono) 
-                VALUES ('".$this->escaparTexto($datos['nombre'])."', 
-                        '".$this->escaparTexto($descripcion)."', 
-                        '$icono')";
-        
-        return $this->ejecutarSQL($sql);
+        return $this->ejecutar(
+            "INSERT INTO Sectores (nombre, descripcion, icono) VALUES (?, ?, ?)",
+            [$sector['nombre'], $sector['descripcion'], $sector['icono']]
+        );
     }
-    
+
+    /**
+     * Modifica un sector existente
+     */
+    public function actualizarSector($id, $datos) {
+        $id = (int)$id;
+        if (!$this->obtenerSectorPorId($id)) {
+            return ['status' => 'error', 'message' => 'El sector no existe'];
+        }
+        list($sector, $error) = $this->normalizarSector($datos, $id);
+        if ($error) {
+            return ['status' => 'error', 'message' => $error];
+        }
+        return $this->ejecutar(
+            "UPDATE Sectores SET nombre = ?, descripcion = ?, icono = ? WHERE id = ?",
+            [$sector['nombre'], $sector['descripcion'], $sector['icono'], $id]
+        );
+    }
+
+    /**
+     * Cantidad de documentos de un sector: ['activos' => n, 'inactivos' => n]
+     */
+    public function contarDocumentosSector($id) {
+        $resultado = $this->consultar(
+            "SELECT SUM(CASE WHEN estado = 'activo' THEN 1 ELSE 0 END) AS activos,
+                    SUM(CASE WHEN estado <> 'activo' THEN 1 ELSE 0 END) AS inactivos
+               FROM Politicas_Procedimientos
+              WHERE sector_id = ?",
+            [(int)$id]
+        );
+        return [
+            'activos'   => (int)($resultado[0]['activos'] ?? 0),
+            'inactivos' => (int)($resultado[0]['inactivos'] ?? 0),
+        ];
+    }
+
+    /**
+     * Elimina un sector sin documentos.
+     * - Con documentos activos: no se puede (dice cuántos tiene).
+     * - Con documentos dados de baja: tampoco, porque al reactivarlos quedarían sin sector.
+     * - Los términos del glosario de ese sector quedan "sin sector específico".
+     */
+    public function eliminarSector($id) {
+        $id = (int)$id;
+        if (!$this->obtenerSectorPorId($id)) {
+            return ['status' => 'error', 'message' => 'El sector no existe'];
+        }
+
+        $cantidad = $this->contarDocumentosSector($id);
+        if ($cantidad['activos'] > 0) {
+            $n = $cantidad['activos'];
+            return ['status' => 'error', 'message' => "No se puede eliminar: el sector tiene $n documento" . ($n === 1 ? '' : 's') . ' activo' . ($n === 1 ? '' : 's') . '.'];
+        }
+        if ($cantidad['inactivos'] > 0) {
+            $n = $cantidad['inactivos'];
+            return ['status' => 'error', 'message' => "No se puede eliminar: el sector tiene $n documento" . ($n === 1 ? '' : 's') . ' dado' . ($n === 1 ? '' : 's') . ' de baja.'];
+        }
+
+        $this->ejecutar("UPDATE Glosario SET sector_id = NULL WHERE sector_id = ?", [$id]);
+        return $this->ejecutar("DELETE FROM Sectores WHERE id = ?", [$id]);
+    }
+
+    /**
+     * Documentos activos por sector (para estadísticas)
+     */
+    public function obtenerEstadisticasSectores() {
+        $filas = $this->consultar(
+            "SELECT s.id, s.nombre, s.icono, COUNT(p.id) AS documentos
+               FROM Sectores s
+               LEFT JOIN Politicas_Procedimientos p ON p.sector_id = s.id AND p.estado = 'activo'
+              GROUP BY s.id, s.nombre, s.icono
+              ORDER BY s.nombre"
+        );
+        return $filas ?: [];
+    }
+
     /**
      * Obtiene términos del glosario
      */
     public function obtenerGlosario($filtro = '') {
-        $sql = "SELECT g.*, s.nombre as sector_nombre 
-                FROM Glosario g 
+        $sql = "SELECT g.*, s.nombre as sector_nombre
+                FROM Glosario g
                 LEFT JOIN Sectores s ON g.sector_id = s.id";
-        
+
         if (!empty($filtro)) {
             $sql .= " WHERE g.termino LIKE '%$filtro%' OR g.definicion LIKE '%$filtro%'";
         }
-        
+
         $sql .= " ORDER BY g.termino";
-        
+
         return $this->retornarArray($sql);
     }
-    
+
+    /**
+     * Obtiene un término del glosario por su ID
+     */
+    public function obtenerTerminoPorId($id) {
+        $resultado = $this->consultar(
+            "SELECT g.id, g.termino, g.definicion, g.sector_id, s.nombre AS sector_nombre
+               FROM Glosario g
+               LEFT JOIN Sectores s ON g.sector_id = s.id
+              WHERE g.id = ?",
+            [(int)$id]
+        );
+        return ($resultado && count($resultado) > 0) ? $resultado[0] : false;
+    }
+
+    /**
+     * Valida y normaliza un término del glosario. Devuelve [datos, error].
+     */
+    private function normalizarTermino($datos, $idExcluir = null) {
+        $termino = trim((string)($datos['termino'] ?? ''));
+        $definicion = trim((string)($datos['definicion'] ?? ''));
+        if ($termino === '' || $definicion === '') {
+            return [null, 'El término y la definición son obligatorios'];
+        }
+
+        $sectorId = (int)($datos['sector_id'] ?? 0);
+        if ($sectorId > 0 && !$this->obtenerSectorPorId($sectorId)) {
+            return [null, 'El sector elegido no existe'];
+        }
+
+        $sql = "SELECT COUNT(*) AS cantidad FROM Glosario WHERE LOWER(LTRIM(RTRIM(termino))) = LOWER(?)";
+        $params = [$termino];
+        if ($idExcluir !== null) {
+            $sql .= " AND id <> ?";
+            $params[] = (int)$idExcluir;
+        }
+        $repetido = $this->consultar($sql, $params);
+        if ($repetido && (int)$repetido[0]['cantidad'] > 0) {
+            return [null, 'Ese término ya está en el glosario'];
+        }
+
+        return [[
+            'termino'    => $termino,
+            'definicion' => $definicion,
+            'sector_id'  => $sectorId > 0 ? $sectorId : null,
+        ], null];
+    }
+
     /**
      * Guarda un nuevo término en el glosario
      */
     public function guardarTerminoGlosario($datos) {
-        if (empty($datos['termino']) || empty($datos['definicion'])) {
-            return [
-                'status' => 'error',
-                'message' => 'El término y la definición son obligatorios'
-            ];
+        list($t, $error) = $this->normalizarTermino($datos);
+        if ($error) {
+            return ['status' => 'error', 'message' => $error];
         }
-        
-        $sector_id = isset($datos['sector_id']) && !empty($datos['sector_id']) ? $datos['sector_id'] : "NULL";
-        
-        $sql = "INSERT INTO Glosario (termino, definicion, sector_id) 
-                VALUES ('".$this->escaparTexto($datos['termino'])."', 
-                        '".$this->escaparTexto($datos['definicion'])."', 
-                        $sector_id)";
-        
-        return $this->ejecutarSQL($sql);
+        return $this->ejecutar(
+            "INSERT INTO Glosario (termino, definicion, sector_id, fecha_creacion) VALUES (?, ?, ?, GETDATE())",
+            [$t['termino'], $t['definicion'], $t['sector_id']]
+        );
     }
-    
+
+    /**
+     * Modifica un término del glosario
+     */
+    public function actualizarTerminoGlosario($id, $datos) {
+        $id = (int)$id;
+        if (!$this->obtenerTerminoPorId($id)) {
+            return ['status' => 'error', 'message' => 'El término no existe'];
+        }
+        list($t, $error) = $this->normalizarTermino($datos, $id);
+        if ($error) {
+            return ['status' => 'error', 'message' => $error];
+        }
+        return $this->ejecutar(
+            "UPDATE Glosario SET termino = ?, definicion = ?, sector_id = ? WHERE id = ?",
+            [$t['termino'], $t['definicion'], $t['sector_id'], $id]
+        );
+    }
+
+    /**
+     * Elimina un término del glosario
+     */
+    public function eliminarTerminoGlosario($id) {
+        $id = (int)$id;
+        if (!$this->obtenerTerminoPorId($id)) {
+            return ['status' => 'error', 'message' => 'El término no existe'];
+        }
+        return $this->ejecutar("DELETE FROM Glosario WHERE id = ?", [$id]);
+    }
+
     /**
      * Registra acceso a un documento
      */

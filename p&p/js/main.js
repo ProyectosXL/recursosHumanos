@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof initTagsInput === 'function') initTagsInput();
     if (typeof initFormValidation === 'function') initFormValidation();
     if (typeof initUpdateForm === 'function') initUpdateForm();
+    if (typeof initSectors === 'function') initSectors();
     initPlantillaUpload();
     if (typeof checkUrlTab === 'function') checkUrlTab();
     
@@ -360,7 +361,7 @@ function isElementInViewport(el) {
 
 // Función para actualizar estadísticas de uso
 function updateStatistics() {
-    fetch('actualizar_estadisticas.php')
+    fetch('Controller/actualizar_estadisticas.php')
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
@@ -382,8 +383,66 @@ function checkUrlTab() {
     }
 }
 
-// ===== Plantilla vacía de procedimiento =====
+// ===== Confirmación propia (reemplaza confirm/prompt del navegador) =====
 
+/**
+ * Muestra el modal de confirmación. Devuelve una promesa con {ok, motivo}.
+ * opciones: titulo, mensaje, textoConfirmar, peligro (botón rojo), pedirMotivo, etiquetaMotivo
+ */
+function pedirConfirmacion(opciones = {}) {
+    return new Promise(resolve => {
+        const modal = document.getElementById('confirmModal');
+        if (!modal) {
+            resolve({ ok: false, motivo: '' });
+            return;
+        }
+
+        const btnAceptar = document.getElementById('confirmAceptar');
+        const btnCancelar = document.getElementById('confirmCancelar');
+        const grupoMotivo = document.getElementById('confirmMotivoGrupo');
+        const motivo = document.getElementById('confirmMotivo');
+
+        document.getElementById('confirmTitulo').textContent = opciones.titulo || '¿Confirmás?';
+        document.getElementById('confirmMensaje').textContent = opciones.mensaje || '';
+        btnAceptar.textContent = opciones.textoConfirmar || 'Aceptar';
+        btnAceptar.classList.toggle('danger', !!opciones.peligro);
+        grupoMotivo.style.display = opciones.pedirMotivo ? 'block' : 'none';
+        document.getElementById('confirmMotivoLabel').textContent = (opciones.etiquetaMotivo || 'Motivo') + (opciones.pedirMotivo ? ' *' : '');
+        motivo.value = '';
+
+        const cerrar = (ok) => {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+            btnAceptar.removeEventListener('click', onAceptar);
+            btnCancelar.removeEventListener('click', onCancelar);
+            modal.removeEventListener('click', onFondo);
+            document.removeEventListener('keydown', onTecla);
+            resolve({ ok, motivo: motivo.value.trim() });
+        };
+        const onAceptar = () => {
+            if (opciones.pedirMotivo && motivo.value.trim() === '') {
+                showNotification('Contá el motivo para poder seguir', 'error');
+                motivo.focus();
+                return;
+            }
+            cerrar(true);
+        };
+        const onCancelar = () => cerrar(false);
+        const onFondo = (e) => { if (e.target === modal) cerrar(false); };
+        const onTecla = (e) => { if (e.key === 'Escape') cerrar(false); };
+
+        btnAceptar.addEventListener('click', onAceptar);
+        btnCancelar.addEventListener('click', onCancelar);
+        modal.addEventListener('click', onFondo);
+        document.addEventListener('keydown', onTecla);
+
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => (opciones.pedirMotivo ? motivo : btnCancelar).focus(), 50);
+    });
+}
+
+// ===== Plantilla vacía de procedimiento =====
 // Verifica que la plantilla exista antes de descargarla; si no, avisa sin romper nada
 function descargarPlantilla() {
     fetch('Controller/descargar_plantilla.php?check=1')

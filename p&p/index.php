@@ -48,6 +48,12 @@ $documentos_recientes = $politicaObj->obtenerTodos($filtros);
 // Todos los documentos activos, sin los filtros de la URL (contadores por sector y pestaña Actualizar)
 $documentos_activos = empty($filtros) ? $documentos_recientes : $politicaObj->obtenerTodos();
 
+// Cantidad de documentos activos por sector (sobre el total, no sobre la lista filtrada)
+$documentosPorSector = [];
+foreach ($documentos_activos as $docActivo) {
+    $documentosPorSector[$docActivo['sector_id']] = ($documentosPorSector[$docActivo['sector_id']] ?? 0) + 1;
+}
+
 // Obtener términos del glosario
 $glosario = $politicaObj->obtenerGlosario();
 
@@ -963,7 +969,9 @@ function dg_acciones_documento($doc) {
                         </div>
 
                         <div id="newSectorForm" style="display: none;" class="cfg-inline-form">
-                            <form id="sectorForm" action="procesar_sector.php" method="post">
+                            <h4 class="cfg-form-title" id="sectorFormTitle">Nuevo sector</h4>
+                            <form id="sectorForm" action="Controller/procesar_sector.php" method="post">
+                                <input type="hidden" id="sectorId" name="id" value="">
                                 <div class="cfg-form-row">
                                     <div class="form-group">
                                         <label for="sectorName">Nombre <span class="required">*</span></label>
@@ -1016,12 +1024,14 @@ function dg_acciones_documento($doc) {
                                         <?php if (!empty($sector['descripcion'])): ?>
                                         <p><?php echo htmlspecialchars($sector['descripcion']); ?></p>
                                         <?php endif; ?>
+                                        <?php $cantSector = $documentosPorSector[$sector['id']] ?? 0; ?>
+                                        <span class="cfg-item-meta"><?php echo $cantSector; ?> documento<?php echo $cantSector != 1 ? 's' : ''; ?> activo<?php echo $cantSector != 1 ? 's' : ''; ?></span>
                                     </div>
                                     <div class="cfg-item-actions">
-                                        <button class="cfg-action-btn cfg-edit" onclick="editSector(<?php echo $sector['id']; ?>)" title="Editar">
+                                        <button type="button" class="cfg-action-btn cfg-edit" onclick="editSector(<?php echo (int)$sector['id']; ?>)" title="Editar">
                                             <i class="fas fa-pencil-alt"></i>
                                         </button>
-                                        <button class="cfg-action-btn cfg-delete" onclick="confirmDeleteSector(<?php echo $sector['id']; ?>)" title="Eliminar">
+                                        <button type="button" class="cfg-action-btn cfg-delete" onclick="confirmDeleteSector(<?php echo (int)$sector['id']; ?>)" data-nombre="<?php echo htmlspecialchars($sector['nombre']); ?>" title="Eliminar">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </div>
@@ -1049,7 +1059,9 @@ function dg_acciones_documento($doc) {
                         </div>
 
                         <div id="newTermForm" style="display: none;" class="cfg-inline-form">
-                            <form id="termForm" action="procesar_glosario.php" method="post">
+                            <h4 class="cfg-form-title" id="termFormTitle">Nuevo t&eacute;rmino</h4>
+                            <form id="termForm" action="Controller/procesar_glosario.php" method="post">
+                                <input type="hidden" id="termId" name="id" value="">
                                 <div class="form-group">
                                     <label for="termName">T&eacute;rmino <span class="required">*</span></label>
                                     <input type="text" id="termName" name="termino" required placeholder="Ej: Procedimiento Operativo">
@@ -1079,6 +1091,34 @@ function dg_acciones_documento($doc) {
                             <?php echo count($glosario); ?> t&eacute;rmino<?php echo count($glosario) != 1 ? 's' : ''; ?> registrado<?php echo count($glosario) != 1 ? 's' : ''; ?>.
                             <a href="#" onclick="showGlossary(); return false;">Ver glosario completo <i class="fas fa-arrow-right"></i></a>
                         </div>
+
+                        <?php if (!empty($glosario)): ?>
+                        <div class="cfg-term-filter">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="cfgTermFilter" placeholder="Buscar t&eacute;rmino para editar o eliminar...">
+                        </div>
+                        <ul class="cfg-list cfg-term-list" id="cfgTermList">
+                            <?php foreach ($glosario as $term): ?>
+                            <li class="cfg-list-item cfg-term-item" data-buscar="<?php echo htmlspecialchars(mb_strtolower($term['termino'] . ' ' . $term['definicion'])); ?>">
+                                <div class="cfg-item-info">
+                                    <h4><?php echo htmlspecialchars($term['termino']); ?></h4>
+                                    <p><?php echo htmlspecialchars(mb_strimwidth($term['definicion'], 0, 140, '...')); ?></p>
+                                    <?php if (!empty($term['sector_nombre'])): ?>
+                                    <span class="cfg-item-meta"><?php echo htmlspecialchars($term['sector_nombre']); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="cfg-item-actions">
+                                    <button type="button" class="cfg-action-btn cfg-edit" onclick="loadEditGlossaryForm(<?php echo (int)$term['id']; ?>)" title="Editar">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                    <button type="button" class="cfg-action-btn cfg-delete" onclick="deleteGlossaryTerm(<?php echo (int)$term['id']; ?>)" data-nombre="<?php echo htmlspecialchars($term['termino']); ?>" title="Eliminar">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </li>
+                            <?php endforeach; ?>
+                        </ul>
+                        <?php endif; ?>
                     </div>
 
                 </div>
@@ -1256,6 +1296,22 @@ function dg_acciones_documento($doc) {
         </div>
     </div>
     
+    <!-- Modal de confirmación (reemplaza confirm/prompt del navegador) -->
+    <div id="confirmModal" class="modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="confirmTitulo">
+        <div class="modal-content confirm-modal">
+            <h3 id="confirmTitulo"></h3>
+            <p id="confirmMensaje"></p>
+            <div class="form-group" id="confirmMotivoGrupo" style="display: none;">
+                <label for="confirmMotivo" id="confirmMotivoLabel">Motivo</label>
+                <textarea id="confirmMotivo" rows="3" maxlength="500"></textarea>
+            </div>
+            <div class="confirm-actions">
+                <button type="button" class="btn secondary" id="confirmCancelar">Cancelar</button>
+                <button type="button" class="btn primary" id="confirmAceptar">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Contenedor de notificaciones -->
     <div class="notification-container"></div>
     

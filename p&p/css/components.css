@@ -1209,3 +1209,109 @@
         justify-content: center;
     }
 }
+
+/* ===== Configuración: formularios de alta/edición, conteos y lista de términos ===== */
+.cfg-form-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0 0 12px;
+}
+
+.cfg-item-meta {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #5b8db8;
+}
+
+.cfg-term-filter {
+    position: relative;
+    margin: 0 24px 8px;
+}
+
+.cfg-term-filter i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    font-size: 13px;
+}
+
+.cfg-term-filter input {
+    width: 100%;
+    padding: 9px 12px 9px 34px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.cfg-term-list {
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+/* ===== Modal de confirmación propio ===== */
+.confirm-modal {
+    width: 92%;
+    max-width: 460px;
+    padding: 26px 26px 22px;
+}
+
+.confirm-modal h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    color: #2c3e50;
+}
+
+.confirm-modal p {
+    margin: 0 0 16px;
+    color: #5d6d7e;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.confirm-modal textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.btn.danger,
+.btn.primary.danger {
+    background-color: #e74c3c;
+    border-color: #e74c3c;
+    color: #fff;
+}
+
+.btn.danger:hover,
+.btn.primary.danger:hover {
+    background-color: #c0392b;
+}
+
+@media (max-width: 576px) {
+    .cfg-term-filter {
+        margin: 0 14px 8px;
+    }
+
+    .confirm-actions {
+        flex-direction: column-reverse;
+    }
+
+    .confirm-actions .btn {
+        width: 100%;
+    }
+}

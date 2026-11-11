@@ -165,11 +165,8 @@ function filterBySection(sectorId) {
 
 // Buscar dentro de un PDF
 function searchInPdf() {
-    // Simular búsqueda dentro del PDF
-    const searchTerm = prompt("Introducir término a buscar en el documento:");
-    if (searchTerm && searchTerm.trim() !== '') {
-        showNotification(`Buscando "${searchTerm}" en el documento actual.`, 'info');
-    }
+    // Usá Ctrl+F dentro del visor del PDF
+    showNotification('Para buscar dentro del documento, usá Ctrl+F en el visor', 'info');
 }
 
 // Búsqueda avanzada en contenido y tags (AJAX)

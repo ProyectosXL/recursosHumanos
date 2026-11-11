@@ -203,17 +203,8 @@ function onNextPage() {
 
 // Buscar en el PDF
 function searchInPdf() {
-    // Implementación básica para buscar en el PDF
-    const searchTerm = prompt("Introducir término a buscar en el documento:");
-    if (!searchTerm || searchTerm.trim() === '') return;
-    
-    showNotification(`Buscando "${searchTerm}" en el documento...`, 'info');
-    
-    // En una implementación completa, aquí usaríamos la API de búsqueda de PDF.js
-    // Por ahora, simplemente mostramos un mensaje
-    setTimeout(() => {
-        alert(`Función de búsqueda: En una implementación completa, aquí se buscaría "${searchTerm}" en el documento PDF.`);
-    }, 1000);
+    // El visor nativo del navegador ya permite buscar dentro del PDF
+    showNotification('Para buscar dentro del documento, usá Ctrl+F en el visor', 'info');
 }
 
 // Función para cerrar el visor de PDF
