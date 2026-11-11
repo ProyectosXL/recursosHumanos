@@ -1,10 +1,10 @@
-
 <?php
-// Iniciar sesión para gestión de usuarios (si se implementa)
-session_start();
+// Acceso: login del hub + nivel Editar
+require_once __DIR__ . '/../Class/AccesoDocuGest.php';
+AccesoDocuGest::exigirEditar(AccesoDocuGest::PAGINA);
 
 // Incluir la clase Politica
-require_once '../Class/Politica.php';
+require_once __DIR__ . '/../Class/Politica.php';
 
 // Crear instancia de la clase
 $politicaObj = new Politica();
@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'sector_id' => isset($_POST['sector_id']) ? $_POST['sector_id'] : '',
             'descripcion' => isset($_POST['descripcion']) ? $_POST['descripcion'] : '',
             'tags' => isset($_POST['tags']) ? $_POST['tags'] : '',
-            'creado_por' => isset($_SESSION['usuario_nombre']) ? $_SESSION['usuario_nombre'] : 'Sistema'
+            'creado_por' => AccesoDocuGest::usuario()
         ];
         
         // Guardar el documento

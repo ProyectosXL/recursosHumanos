@@ -1,4 +1,8 @@
 <?php
+// Acceso DocuGest: login nomás (lo llama el Asistente IA de cualquier usuario)
+require_once __DIR__ . '/../Class/AccesoDocuGest.php';
+AccesoDocuGest::exigirLogin(AccesoDocuGest::JSON);
+
 /**
  * Endpoint para verificar qué documentos de PRODUCCION
  * no están indexados en el servicio RAG por su título.

@@ -1,4 +1,8 @@
 <?php
+// Acceso DocuGest: login nomás (lo llama el Asistente IA de cualquier usuario)
+require_once __DIR__ . '/../Class/AccesoDocuGest.php';
+AccesoDocuGest::exigirLogin(AccesoDocuGest::JSON);
+
 /**
  * Empuja todos los documentos faltantes al HF Space vía /api/index-base64.
  * PHP lee los PDFs localmente y los envía como base64.

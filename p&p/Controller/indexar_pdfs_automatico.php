@@ -1,4 +1,8 @@
 <?php
+// Acceso DocuGest: solo Admin (mantenimiento del servicio de IA)
+require_once __DIR__ . '/../Class/AccesoDocuGest.php';
+AccesoDocuGest::exigirAdmin(AccesoDocuGest::PAGINA);
+
 /**
  * Script de indexación automática de PDFs desde carpeta /documentos
  * 

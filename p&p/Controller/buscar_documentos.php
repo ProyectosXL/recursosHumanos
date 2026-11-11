@@ -1,4 +1,8 @@
 <?php
+// Acceso DocuGest: cualquier usuario logueado en el hub
+require_once __DIR__ . '/../Class/AccesoDocuGest.php';
+AccesoDocuGest::exigirLogin(AccesoDocuGest::JSON);
+
 /**
  * Búsqueda avanzada en documentos
  * Busca en contenido de PDFs y en tags

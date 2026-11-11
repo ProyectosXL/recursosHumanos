@@ -217,6 +217,51 @@
     color: #777;
 }
 
+/* Usuario del hub y nivel de acceso en DocuGest */
+.docugest-user {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.nivel-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+.nivel-badge.nivel-ver {
+    background: #ecf0f1;
+    color: #5d6d7e;
+}
+
+.nivel-badge.nivel-editar {
+    background: rgba(52, 152, 219, 0.12);
+    color: #2471a3;
+}
+
+.nivel-badge.nivel-admin {
+    background: rgba(155, 89, 182, 0.14);
+    color: #7d3c98;
+}
+
+@media (max-width: 768px) {
+    /* En celular queda solo el avatar (nombre y nivel en el title) arriba a la derecha */
+    .header {
+        position: relative;
+        padding-right: 56px;
+    }
+
+    .header .docugest-user {
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        width: auto;
+    }
+}
+
 /* Links y botones comunes */
 .see-all {
     color: var(--primary-color);

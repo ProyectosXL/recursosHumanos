@@ -63,7 +63,54 @@ class Politica
             'status' => 'success'
         ];
     }
-    
+
+    /**
+     * Consulta parametrizada que devuelve filas asociativas (o false si falla)
+     */
+    private function consultar($sql, array $params = []) {
+        $stmt = sqlsrv_query($this->cid_central, $sql, $params);
+        if ($stmt === false) {
+            error_log('Politica::consultar: ' . print_r(sqlsrv_errors(), true));
+            return false;
+        }
+        $rows = [];
+        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            $rows[] = $row;
+        }
+        return $rows;
+    }
+
+    /**
+     * Ejecución parametrizada (INSERT / UPDATE / DELETE)
+     */
+    private function ejecutar($sql, array $params = []) {
+        $stmt = sqlsrv_query($this->cid_central, $sql, $params);
+        if ($stmt === false) {
+            $errors = sqlsrv_errors();
+            error_log('Politica::ejecutar: ' . print_r($errors, true));
+            return [
+                'status' => 'error',
+                'message' => $errors[0]['message'] ?? 'Error en la base de datos',
+                'code' => $errors[0]['code'] ?? null
+            ];
+        }
+        return [
+            'status' => 'success',
+            'filas' => sqlsrv_rows_affected($stmt)
+        ];
+    }
+
+    /**
+     * Usuario del hub que hace la operación (o 'Sistema' si no hay sesión, p.ej. por consola)
+     */
+    private function usuarioActual() {
+        return class_exists('AccesoDocuGest') ? AccesoDocuGest::usuario() : 'Sistema';
+    }
+
+    private function usuarioActualId() {
+        return class_exists('AccesoDocuGest') ? AccesoDocuGest::usuarioId() : null;
+    }
+
     /**
      * Obtiene todos los documentos (políticas y procedimientos)
      */
@@ -96,17 +143,21 @@ class Politica
      * Obtiene un documento específico por su ID
      * @param int $id ID del documento
      * @param bool $incrementarVista Si es true, incrementa el contador de vistas
+     * @param bool $soloActivos Si es true, no devuelve documentos dados de baja
      * @return array|bool El documento encontrado o false
      */
-    public function obtenerPorId($id, $incrementarVista = false) {
-        $sql = "SELECT p.*, s.nombre as sector_nombre, s.icono 
-                FROM Politicas_Procedimientos p 
-                JOIN Sectores s ON p.sector_id = s.id 
-                WHERE p.id = $id";
-        
-        $resultado = $this->retornarArray($sql);
-        
-        if (count($resultado) > 0) {
+    public function obtenerPorId($id, $incrementarVista = false, $soloActivos = false) {
+        $sql = "SELECT p.*, s.nombre as sector_nombre, s.icono
+                FROM Politicas_Procedimientos p
+                JOIN Sectores s ON p.sector_id = s.id
+                WHERE p.id = ?";
+        if ($soloActivos) {
+            $sql .= " AND p.estado = 'activo'";
+        }
+
+        $resultado = $this->consultar($sql, [(int)$id]);
+
+        if ($resultado && count($resultado) > 0) {
             // Incrementar contador de vistas solo si se solicita explícitamente
             if ($incrementarVista) {
                 $this->incrementarContador($id, 'vistas');
@@ -587,29 +638,33 @@ class Politica
      * Registra acceso a un documento
      */
     public function registrarAcceso($documento_id, $tipo_acceso, $usuario_id = null) {
-        $ip = $_SERVER['REMOTE_ADDR'];
-        $usuario_id = $usuario_id ? $usuario_id : "NULL";
-        
-        $sql = "INSERT INTO Accesos_Documentos (documento_id, usuario_id, tipo_acceso, ip_acceso) 
-                VALUES ($documento_id, $usuario_id, '$tipo_acceso', '$ip')";
-        
-        $this->ejecutarSQL($sql);
-        
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+        $tipo_acceso = $tipo_acceso === 'descarga' ? 'descarga' : 'vista';
+        if ($usuario_id === null) {
+            $usuario_id = $this->usuarioActualId();
+        }
+
+        $sql = "INSERT INTO Accesos_Documentos (documento_id, usuario_id, tipo_acceso, ip_acceso)
+                VALUES (?, ?, ?, ?)";
+
+        $this->ejecutar($sql, [(int)$documento_id, $usuario_id, $tipo_acceso, $ip]);
+
         // Incrementar contador específico
         $this->incrementarContador($documento_id, $tipo_acceso);
     }
-    
+
     /**
      * Incrementa el contador de vistas o descargas
+     * (no toca fecha_actualizacion ni fecha_ultima_version)
      */
     private function incrementarContador($documento_id, $tipo) {
         $campo = $tipo === 'descarga' ? 'descargas' : 'vistas';
-        
-        $sql = "UPDATE Politicas_Procedimientos 
-                SET $campo = $campo + 1 
-                WHERE id = $documento_id";
-        
-        $this->ejecutarSQL($sql);
+
+        $sql = "UPDATE Politicas_Procedimientos
+                SET $campo = $campo + 1
+                WHERE id = ?";
+
+        $this->ejecutar($sql, [(int)$documento_id]);
     }
     
     /**
@@ -701,7 +756,7 @@ class Politica
      * Registra una entrada en el historial de versiones
      */
     private function registrarHistorialVersion($documento_id, $version, $descripcion = '') {
-        $usuario = isset($_SESSION['usuario_nombre']) ? $_SESSION['usuario_nombre'] : 'Sistema';
+        $usuario = $this->usuarioActual();
         
         $sql = "INSERT INTO Historial_Versiones (documento_id, version, descripcion, usuario, fecha) 
                 VALUES ($documento_id, '".$this->escaparTexto($version)."', 

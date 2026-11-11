@@ -1,10 +1,12 @@
-
 <?php
+// Acceso: cualquier usuario logueado en el hub
+require_once __DIR__ . '/../Class/AccesoDocuGest.php';
+AccesoDocuGest::exigirLogin(AccesoDocuGest::JSON);
+
 // Configurar encabezados para respuesta JSON
 header('Content-Type: application/json');
 
-// Incluir la clase Politica - Corrige la ruta según tu estructura
-require_once '../Class/Politica.php';
+require_once __DIR__ . '/../Class/Politica.php';
 
 try {
     // Crear instancia de la clase
@@ -15,12 +17,12 @@ try {
         $documento_id = (int)$_GET['id'];
         
         // Obtener información del documento sin incrementar vista (parámetro en false)
-        $documento = $politicaObj->obtenerPorId($documento_id, false);
+        // Los documentos dados de baja solo los ve Admin
+        $documento = $politicaObj->obtenerPorId($documento_id, false, !AccesoDocuGest::esAdmin());
         
         if ($documento) {
             // Registrar la visualización (esto ya incrementa el contador una vez)
-            $usuario_id = isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : null;
-            $politicaObj->registrarAcceso($documento_id, 'vista', $usuario_id);
+            $politicaObj->registrarAcceso($documento_id, 'vista', AccesoDocuGest::usuarioId());
             
             // Formatear las fechas correctamente
             if (isset($documento['fecha_creacion']) && is_object($documento['fecha_creacion'])) {

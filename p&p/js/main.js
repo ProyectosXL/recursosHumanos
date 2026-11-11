@@ -142,7 +142,20 @@ function handleUploadSubmit(event) {
         method: 'POST',
         body: formData
     })
-    .then(response => response.text())
+    .then(response => {
+        // Sin permisos o sesión vencida: el servidor no guardó nada
+        if (response.status === 401 || response.status === 403) {
+            throw new Error(response.status === 401
+                ? 'Tu sesión expiró. Volvé a ingresar.'
+                : 'No tenés permisos para esta acción');
+        }
+        // El controller redirige a index.php?mensaje=error&texto=... si falló la validación
+        const finalUrl = new URL(response.url, window.location.href);
+        if (finalUrl.searchParams.get('mensaje') === 'error') {
+            throw new Error(finalUrl.searchParams.get('texto') || 'No se pudo guardar el documento');
+        }
+        return response.text();
+    })
     .then(data => {
         // El documento se procesó correctamente
         // No hacer nada aquí, el modal ya está mostrándose
@@ -158,7 +171,9 @@ function handleUploadSubmit(event) {
         console.error('Error al subir documento:', error);
         // Si hay error, cerrar el modal y mostrar notificación
         closeAutoTagsModal();
-        showNotification('Error al subir el documento. Por favor intente nuevamente.', 'error');
+        showNotification(error && error.message && !error.message.includes('fetch')
+            ? error.message
+            : 'Error al subir el documento. Por favor intente nuevamente.', 'error');
     });
     
     return false;
@@ -167,6 +182,11 @@ function handleUploadSubmit(event) {
 // ===== Funciones de gestión de la navegación por pestañas =====
 
 function showTab(tabId) {
+    // Si la pestaña no se renderizó (no corresponde al nivel del usuario), volver a Inicio
+    if (!document.getElementById(tabId + '-content')) {
+        tabId = 'overview';
+    }
+
     // Ocultar todos los contenidos de tabs
     document.querySelectorAll('.tab-content').forEach(content => {
         content.style.display = 'none';

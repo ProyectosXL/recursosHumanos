@@ -1,7 +1,19 @@
-﻿
 <?php
-// Iniciar sesión para gestión de usuarios (si se implementa)
-session_start();
+// Login del hub: sin sesión va al login y vuelve a DocuGest después de ingresar
+require_once __DIR__ . '/Class/AccesoDocuGest.php';
+AccesoDocuGest::exigirLogin();
+
+// Nivel del usuario (Ver / Editar / Admin)
+$puedeEditar = AccesoDocuGest::puedeEditar();
+$esAdmin     = AccesoDocuGest::esAdmin();
+$nivelUsuario = AccesoDocuGest::nivel();
+$nombreUsuario = Auth::nombre() ?: AccesoDocuGest::usuario();
+$inicialesUsuario = '';
+foreach (preg_split('/\s+/', trim($nombreUsuario)) as $parteNombre) {
+    if ($parteNombre !== '' && mb_strlen($inicialesUsuario) < 2) {
+        $inicialesUsuario .= mb_strtoupper(mb_substr($parteNombre, 0, 1));
+    }
+}
 
 // Incluir la clase Politica
 require_once 'Class/Politica.php';
@@ -131,6 +143,8 @@ foreach ($sectores as $i => $s) {
     
     <!-- Auto-inicio del servicio RAG y auto-indexación -->
     <script>
+        // Solo para mostrar u ocultar controles: los permisos se validan en el servidor
+        window.DOCUGEST_NIVEL = '<?php echo $nivelUsuario; ?>';
         window.RAG_API_URL = '<?php echo htmlspecialchars($ragApiUrl, ENT_QUOTES, 'UTF-8'); ?>';
 
         // Modo ahorro: no inicializar/pingear RAG al cargar la página.
@@ -178,30 +192,36 @@ foreach ($sectores as $i => $s) {
                         <span>Glosario</span>
                     </a>
                 </li>
+                <?php if ($puedeEditar): ?>
                 <li>
                     <a href="#" onclick="showTab('statistics')">
                         <i class="fas fa-chart-pie"></i>
                         <span>Estadísticas</span>
                     </a>
                 </li>
+                <?php endif; ?>
                 <li>
                     <a href="#" onclick="toggleChatbot()" id="chatbotMenuBtn">
                         <i class="fas fa-headset"></i>
                         <span>Asistente IA</span>
                     </a>
                 </li>
+                <?php if ($puedeEditar): ?>
                 <li>
                     <a href="#" onclick="showTab('upload')">
                         <i class="fas fa-upload"></i>
                         <span>Subir Documento</span>
                     </a>
                 </li>
+                <?php endif; ?>
+                <?php if ($esAdmin): ?>
                 <li>
                     <a href="#" onclick="showTab('settings')">
                         <i class="fas fa-cog"></i>
                         <span>Configuración</span>
                     </a>
                 </li>
+                <?php endif; ?>
             </ul>
         </aside>
         
@@ -214,6 +234,16 @@ foreach ($sectores as $i => $s) {
                 <div class="search-container">
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" class="search-input" id="searchInput" placeholder="Buscar políticas, procedimientos o términos...">
+                </div>
+
+                <div class="user-menu docugest-user">
+                    <div class="user-profile">
+                        <div class="avatar" title="<?php echo htmlspecialchars($nombreUsuario . ' · ' . $nivelUsuario); ?>"><?php echo htmlspecialchars($inicialesUsuario ?: '?'); ?></div>
+                        <div class="user-info">
+                            <h4><?php echo htmlspecialchars($nombreUsuario); ?></h4>
+                            <p><span class="nivel-badge nivel-<?php echo strtolower($nivelUsuario); ?>"><?php echo $nivelUsuario; ?></span></p>
+                        </div>
+                    </div>
                 </div>
                 
 
@@ -421,9 +451,11 @@ foreach ($sectores as $i => $s) {
                                 <option value="<?php echo $sector['id']; ?>"><?php echo htmlspecialchars($sector['nombre']); ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            <?php if ($puedeEditar): ?>
                             <button class="upload-btn" onclick="showTab('upload')">
                                 <i class="fas fa-upload"></i> Subir Política
                             </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                     
@@ -482,9 +514,11 @@ foreach ($sectores as $i => $s) {
                                 <option value="<?php echo $sector['id']; ?>"><?php echo htmlspecialchars($sector['nombre']); ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            <?php if ($puedeEditar): ?>
                             <button class="upload-btn" onclick="showTab('upload')">
                                 <i class="fas fa-upload"></i> Subir Procedimiento
                             </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                     
@@ -533,7 +567,8 @@ foreach ($sectores as $i => $s) {
                 </div>
             </div>
             
-            <!-- Vista de Estadísticas -->
+            <?php if ($puedeEditar): ?>
+            <!-- Vista de Estadísticas (Editar y Admin) -->
             <div id="statistics-content" class="tab-content" style="display: none;">
                 <div class="section-header">
                     <h2>Estadísticas</h2>
@@ -668,7 +703,10 @@ foreach ($sectores as $i => $s) {
                 </div>
             </div>
             
-            <!-- Vista de Carga de Documentos -->
+            <?php endif; /* fin Estadísticas */ ?>
+
+            <?php if ($puedeEditar): ?>
+            <!-- Vista de Carga de Documentos (Editar y Admin) -->
             <div id="upload-content" class="tab-content" style="display: none;">
                 <div class="section-header">
                     <h2>Subir Documento</h2>
@@ -769,7 +807,10 @@ foreach ($sectores as $i => $s) {
                 </div>
             </div>
 
-            <!-- Vista de Configuración -->
+            <?php endif; /* fin Subir Documento */ ?>
+
+            <?php if ($esAdmin): ?>
+            <!-- Vista de Configuración (solo Admin) -->
             <div id="settings-content" class="tab-content" style="display: none;">
                 <div class="section-header">
                     <h2>Configuraci&oacute;n</h2>
@@ -916,6 +957,8 @@ foreach ($sectores as $i => $s) {
 
                 </div>
             </div>
+
+            <?php endif; /* fin Configuración */ ?>
 
             <!-- Vista de Todos los Documentos -->
             <div id="all-documents-content" class="tab-content" style="display: none;">
