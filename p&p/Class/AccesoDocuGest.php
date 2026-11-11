@@ -82,6 +82,45 @@ if (!class_exists('AccesoDocuGest')) {
             return is_numeric($id) ? (int)$id : null;
         }
 
+        /**
+         * Destino del botón "Volver al menú": XL Gestión o el menú central del hub,
+         * según de dónde se abrió DocuGest. Se recuerda en la sesión para que no se pierda
+         * al navegar dentro de DocuGest (filtros, recargas).
+         * @return array ['url' => string, 'texto' => string]
+         */
+        public static function menuDeVuelta()
+        {
+            $destinos = [
+                'hub'       => ['url' => '/sistemas/hub/index.php', 'texto' => 'Volver al menú central'],
+                'xlgestion' => ['url' => '/sistemas/index.php',     'texto' => 'Volver a XL Gestión'],
+            ];
+
+            $origen = null;
+            $referer = (string)parse_url($_SERVER['HTTP_REFERER'] ?? '', PHP_URL_PATH);
+            if ($referer !== '' && strpos($referer, '/recursosHumanos/p&p/') !== 0
+                && strpos($referer, '/recursosHumanos/p%26p/') !== 0
+                && strpos($referer, '/sistemas/login.php') !== 0) {
+                if (strpos($referer, '/sistemas/hub/') === 0) {
+                    $origen = 'hub';
+                } elseif (strpos($referer, '/sistemas/') === 0) {
+                    $origen = 'xlgestion';
+                }
+            }
+
+            if ($origen !== null) {
+                $_SESSION['docugest_volver'] = $origen;
+            } elseif (isset($_SESSION['docugest_volver'], $destinos[$_SESSION['docugest_volver']])) {
+                $origen = $_SESSION['docugest_volver'];
+            } else {
+                // Sin referer (el hub abre con noreferrer): los usuarios de locales usan XL Gestión
+                $tipo = strtoupper(trim((string)($_SESSION['tipo'] ?? '')));
+                $origen = in_array($tipo, ['LOCAL_PROPIO', 'LOCAL_PROPIO_UY', 'FRANQUICIA', 'FRANQUICIA_GA'], true)
+                    ? 'xlgestion' : 'hub';
+            }
+
+            return $destinos[$origen];
+        }
+
         public static function exigirLogin($modo = self::PAGINA)
         {
             if (Auth::check()) {

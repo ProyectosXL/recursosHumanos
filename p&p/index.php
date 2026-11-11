@@ -8,6 +8,8 @@ $puedeEditar = AccesoDocuGest::puedeEditar();
 $esAdmin     = AccesoDocuGest::esAdmin();
 $nivelUsuario = AccesoDocuGest::nivel();
 $nombreUsuario = Auth::nombre() ?: AccesoDocuGest::usuario();
+// Botón "Volver al menú": XL Gestión o menú central del hub, según de dónde se abrió DocuGest
+$menuDeVuelta = AccesoDocuGest::menuDeVuelta();
 $inicialesUsuario = '';
 foreach (preg_split('/\s+/', trim($nombreUsuario)) as $parteNombre) {
     if ($parteNombre !== '' && mb_strlen($inicialesUsuario) < 2) {
@@ -224,6 +226,11 @@ function dg_acciones_documento($doc) {
             <div class="logo">
                 <h1>XL DocuGest</h1>
             </div>
+
+            <a href="<?php echo htmlspecialchars($menuDeVuelta['url']); ?>" class="sidebar-back" title="<?php echo htmlspecialchars($menuDeVuelta['texto']); ?>">
+                <i class="fas fa-arrow-left"></i>
+                <span><?php echo htmlspecialchars($menuDeVuelta['texto']); ?></span>
+            </a>
             
             <ul class="sidebar-menu">
                 <li>
