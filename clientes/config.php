@@ -11,13 +11,18 @@ if (!file_exists($autoloaderPath)) {
 }
 require_once $autoloaderPath;
 
-$dotenvPath = __DIR__ . '/../';
-if (!file_exists($dotenvPath . '.env')) {
-    die("ERROR CRÍTICO EN CONFIG.PHP: No se encuentra el archivo '.env'.<br>Debe estar en la carpeta 'recursosHumanos'. Ruta esperada: " . realpath($dotenvPath) . DIRECTORY_SEPARATOR . '.env');
+// htdocs/.env es el principal (el mismo que usa sistemas); recursosHumanos/.env solo completa
+// las claves que falten. createImmutable no pisa valores: gana el primer archivo.
+$dotenvPaths = array_values(array_filter([
+    dirname(__DIR__, 2) . '/',
+    dirname(__DIR__) . '/',
+], function ($dir) { return is_readable($dir . '.env'); }));
+if (empty($dotenvPaths)) {
+    die("ERROR CRÍTICO EN CONFIG.PHP: No se encuentra el archivo '.env'.<br>Debe estar en htdocs (principal) o en la carpeta 'recursosHumanos'.");
 }
 
 try {
-    $dotenv = Dotenv\Dotenv::createImmutable($dotenvPath);
+    $dotenv = Dotenv\Dotenv::createImmutable($dotenvPaths, '.env', false);
     $dotenv->load();
 } catch (\Throwable $th) {
     die('ERROR CRÍTICO EN CONFIG.PHP: El archivo .env existe pero no se pudo leer. Revisa que no tenga errores de sintaxis. Detalle: ' . $th->getMessage());

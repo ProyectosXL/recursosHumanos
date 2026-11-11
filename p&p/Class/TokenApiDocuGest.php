@@ -2,7 +2,7 @@
 /**
  * Token compartido para la API servidor a servidor de DocuGest (p&p/api/).
  *
- * La clave DOCUGEST_API_TOKEN vive en el .env de recursosHumanos y como secreto
+ * La clave DOCUGEST_API_TOKEN vive en htdocs/.env (respaldo: recursosHumanos/.env) y como secreto
  * del Space de Hugging Face. Los llamadores la mandan en el header X-DocuGest-Token.
  *
  * Transición sin cortes: si DOCUGEST_API_TOKEN no está definido en el .env,

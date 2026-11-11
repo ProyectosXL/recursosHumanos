@@ -11,13 +11,13 @@ class RagConfig {
     private function __construct() {
         $this->detectEnvironment();
 
-        // Secretos: se leen del .env de recursosHumanos (el mismo que usa Conexion), nunca del código
+        // Secretos: se leen de htdocs/.env (con recursosHumanos/.env de respaldo), nunca del código
         $this->config['hf_api_token'] = self::env('HF_TOKEN');
         $this->config['docugest_api_token'] = self::env('DOCUGEST_API_TOKEN');
     }
 
     /**
-     * Lee una clave del entorno o del .env de recursosHumanos. Devuelve '' si no está.
+     * Lee una clave del entorno o de htdocs/.env (respaldo: recursosHumanos/.env). Devuelve '' si no está.
      */
     public static function env($clave) {
         $valor = getenv($clave);
@@ -28,18 +28,25 @@ class RagConfig {
             return trim((string)$_ENV[$clave]);
         }
 
+        // htdocs/.env (principal) y recursosHumanos/.env (respaldo): gana el primero que tenga la clave
         static $archivo = null;
         if ($archivo === null) {
             $archivo = [];
-            $ruta = dirname(__DIR__) . '/.env';
-            if (is_readable($ruta)) {
+            foreach ([dirname(__DIR__, 3) . '/.env', dirname(__DIR__, 2) . '/.env'] as $ruta) {
+                if (!is_readable($ruta)) {
+                    continue;
+                }
                 foreach (file($ruta, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $linea) {
                     $linea = trim($linea);
                     if ($linea === '' || $linea[0] === '#' || strpos($linea, '=') === false) {
                         continue;
                     }
                     list($k, $v) = explode('=', $linea, 2);
-                    $archivo[trim($k)] = trim(trim($v), "\"'");
+                    $k = trim($k);
+                    $v = trim(trim($v), "\"'");
+                    if (!isset($archivo[$k]) || $archivo[$k] === '') {
+                        $archivo[$k] = $v;
+                    }
                 }
             }
         }

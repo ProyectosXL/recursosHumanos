@@ -46,8 +46,25 @@ class DotEnv
         }
     }
 
+    /**
+     * Archivos .env en orden de prioridad (solo los que existen):
+     *  1) htdocs/.env  -> el mismo que usa sistemas (principal)
+     *  2) recursosHumanos/.env -> respaldo, solo para claves que no estén en el principal
+     * load() no pisa claves ya cargadas, así que gana el primero.
+     */
+    public static function archivos(): array
+    {
+        $candidatos = [
+            dirname(__DIR__, 2) . '/.env',
+            dirname(__DIR__) . '/.env',
+        ];
+        return array_values(array_filter($candidatos, 'is_readable'));
+    }
+
     public function listVars(){
-        (new DotEnv(__DIR__ . '/../.env'))->load();
+        foreach (self::archivos() as $archivo) {
+            (new DotEnv($archivo))->load();
+        }
 
         $vars = array(
 

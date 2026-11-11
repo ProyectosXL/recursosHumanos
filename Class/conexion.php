@@ -7,7 +7,8 @@ class Conexion{
 
         require_once(__DIR__.'/classEnv.php');
 
-        $vars = new DotEnv(__DIR__ . '/../.env');
+        // htdocs/.env (principal) y recursosHumanos/.env (respaldo): ver DotEnv::archivos()
+        $vars = new DotEnv(DotEnv::archivos()[0] ?? __DIR__ . '/../.env');
         $this->envVars = $vars->listVars();
         
         $this->host_central = $this->envVars['HOST_CENTRAL'];
