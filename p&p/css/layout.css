@@ -301,3 +301,51 @@
         display: block;
     }
 }
+/* Botón "Volver al menú" (XL Gestión o menú central del hub) */
+.sidebar-back {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 4px 15px 0;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    color: #ddd;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.sidebar-back:hover,
+.sidebar-back:focus-visible {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.35);
+    color: #fff;
+}
+
+.sidebar-back i {
+    width: 16px;
+    text-align: center;
+}
+
+@media (max-width: 992px) {
+    .sidebar-back {
+        width: fit-content;
+        margin: 4px auto 0;
+    }
+}
+
+/* Logo de XL junto al nombre de la app (mismo ícono que el hub) */
+.logo {
+    gap: 10px;
+}
+
+.logo-img {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}

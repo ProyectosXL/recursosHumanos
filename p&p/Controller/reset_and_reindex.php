@@ -1,4 +1,8 @@
 <?php
+// Acceso DocuGest: solo Admin (mantenimiento del servicio de IA)
+require_once __DIR__ . '/../Class/AccesoDocuGest.php';
+AccesoDocuGest::exigirAdmin(AccesoDocuGest::PAGINA);
+
 /**
  * Script para resetear ChromaDB y re-indexar todos los documentos.
  * Debe ejecutarse manualmente cuando se detectan problemas con el metadata.

@@ -52,8 +52,10 @@ from utils.config import (
     IS_CLOUD, IS_HF_SPACE, IS_RAILWAY,
     PORT, PHP_SERVER_URL, GOOGLE_API_KEY,
     TAGS_GLOSSARY_PIPELINE_MODE,
+    GENERATION_MODEL_CANDIDATES, TAGS_GLOSSARY_LLM_MODEL_CANDIDATES,
     CHROMA_DB_PATH, LOG_LEVEL, LOG_FILE
 )
+from utils.llm_models import active_model, diagnostics as llm_diagnostics
 from utils.models import (
     DocumentUploadedWebhook, DocumentUpdatedWebhook,
     QueryRequest, QueryResponse,
@@ -85,6 +87,18 @@ logger = logging.getLogger(__name__)
 
 # DEBUG mode (env var: DOCUGEST_DEBUG=1)
 DEBUG = os.getenv('DOCUGEST_DEBUG', '0') == '1'
+
+# Token para la API PHP de DocuGest (api/listar_documentos.php y api/descargar_pdf.php).
+# Se carga como secreto del Space: DOCUGEST_API_TOKEN. Si no está, se llama sin header
+# (el PHP lo acepta mientras su .env tampoco tenga la clave: transición sin cortes).
+DOCUGEST_API_TOKEN = os.getenv('DOCUGEST_API_TOKEN', '').strip()
+
+
+def php_api_headers():
+    """Headers para llamar a la API PHP de DocuGest."""
+    if DOCUGEST_API_TOKEN:
+        return {"X-DocuGest-Token": DOCUGEST_API_TOKEN}
+    return {}
 
 # ============================================================================
 # FASTAPI APP
@@ -791,6 +805,26 @@ async def health_check():
         )
 
 
+@app.get("/api/modelos", tags=["Sistema"])
+async def modelos_disponibles():
+    """
+    Modelos de Gemini habilitados con la API key actual y cuál se está usando.
+    Útil cuando Google retira un modelo y las consultas empiezan a fallar con 404.
+    """
+    info = llm_diagnostics()
+    return {
+        **info,
+        "generacion": {
+            "candidatos": GENERATION_MODEL_CANDIDATES,
+            "en_uso": active_model(GENERATION_MODEL_CANDIDATES, "generation"),
+        },
+        "tags_glosario": {
+            "candidatos": TAGS_GLOSSARY_LLM_MODEL_CANDIDATES,
+            "en_uso": active_model(TAGS_GLOSSARY_LLM_MODEL_CANDIDATES, "tags-glossary"),
+        },
+    }
+
+
 # ============================================================================
 # ENDPOINTS - TAGS & GLOSARIO
 # ============================================================================
@@ -1072,7 +1106,7 @@ async def refresh_from_php():
     try:
         logger.info(f"Iniciando sincronización desde PHP: {PHP_SERVER_URL}")
 
-        response = requests.get(f"{PHP_SERVER_URL}/api/listar_documentos.php", timeout=30)
+        response = requests.get(f"{PHP_SERVER_URL}/api/listar_documentos.php", headers=php_api_headers(), timeout=30)
         response.raise_for_status()
         php_data = response.json()
 
@@ -1110,7 +1144,7 @@ async def refresh_from_php():
                 titulo = doc['titulo']
                 logger.info(f"Descargando: {titulo} (ID: {doc_id})")
 
-                pdf_response = requests.get(f"{PHP_SERVER_URL}/api/descargar_pdf.php?id={doc_id}", timeout=60)
+                pdf_response = requests.get(f"{PHP_SERVER_URL}/api/descargar_pdf.php?id={doc_id}", headers=php_api_headers(), timeout=60)
                 pdf_response.raise_for_status()
 
                 text, _ = extract_text_from_pdf_bytes(pdf_response.content)

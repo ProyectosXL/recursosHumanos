@@ -1,7 +1,21 @@
-﻿
 <?php
-// Iniciar sesión para gestión de usuarios (si se implementa)
-session_start();
+// Login del hub: sin sesión va al login y vuelve a DocuGest después de ingresar
+require_once __DIR__ . '/Class/AccesoDocuGest.php';
+AccesoDocuGest::exigirLogin();
+
+// Nivel del usuario (Ver / Editar / Admin)
+$puedeEditar = AccesoDocuGest::puedeEditar();
+$esAdmin     = AccesoDocuGest::esAdmin();
+$nivelUsuario = AccesoDocuGest::nivel();
+$nombreUsuario = Auth::nombre() ?: AccesoDocuGest::usuario();
+// Botón "Volver al menú": XL Gestión o menú central del hub, según de dónde se abrió DocuGest
+$menuDeVuelta = AccesoDocuGest::menuDeVuelta();
+$inicialesUsuario = '';
+foreach (preg_split('/\s+/', trim($nombreUsuario)) as $parteNombre) {
+    if ($parteNombre !== '' && mb_strlen($inicialesUsuario) < 2) {
+        $inicialesUsuario .= mb_strtoupper(mb_substr($parteNombre, 0, 1));
+    }
+}
 
 // Incluir la clase Politica
 require_once 'Class/Politica.php';
@@ -33,6 +47,18 @@ if (isset($_GET['busqueda']) && !empty($_GET['busqueda'])) {
 // Obtener documentos recientes
 $documentos_recientes = $politicaObj->obtenerTodos($filtros);
 
+// Todos los documentos activos, sin los filtros de la URL (contadores por sector y pestaña Actualizar)
+$documentos_activos = empty($filtros) ? $documentos_recientes : $politicaObj->obtenerTodos();
+
+// Documentos dados de baja (card de Configuración, solo Admin)
+$documentos_baja = $esAdmin ? $politicaObj->obtenerDadosDeBaja() : [];
+
+// Cantidad de documentos activos por sector (sobre el total, no sobre la lista filtrada)
+$documentosPorSector = [];
+foreach ($documentos_activos as $docActivo) {
+    $documentosPorSector[$docActivo['sector_id']] = ($documentosPorSector[$docActivo['sector_id']] ?? 0) + 1;
+}
+
 // Obtener términos del glosario
 $glosario = $politicaObj->obtenerGlosario();
 
@@ -41,6 +67,63 @@ $sectorColorMap = [];
 foreach ($sectores as $i => $s) {
     $sectorColorMap[$s['id']] = '#5b8db8';
 }
+
+/** URL de un archivo estático con ?v=fecha de modificación (evita que el navegador use una versión vieja) */
+function dg_asset($ruta) {
+    $archivo = __DIR__ . '/' . $ruta;
+    return $ruta . (is_file($archivo) ? '?v=' . filemtime($archivo) : '');
+}
+
+// ── Helpers de filas de documentos ──
+
+/** Fecha de la última versión (o del alta). No usa fecha_actualizacion: cambia también con bajas y ediciones. */
+function dg_fecha_version($doc) {
+    foreach (['fecha_ultima_version', 'fecha_creacion', 'fecha_actualizacion'] as $campo) {
+        if (!empty($doc[$campo])) {
+            return $doc[$campo];
+        }
+    }
+    return null;
+}
+
+/** Título y línea "Sector X · Versión Y · Actualizado dd/mm/aaaa" */
+function dg_detalle_documento($doc, $mostrarTipo = false) {
+    $version = trim((string)($doc['version'] ?? '')) ?: '1.0';
+    $fecha = Politica::formatearFecha(dg_fecha_version($doc));
+    $marca = Politica::marcaNovedad($doc);
+    $html = '<h4>' . htmlspecialchars($doc['titulo']);
+    if ($marca === 'nuevo') {
+        $html .= ' <span class="doc-badge doc-badge-nuevo">Nuevo</span>';
+    } elseif ($marca === 'actualizado') {
+        $html .= ' <span class="doc-badge doc-badge-actualizado">Actualizado</span>';
+    }
+    $html .= '</h4>';
+    $html .= '<p>';
+    if ($mostrarTipo) {
+        $html .= '<strong>' . ($doc['tipo'] == 'politica' ? 'Pol&iacute;tica' : 'Procedimiento') . '</strong> &mdash; ';
+    }
+    $html .= 'Sector ' . htmlspecialchars($doc['sector_nombre']) . ' &middot; ';
+    $html .= '<span class="doc-version">Versi&oacute;n ' . htmlspecialchars($version) . ' &middot; Actualizado ' . ($fecha ?: 'sin fecha') . '</span>';
+    $html .= '</p>';
+    return $html;
+}
+
+/** Botones de la fila: ver y descargar (todos), actualizar (Editar y Admin), dar de baja (Admin) */
+function dg_acciones_documento($doc) {
+    global $puedeEditar, $esAdmin;
+    $id = (int)$doc['id'];
+    $html = '<div class="policy-actions">';
+    $html .= '<button class="action-btn view" onclick="viewDocument(' . $id . ')" title="Ver"><i class="fas fa-eye"></i></button>';
+    $html .= '<button class="action-btn download" onclick="downloadDocument(' . $id . ')" title="Descargar"><i class="fas fa-download"></i></button>';
+    if ($puedeEditar) {
+        $html .= '<button class="action-btn update" onclick="openUpdateDocument(' . $id . ')" title="Actualizar"><i class="fas fa-sync-alt"></i><span>Actualizar</span></button>';
+    }
+    if ($esAdmin) {
+        $html .= '<button class="action-btn baja" data-id="' . $id . '" data-titulo="' . htmlspecialchars($doc['titulo']) . '" onclick="confirmarBajaDocumento(' . $id . ')" title="Dar de baja"><i class="fas fa-archive"></i></button>';
+    }
+    $html .= '</div>';
+    return $html;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -48,10 +131,18 @@ foreach ($sectores as $i => $s) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestión de Políticas y Procedimientos</title>
-    <link rel="icon" type="image/jpg" href="../../image/icono.jpg">
+    <link rel="icon" type="image/jpeg" href="/sistemas/assets/css/icono.jpg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/chatbot.css">
+    <!-- Cada archivo con ?v=fecha de modificación: el navegador toma siempre la última versión (antes main.css los traía por @import, sin versión) -->
+    <link rel="stylesheet" href="<?php echo dg_asset('css/base.css'); ?>">
+    <link rel="stylesheet" href="<?php echo dg_asset('css/layout.css'); ?>">
+    <link rel="stylesheet" href="<?php echo dg_asset('css/components.css'); ?>">
+    <link rel="stylesheet" href="<?php echo dg_asset('css/documents.css'); ?>">
+    <link rel="stylesheet" href="<?php echo dg_asset('css/glossary.css'); ?>">
+    <link rel="stylesheet" href="<?php echo dg_asset('css/forms.css'); ?>">
+    <link rel="stylesheet" href="<?php echo dg_asset('css/search-results.css'); ?>">
+    <link rel="stylesheet" href="<?php echo dg_asset('css/chatbot.css'); ?>">
+    <link rel="stylesheet" href="<?php echo dg_asset('css/update-document.css'); ?>">
     <style>
         /* Estilos para el modal de tags automáticos */
         #autoTagsModal .modal-content {
@@ -131,6 +222,8 @@ foreach ($sectores as $i => $s) {
     
     <!-- Auto-inicio del servicio RAG y auto-indexación -->
     <script>
+        // Solo para mostrar u ocultar controles: los permisos se validan en el servidor
+        window.DOCUGEST_NIVEL = '<?php echo $nivelUsuario; ?>';
         window.RAG_API_URL = '<?php echo htmlspecialchars($ragApiUrl, ENT_QUOTES, 'UTF-8'); ?>';
 
         // Modo ahorro: no inicializar/pingear RAG al cargar la página.
@@ -144,8 +237,14 @@ foreach ($sectores as $i => $s) {
     <div class="container">
         <aside class="sidebar">
             <div class="logo">
+                <img src="/sistemas/assets/css/icono.jpg" alt="XL" class="logo-img">
                 <h1>DocuGest</h1>
             </div>
+
+            <a href="<?php echo htmlspecialchars($menuDeVuelta['url']); ?>" class="sidebar-back" title="<?php echo htmlspecialchars($menuDeVuelta['texto']); ?>">
+                <i class="fas fa-arrow-left"></i>
+                <span><?php echo htmlspecialchars($menuDeVuelta['texto']); ?></span>
+            </a>
             
             <ul class="sidebar-menu">
                 <li>
@@ -178,18 +277,21 @@ foreach ($sectores as $i => $s) {
                         <span>Glosario</span>
                     </a>
                 </li>
+                <?php if ($puedeEditar): ?>
                 <li>
                     <a href="#" onclick="showTab('statistics')">
                         <i class="fas fa-chart-pie"></i>
                         <span>Estadísticas</span>
                     </a>
                 </li>
+                <?php endif; ?>
                 <li>
                     <a href="#" onclick="toggleChatbot()" id="chatbotMenuBtn">
                         <i class="fas fa-headset"></i>
                         <span>Asistente IA</span>
                     </a>
                 </li>
+                <?php if ($puedeEditar): ?>
                 <li>
                     <a href="#" onclick="showTab('upload')">
                         <i class="fas fa-upload"></i>
@@ -197,11 +299,20 @@ foreach ($sectores as $i => $s) {
                     </a>
                 </li>
                 <li>
+                    <a href="#" onclick="showTab('update')">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Actualizar Documento</span>
+                    </a>
+                </li>
+                <?php endif; ?>
+                <?php if ($esAdmin): ?>
+                <li>
                     <a href="#" onclick="showTab('settings')">
                         <i class="fas fa-cog"></i>
                         <span>Configuración</span>
                     </a>
                 </li>
+                <?php endif; ?>
             </ul>
         </aside>
         
@@ -214,6 +325,16 @@ foreach ($sectores as $i => $s) {
                 <div class="search-container">
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" class="search-input" id="searchInput" placeholder="Buscar políticas, procedimientos o términos...">
+                </div>
+
+                <div class="user-menu docugest-user">
+                    <div class="user-profile">
+                        <div class="avatar" title="<?php echo htmlspecialchars($nombreUsuario . ' · ' . $nivelUsuario); ?>"><?php echo htmlspecialchars($inicialesUsuario ?: '?'); ?></div>
+                        <div class="user-info">
+                            <h4><?php echo htmlspecialchars($nombreUsuario); ?></h4>
+                            <p><span class="nivel-badge nivel-<?php echo strtolower($nivelUsuario); ?>"><?php echo $nivelUsuario; ?></span></p>
+                        </div>
+                    </div>
                 </div>
                 
 
@@ -302,7 +423,7 @@ foreach ($sectores as $i => $s) {
                     <div class="left-column">
                         <div class="card">
                             <div class="card-header">
-                                <h3>Documentos Recientes</h3>
+                                <h3>Novedades</h3>
                                 <a href="#" class="see-all" onclick="showTab('all-documents')">Ver todos <i class="fas fa-chevron-right"></i></a>
                             </div>
                             
@@ -319,20 +440,11 @@ foreach ($sectores as $i => $s) {
                                                 <i class="fas fa-file-pdf"></i>
                                             </div>
                                             <div class="policy-details">
-                                                <h4><?php echo htmlspecialchars($doc['titulo']); ?></h4>
-                                                <p>Sector <?php echo htmlspecialchars($doc['sector_nombre']); ?> - 
-                                                Actualizado: <?php echo isset($doc['fecha_actualizacion']) ? date('d/m/Y', is_string($doc['fecha_actualizacion']) ? strtotime($doc['fecha_actualizacion']) : strtotime($doc['fecha_actualizacion']->format('Y-m-d'))) : 'Fecha no disponible'; ?></p>
+                                                <?php echo dg_detalle_documento($doc); ?>
 
                                             </div>
                                         </div>
-                                        <div class="policy-actions">
-                                            <button class="action-btn view" onclick="viewDocument(<?php echo $doc['id']; ?>)">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="action-btn download" onclick="downloadDocument(<?php echo $doc['id']; ?>)">
-                                                <i class="fas fa-download"></i>
-                                            </button>
-                                        </div>
+                                        <?php echo dg_acciones_documento($doc); ?>
                                     </li>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
@@ -389,15 +501,10 @@ foreach ($sectores as $i => $s) {
                             <p><?php echo htmlspecialchars($sector['descripcion']); ?></p>
                             
                             <?php
-                            // Contar documentos por sector
-                            $count = 0;
-                            foreach ($documentos_recientes as $doc) {
-                                if ($doc['sector_id'] == $sector['id']) {
-                                    $count++;
-                                }
-                            }
+                            // Documentos activos del sector (sobre el total, no sobre la lista filtrada)
+                            $count = $documentosPorSector[$sector['id']] ?? 0;
                             ?>
-                            <span class="count"><?php echo $count; ?> documentos</span>
+                            <span class="count"><?php echo $count; ?> documento<?php echo $count != 1 ? 's' : ''; ?></span>
                         </div>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -421,9 +528,11 @@ foreach ($sectores as $i => $s) {
                                 <option value="<?php echo $sector['id']; ?>"><?php echo htmlspecialchars($sector['nombre']); ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            <?php if ($puedeEditar): ?>
                             <button class="upload-btn" onclick="showTab('upload')">
                                 <i class="fas fa-upload"></i> Subir Política
                             </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                     
@@ -445,19 +554,10 @@ foreach ($sectores as $i => $s) {
                                         <i class="fas fa-file-pdf"></i>
                                     </div>
                                     <div class="policy-details">
-                                        <h4><?php echo htmlspecialchars($policy['titulo']); ?></h4>
-                                        <p>Sector <?php echo htmlspecialchars($policy['sector_nombre']); ?> - 
-                                           Actualizado: <?php echo date('d/m/Y', strtotime($policy['fecha_actualizacion'])); ?></p>
+                                        <?php echo dg_detalle_documento($policy); ?>
                                     </div>
                                 </div>
-                                <div class="policy-actions">
-                                    <button class="action-btn view" onclick="viewDocument(<?php echo $policy['id']; ?>)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="action-btn download" onclick="downloadDocument(<?php echo $policy['id']; ?>)">
-                                        <i class="fas fa-download"></i>
-                                    </button>
-                                </div>
+                                <?php echo dg_acciones_documento($policy); ?>
                             </li>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -476,15 +576,18 @@ foreach ($sectores as $i => $s) {
                     <div class="card-header">
                         <h3>Procedimientos Operativos</h3>
                         <div class="filter-options">
+                            <button type="button" class="plantilla-btn" onclick="descargarPlantilla()" title="Descargar plantilla de procedimiento"><i class="fas fa-file-word"></i> Descargar plantilla de procedimiento</button>
                             <select class="filter-select" id="sectorFilterProcedures" onchange="filterProcedures()">
                                 <option value="">Todos los sectores</option>
                                 <?php foreach ($sectores as $sector): ?>
                                 <option value="<?php echo $sector['id']; ?>"><?php echo htmlspecialchars($sector['nombre']); ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            <?php if ($puedeEditar): ?>
                             <button class="upload-btn" onclick="showTab('upload')">
                                 <i class="fas fa-upload"></i> Subir Procedimiento
                             </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                     
@@ -506,26 +609,10 @@ foreach ($sectores as $i => $s) {
                                         <i class="fas fa-file-pdf"></i>
                                     </div>
                                     <div class="policy-details">
-                                        <h4><?php echo htmlspecialchars($procedure['titulo']); ?></h4>
-                                        <p>Sector <?php echo htmlspecialchars($procedure['sector_nombre']); ?> - 
-                                        Actualizado: <?php 
-                                                        echo isset($procedure['fecha_actualizacion']) 
-                                                            ? date('d/m/Y', is_string($procedure['fecha_actualizacion']) 
-                                                                ? strtotime($procedure['fecha_actualizacion']) 
-                                                                : strtotime($procedure['fecha_actualizacion']->format('Y-m-d'))) 
-                                                            : 'Fecha no disponible'; 
-                                                        ?>
-                                                        </p>
+                                        <?php echo dg_detalle_documento($procedure); ?>
                                     </div>
                                 </div>
-                                <div class="policy-actions">
-                                    <button class="action-btn view" onclick="viewDocument(<?php echo $procedure['id']; ?>)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="action-btn download" onclick="downloadDocument(<?php echo $procedure['id']; ?>)">
-                                        <i class="fas fa-download"></i>
-                                    </button>
-                                </div>
+                                <?php echo dg_acciones_documento($procedure); ?>
                             </li>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -533,7 +620,8 @@ foreach ($sectores as $i => $s) {
                 </div>
             </div>
             
-            <!-- Vista de Estadísticas -->
+            <?php if ($puedeEditar): ?>
+            <!-- Vista de Estadísticas (Editar y Admin) -->
             <div id="statistics-content" class="tab-content" style="display: none;">
                 <div class="section-header">
                     <h2>Estadísticas</h2>
@@ -541,8 +629,8 @@ foreach ($sectores as $i => $s) {
                 </div>
 
                 <?php
-                $total_docs = count($documentos_recientes);
-                $total_pol = count(array_filter($documentos_recientes, fn($d) => $d['tipo'] == 'politica'));
+                $total_docs = count($documentos_activos);
+                $total_pol = count(array_filter($documentos_activos, fn($d) => $d['tipo'] == 'politica'));
                 $total_proc = $total_docs - $total_pol;
                 $max_vistas = 1;
                 $max_descargas = 1;
@@ -645,7 +733,7 @@ foreach ($sectores as $i => $s) {
                     <?php if (!empty($sectores)): ?>
                     <div class="stats-sectors-grid">
                         <?php foreach ($sectores as $sector):
-                            $cnt = count(array_filter($documentos_recientes, fn($d) => $d['sector_id'] == $sector['id']));
+                            $cnt = $documentosPorSector[$sector['id']] ?? 0;
                             $pct = $total_docs > 0 ? round(($cnt / $total_docs) * 100) : 0;
                             $sc2 = $sectorColorMap[$sector['id']] ?? '#3498db';
                         ?>
@@ -668,7 +756,10 @@ foreach ($sectores as $i => $s) {
                 </div>
             </div>
             
-            <!-- Vista de Carga de Documentos -->
+            <?php endif; /* fin Estadísticas */ ?>
+
+            <?php if ($puedeEditar): ?>
+            <!-- Vista de Carga de Documentos (Editar y Admin) -->
             <div id="upload-content" class="tab-content" style="display: none;">
                 <div class="section-header">
                     <h2>Subir Documento</h2>
@@ -703,6 +794,10 @@ foreach ($sectores as $i => $s) {
                                         <option value="politica">Política</option>
                                         <option value="procedimiento">Procedimiento</option>
                                     </select>
+                                    <div class="plantilla-box" id="uploadPlantillaBox" style="display: none;">
+                                        <i class="fas fa-file-word"></i>
+                                        <span>&iquest;No ten&eacute;s el formato? <a href="#" onclick="descargarPlantilla(); return false;">Descarg&aacute; la plantilla</a></span>
+                                    </div>
                                 </div>
                                 
                                 <div class="form-group col-md-6">
@@ -769,7 +864,176 @@ foreach ($sectores as $i => $s) {
                 </div>
             </div>
 
-            <!-- Vista de Configuración -->
+            <?php endif; /* fin Subir Documento */ ?>
+
+            <?php if ($puedeEditar): ?>
+            <!-- Vista de Actualizar Documento (Editar y Admin) -->
+            <div id="update-content" class="tab-content" style="display: none;">
+                <div class="section-header">
+                    <h2>Actualizar documento</h2>
+                    <p>Sub&iacute; una versi&oacute;n nueva del PDF o correg&iacute; los datos de un documento</p>
+                </div>
+
+                <div class="card update-select-card">
+                    <div class="form-group">
+                        <label for="documentSelect">Documento</label>
+                        <select id="documentSelect">
+                            <option value="">Eleg&iacute; un documento</option>
+                            <?php foreach (['politica' => 'Pol&iacute;ticas', 'procedimiento' => 'Procedimientos'] as $tipoGrupo => $etiquetaGrupo): ?>
+                            <optgroup label="<?php echo html_entity_decode($etiquetaGrupo); ?>">
+                                <?php foreach ($documentos_activos as $docOpt): ?>
+                                    <?php if ($docOpt['tipo'] !== $tipoGrupo) continue; ?>
+                                <option value="<?php echo (int)$docOpt['id']; ?>"><?php echo htmlspecialchars($docOpt['titulo'] . ' (' . $docOpt['sector_nombre'] . ')'); ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="documentDetails" class="document-details" style="display: none;">
+                    <div class="document-info-card">
+                        <h4><i class="fas fa-info-circle"></i> Datos actuales</h4>
+                        <div class="info-row"><span class="label">T&iacute;tulo</span><span class="value" id="docDetailTitle"></span></div>
+                        <div class="info-row"><span class="label">Tipo</span><span class="value" id="docDetailType"></span></div>
+                        <div class="info-row"><span class="label">Sector</span><span class="value" id="docDetailSector"></span></div>
+                        <div class="info-row"><span class="label">Versi&oacute;n</span><span class="value" id="docDetailVersion"></span></div>
+                        <div class="info-row"><span class="label">&Uacute;ltima actualizaci&oacute;n</span><span class="value" id="docDetailDate"></span></div>
+                    </div>
+                    <div class="plantilla-box" id="updatePlantillaBox" style="display: none;">
+                        <i class="fas fa-file-word"></i>
+                        <span>&iquest;No ten&eacute;s el formato? <a href="#" onclick="descargarPlantilla(); return false;">Descarg&aacute; la plantilla de procedimiento</a></span>
+                    </div>
+                </div>
+
+                <div id="updateForm" style="display: none;">
+                    <div class="update-options" role="tablist">
+                        <button type="button" class="update-option active" data-opcion="version" onclick="mostrarOpcionUpdate('version')">
+                            <i class="fas fa-file-upload"></i> Subir versi&oacute;n nueva
+                        </button>
+                        <button type="button" class="update-option" data-opcion="datos" onclick="mostrarOpcionUpdate('datos')">
+                            <i class="fas fa-pen"></i> Editar datos
+                        </button>
+                    </div>
+                    <div class="card update-card" id="updateVersionCard">
+                        <div class="card-header">
+                            <h3><i class="fas fa-file-upload"></i> Subir versi&oacute;n nueva</h3>
+                        </div>
+                        <form id="updateVersionForm" action="Controller/actualizar_documento.php" method="post" enctype="multipart/form-data" novalidate>
+                            <input type="hidden" id="updateDocId" name="documento_id" value="">
+                            <input type="hidden" name="MAX_FILE_SIZE" value="10485760">
+
+                            <div class="form-group">
+                                <label>PDF nuevo <span class="required">*</span></label>
+                                <div class="file-upload-container">
+                                    <div class="file-upload-button" id="updateFileUploadBtn">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <div class="main-text">Arrastr&aacute; el PDF ac&aacute;</div>
+                                        <p>o hac&eacute; clic para elegirlo</p>
+                                        <p class="file-types">Solo PDF (m&aacute;x. 10 MB)</p>
+                                    </div>
+                                    <input type="file" id="updateDocFile" name="archivo" accept=".pdf,application/pdf" class="file-upload-input">
+                                    <div class="file-info" id="updateFileInfo">
+                                        <i class="fas fa-file-pdf"></i>
+                                        <span class="file-name" id="updateFileName"></span>
+                                        <span class="file-size" id="updateFileSize"></span>
+                                        <i class="fas fa-times remove-file" onclick="removeUpdateFile()" title="Quitar archivo"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="updateVersion">Versi&oacute;n nueva <span class="required">*</span></label>
+                                    <input type="text" id="updateVersion" name="version" inputmode="decimal" autocomplete="off" placeholder="Ej: 1.1">
+                                    <small class="form-hint">Versi&oacute;n actual: <span id="updateCurrentVersion"></span>. La nueva tiene que ser mayor.</small>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="updateDesc">Motivo del cambio <span class="required">*</span></label>
+                                <textarea id="updateDesc" name="motivo" rows="3" maxlength="500" placeholder="Ej: Cambio de responsable del proceso"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="updateTags">Etiquetas (separadas por comas)</label>
+                                <input type="text" id="updateTags" name="tags" placeholder="ej. seguridad, finanzas, auditor&iacute;a">
+                                <div class="tags-container" id="updateTagsContainer"></div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="btn secondary" onclick="cancelUpdate()">Cancelar</button>
+                                <button type="submit" class="btn primary" id="updateSubmitBtn">
+                                    <i class="fas fa-upload"></i> Subir versi&oacute;n nueva
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card update-card" id="updateDataCard" style="display: none;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-pen"></i> Editar datos</h3>
+                        </div>
+                        <p class="form-hint">No cambia el PDF ni la versi&oacute;n. Queda en el historial como &laquo;Edici&oacute;n de datos&raquo;.</p>
+                        <form id="editDataForm" action="Controller/editar_datos_documento.php" method="post" novalidate>
+                            <input type="hidden" id="editDocId" name="documento_id" value="">
+
+                            <div class="form-group">
+                                <label for="editTitulo">T&iacute;tulo <span class="required">*</span></label>
+                                <input type="text" id="editTitulo" name="titulo" maxlength="255">
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="editTipo">Tipo <span class="required">*</span></label>
+                                    <select id="editTipo" name="tipo">
+                                        <option value="politica">Pol&iacute;tica</option>
+                                        <option value="procedimiento">Procedimiento</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="editSector">Sector <span class="required">*</span></label>
+                                    <select id="editSector" name="sector_id">
+                                        <?php foreach ($sectores as $sector): ?>
+                                        <option value="<?php echo (int)$sector['id']; ?>"><?php echo htmlspecialchars($sector['nombre']); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editDescripcion">Descripci&oacute;n</label>
+                                <textarea id="editDescripcion" name="descripcion" rows="3"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editTags">Etiquetas (separadas por comas)</label>
+                                <input type="text" id="editTags" name="tags">
+                                <div class="tags-container" id="editTagsContainer"></div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="btn secondary" onclick="cancelUpdate()">Cancelar</button>
+                                <button type="submit" class="btn primary" id="editDataSubmitBtn">
+                                    <i class="fas fa-save"></i> Guardar datos
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card update-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-history"></i> Historial de versiones</h3>
+                        </div>
+                        <p class="form-hint">Las versiones anteriores quedan guardadas, pero solo se puede ver y descargar la vigente.</p>
+                        <div id="versionHistoryContent"></div>
+                    </div>
+                </div>
+            </div>
+            <?php endif; /* fin Actualizar documento */ ?>
+
+
+            <?php if ($esAdmin): ?>
+            <!-- Vista de Configuración (solo Admin) -->
             <div id="settings-content" class="tab-content" style="display: none;">
                 <div class="section-header">
                     <h2>Configuraci&oacute;n</h2>
@@ -796,7 +1060,9 @@ foreach ($sectores as $i => $s) {
                         </div>
 
                         <div id="newSectorForm" style="display: none;" class="cfg-inline-form">
-                            <form id="sectorForm" action="procesar_sector.php" method="post">
+                            <h4 class="cfg-form-title" id="sectorFormTitle">Nuevo sector</h4>
+                            <form id="sectorForm" action="Controller/procesar_sector.php" method="post">
+                                <input type="hidden" id="sectorId" name="id" value="">
                                 <div class="cfg-form-row">
                                     <div class="form-group">
                                         <label for="sectorName">Nombre <span class="required">*</span></label>
@@ -849,12 +1115,14 @@ foreach ($sectores as $i => $s) {
                                         <?php if (!empty($sector['descripcion'])): ?>
                                         <p><?php echo htmlspecialchars($sector['descripcion']); ?></p>
                                         <?php endif; ?>
+                                        <?php $cantSector = $documentosPorSector[$sector['id']] ?? 0; ?>
+                                        <span class="cfg-item-meta"><?php echo $cantSector; ?> documento<?php echo $cantSector != 1 ? 's' : ''; ?> activo<?php echo $cantSector != 1 ? 's' : ''; ?></span>
                                     </div>
                                     <div class="cfg-item-actions">
-                                        <button class="cfg-action-btn cfg-edit" onclick="editSector(<?php echo $sector['id']; ?>)" title="Editar">
+                                        <button type="button" class="cfg-action-btn cfg-edit" onclick="editSector(<?php echo (int)$sector['id']; ?>)" title="Editar">
                                             <i class="fas fa-pencil-alt"></i>
                                         </button>
-                                        <button class="cfg-action-btn cfg-delete" onclick="confirmDeleteSector(<?php echo $sector['id']; ?>)" title="Eliminar">
+                                        <button type="button" class="cfg-action-btn cfg-delete" onclick="confirmDeleteSector(<?php echo (int)$sector['id']; ?>)" data-nombre="<?php echo htmlspecialchars($sector['nombre']); ?>" title="Eliminar">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </div>
@@ -882,7 +1150,9 @@ foreach ($sectores as $i => $s) {
                         </div>
 
                         <div id="newTermForm" style="display: none;" class="cfg-inline-form">
-                            <form id="termForm" action="procesar_glosario.php" method="post">
+                            <h4 class="cfg-form-title" id="termFormTitle">Nuevo t&eacute;rmino</h4>
+                            <form id="termForm" action="Controller/procesar_glosario.php" method="post">
+                                <input type="hidden" id="termId" name="id" value="">
                                 <div class="form-group">
                                     <label for="termName">T&eacute;rmino <span class="required">*</span></label>
                                     <input type="text" id="termName" name="termino" required placeholder="Ej: Procedimiento Operativo">
@@ -912,10 +1182,85 @@ foreach ($sectores as $i => $s) {
                             <?php echo count($glosario); ?> t&eacute;rmino<?php echo count($glosario) != 1 ? 's' : ''; ?> registrado<?php echo count($glosario) != 1 ? 's' : ''; ?>.
                             <a href="#" onclick="showGlossary(); return false;">Ver glosario completo <i class="fas fa-arrow-right"></i></a>
                         </div>
+
+                        <?php if (!empty($glosario)): ?>
+                        <div class="cfg-term-filter">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="cfgTermFilter" placeholder="Buscar t&eacute;rmino para editar o eliminar...">
+                        </div>
+                        <ul class="cfg-list cfg-term-list" id="cfgTermList">
+                            <?php foreach ($glosario as $term): ?>
+                            <li class="cfg-list-item cfg-term-item" data-buscar="<?php echo htmlspecialchars(mb_strtolower($term['termino'] . ' ' . $term['definicion'])); ?>">
+                                <div class="cfg-item-info">
+                                    <h4><?php echo htmlspecialchars($term['termino']); ?></h4>
+                                    <p><?php echo htmlspecialchars(mb_strimwidth($term['definicion'], 0, 140, '...')); ?></p>
+                                    <?php if (!empty($term['sector_nombre'])): ?>
+                                    <span class="cfg-item-meta"><?php echo htmlspecialchars($term['sector_nombre']); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="cfg-item-actions">
+                                    <button type="button" class="cfg-action-btn cfg-edit" onclick="loadEditGlossaryForm(<?php echo (int)$term['id']; ?>)" title="Editar">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                    <button type="button" class="cfg-action-btn cfg-delete" onclick="deleteGlossaryTerm(<?php echo (int)$term['id']; ?>)" data-nombre="<?php echo htmlspecialchars($term['termino']); ?>" title="Eliminar">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </li>
+                            <?php endforeach; ?>
+                        </ul>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Documentos dados de baja -->
+                    <div class="card cfg-card cfg-card-wide">
+                        <div class="card-header cfg-card-header">
+                            <div class="cfg-card-title">
+                                <div class="cfg-card-icon red">
+                                    <i class="fas fa-archive"></i>
+                                </div>
+                                <div>
+                                    <h3>Documentos dados de baja</h3>
+                                    <p class="cfg-card-subtitle">No se ven en las listas, la b&uacute;squeda ni el Asistente IA. Los archivos se conservan.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <ul class="cfg-list">
+                            <?php if (empty($documentos_baja)): ?>
+                            <li class="cfg-empty">
+                                <i class="fas fa-archive"></i>
+                                <p>No hay documentos dados de baja.</p>
+                            </li>
+                            <?php else: ?>
+                                <?php foreach ($documentos_baja as $docBaja): ?>
+                                <li class="cfg-list-item cfg-baja-item">
+                                    <div class="cfg-item-info">
+                                        <h4><?php echo htmlspecialchars($docBaja['titulo']); ?></h4>
+                                        <p>
+                                            <?php echo $docBaja['tipo'] == 'politica' ? 'Pol&iacute;tica' : 'Procedimiento'; ?> &middot;
+                                            Sector <?php echo htmlspecialchars($docBaja['sector_nombre']); ?> &middot;
+                                            Baja: <?php echo Politica::formatearFecha($docBaja['fecha_baja']) ?: 'sin fecha'; ?>
+                                            <?php if (!empty($docBaja['usuario_baja'])): ?> por <?php echo htmlspecialchars($docBaja['usuario_baja']); ?><?php endif; ?>
+                                        </p>
+                                        <p class="cfg-baja-motivo"><strong>Motivo:</strong> <?php echo htmlspecialchars($docBaja['motivo_baja'] ?: 'Sin motivo registrado'); ?></p>
+                                    </div>
+                                    <div class="cfg-item-actions">
+                                        <button type="button" class="cfg-action-btn cfg-edit" onclick="viewDocument(<?php echo (int)$docBaja['id']; ?>)" title="Ver">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn primary btn-sm cfg-reactivar" onclick="reactivarDocumento(<?php echo (int)$docBaja['id']; ?>)" data-titulo="<?php echo htmlspecialchars($docBaja['titulo']); ?>">
+                                            <i class="fas fa-undo"></i> Reactivar
+                                        </button>
+                                    </div>
+                                </li>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </ul>
                     </div>
 
                 </div>
             </div>
+            <?php endif; /* fin Configuración */ ?>
 
             <!-- Vista de Todos los Documentos -->
             <div id="all-documents-content" class="tab-content" style="display: none;">
@@ -963,20 +1308,10 @@ foreach ($sectores as $i => $s) {
                                         <i class="fas fa-file-pdf"></i>
                                     </div>
                                     <div class="policy-details">
-                                        <h4><?php echo htmlspecialchars($doc['titulo']); ?></h4>
-                                        <p><strong><?php echo $doc['tipo'] == 'politica' ? 'Pol&iacute;tica' : 'Procedimiento'; ?></strong> &mdash;
-                                        Sector <?php echo htmlspecialchars($doc['sector_nombre']); ?> &mdash;
-                                        Actualizado: <?php echo isset($doc['fecha_actualizacion']) ? date('d/m/Y', is_string($doc['fecha_actualizacion']) ? strtotime($doc['fecha_actualizacion']) : strtotime($doc['fecha_actualizacion']->format('Y-m-d'))) : 'Fecha no disponible'; ?></p>
+                                        <?php echo dg_detalle_documento($doc, true); ?>
                                     </div>
                                 </div>
-                                <div class="policy-actions">
-                                    <button class="action-btn view" onclick="viewDocument(<?php echo $doc['id']; ?>)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="action-btn download" onclick="downloadDocument(<?php echo $doc['id']; ?>)">
-                                        <i class="fas fa-download"></i>
-                                    </button>
-                                </div>
+                                <?php echo dg_acciones_documento($doc); ?>
                             </li>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -1097,6 +1432,22 @@ foreach ($sectores as $i => $s) {
         </div>
     </div>
     
+    <!-- Modal de confirmación (reemplaza confirm/prompt del navegador) -->
+    <div id="confirmModal" class="modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="confirmTitulo">
+        <div class="modal-content confirm-modal">
+            <h3 id="confirmTitulo"></h3>
+            <p id="confirmMensaje"></p>
+            <div class="form-group" id="confirmMotivoGrupo" style="display: none;">
+                <label for="confirmMotivo" id="confirmMotivoLabel">Motivo</label>
+                <textarea id="confirmMotivo" rows="3" maxlength="500"></textarea>
+            </div>
+            <div class="confirm-actions">
+                <button type="button" class="btn secondary" id="confirmCancelar">Cancelar</button>
+                <button type="button" class="btn primary" id="confirmAceptar">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Contenedor de notificaciones -->
     <div class="notification-container"></div>
     
@@ -1106,7 +1457,7 @@ foreach ($sectores as $i => $s) {
             <div class="chatbot-header-content">
                 <i class="fas fa-headset"></i>
                 <div>
-                    <h3>Asistente DocuGest</h3>
+                    <h3>Asistente XL DocuGest</h3>
                     <p class="chatbot-status">
                         <span id="chatbot-status-icon" class="status-dot"></span>
                         <span id="chatbot-status-text">Verificando...</span>
@@ -1156,13 +1507,14 @@ foreach ($sectores as $i => $s) {
     <!-- ==================================================================== -->
  
     <!-- Inclusión de archivos JavaScript al final del body -->
-    <script src="js/search.js"></script>
-    <script src="js/document-viewer.js"></script>
-    <script src="js/glossary.js"></script>
-    <script src="js/upload-form.js"></script>
-    <script src="js/sectors.js"></script>
-    <script src="js/chatbot.js"></script>
-    <script src="js/main.js"></script>
+    <script src="<?php echo dg_asset('js/search.js'); ?>"></script>
+    <script src="<?php echo dg_asset('js/document-viewer.js'); ?>"></script>
+    <script src="<?php echo dg_asset('js/glossary.js'); ?>"></script>
+    <script src="<?php echo dg_asset('js/upload-form.js'); ?>"></script>
+    <script src="<?php echo dg_asset('js/sectors.js'); ?>"></script>
+    <script src="<?php echo dg_asset('js/chatbot.js'); ?>"></script>
+    <script src="<?php echo dg_asset('js/update-document.js'); ?>"></script>
+    <script src="<?php echo dg_asset('js/main.js'); ?>"></script>
  
 </body>
 </html>

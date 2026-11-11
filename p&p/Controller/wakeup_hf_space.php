@@ -1,4 +1,8 @@
 <?php
+// Acceso DocuGest: login nomás (lo llama el Asistente IA de cualquier usuario)
+require_once __DIR__ . '/../Class/AccesoDocuGest.php';
+AccesoDocuGest::exigirLogin(AccesoDocuGest::JSON);
+
 /**
  * Despierta el HF Space llamando a la API de Hugging Face.
  * El token se lee del config server-side — nunca se expone al cliente.

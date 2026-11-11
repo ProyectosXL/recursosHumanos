@@ -217,6 +217,51 @@
     color: #777;
 }
 
+/* Usuario del hub y nivel de acceso en DocuGest */
+.docugest-user {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.nivel-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+.nivel-badge.nivel-ver {
+    background: #ecf0f1;
+    color: #5d6d7e;
+}
+
+.nivel-badge.nivel-editar {
+    background: rgba(52, 152, 219, 0.12);
+    color: #2471a3;
+}
+
+.nivel-badge.nivel-admin {
+    background: rgba(155, 89, 182, 0.14);
+    color: #7d3c98;
+}
+
+@media (max-width: 768px) {
+    /* En celular queda solo el avatar (nombre y nivel en el title) arriba a la derecha */
+    .header {
+        position: relative;
+        padding-right: 56px;
+    }
+
+    .header .docugest-user {
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        width: auto;
+    }
+}
+
 /* Links y botones comunes */
 .see-all {
     color: var(--primary-color);
@@ -1109,4 +1154,190 @@
         flex-wrap: wrap;
         gap: 12px;
     }
+}
+/* ===== Plantilla de procedimiento (Word) ===== */
+.plantilla-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 1px solid #2b579a;
+    border-radius: 6px;
+    background: #fff;
+    color: #2b579a;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+}
+
+.plantilla-btn i {
+    font-size: 15px;
+}
+
+.plantilla-btn:hover {
+    background: #2b579a;
+    color: #fff;
+}
+
+.plantilla-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: rgba(43, 87, 154, 0.07);
+    color: #34495e;
+    font-size: 13px;
+}
+
+.plantilla-box i {
+    color: #2b579a;
+    font-size: 18px;
+}
+
+.plantilla-box a {
+    color: #2b579a;
+    font-weight: 600;
+}
+
+@media (max-width: 576px) {
+    .plantilla-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ===== Configuración: formularios de alta/edición, conteos y lista de términos ===== */
+.cfg-form-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0 0 12px;
+}
+
+.cfg-item-meta {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #5b8db8;
+}
+
+.cfg-term-filter {
+    position: relative;
+    margin: 0 24px 8px;
+}
+
+.cfg-term-filter i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    font-size: 13px;
+}
+
+.cfg-term-filter input {
+    width: 100%;
+    padding: 9px 12px 9px 34px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.cfg-term-list {
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+/* ===== Modal de confirmación propio ===== */
+.confirm-modal {
+    width: 92%;
+    max-width: 460px;
+    padding: 26px 26px 22px;
+}
+
+.confirm-modal h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    color: #2c3e50;
+}
+
+.confirm-modal p {
+    margin: 0 0 16px;
+    color: #5d6d7e;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.confirm-modal textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.btn.danger,
+.btn.primary.danger {
+    background-color: #e74c3c;
+    border-color: #e74c3c;
+    color: #fff;
+}
+
+.btn.danger:hover,
+.btn.primary.danger:hover {
+    background-color: #c0392b;
+}
+
+@media (max-width: 576px) {
+    .cfg-term-filter {
+        margin: 0 14px 8px;
+    }
+
+    .confirm-actions {
+        flex-direction: column-reverse;
+    }
+
+    .confirm-actions .btn {
+        width: 100%;
+    }
+}
+
+/* ===== Documentos dados de baja ===== */
+.cfg-card-wide {
+    grid-column: 1 / -1;
+}
+
+.cfg-card-icon.red { background: #f4ecf7; color: #7d3c98; }
+
+.cfg-baja-item .cfg-item-info p {
+    white-space: normal;
+}
+
+.cfg-baja-motivo {
+    margin-top: 4px !important;
+    color: #5d6d7e !important;
+}
+
+.cfg-item-actions .btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+/* Botón "Dar de baja" en las filas de documentos (solo Admin) */
+.action-btn.baja:hover {
+    color: #c0392b;
 }

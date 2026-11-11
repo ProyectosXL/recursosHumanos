@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof initFileUpload === 'function') initFileUpload();
     if (typeof initTagsInput === 'function') initTagsInput();
     if (typeof initFormValidation === 'function') initFormValidation();
+    if (typeof initUpdateForm === 'function') initUpdateForm();
+    if (typeof initSectors === 'function') initSectors();
+    initPlantillaUpload();
     if (typeof checkUrlTab === 'function') checkUrlTab();
     
     // Verificar si hay mensajes de estado en la URL
@@ -142,7 +145,20 @@ function handleUploadSubmit(event) {
         method: 'POST',
         body: formData
     })
-    .then(response => response.text())
+    .then(response => {
+        // Sin permisos o sesión vencida: el servidor no guardó nada
+        if (response.status === 401 || response.status === 403) {
+            throw new Error(response.status === 401
+                ? 'Tu sesión expiró. Volvé a ingresar.'
+                : 'No tenés permisos para esta acción');
+        }
+        // El controller redirige a index.php?mensaje=error&texto=... si falló la validación
+        const finalUrl = new URL(response.url, window.location.href);
+        if (finalUrl.searchParams.get('mensaje') === 'error') {
+            throw new Error(finalUrl.searchParams.get('texto') || 'No se pudo guardar el documento');
+        }
+        return response.text();
+    })
     .then(data => {
         // El documento se procesó correctamente
         // No hacer nada aquí, el modal ya está mostrándose
@@ -152,13 +168,17 @@ function handleUploadSubmit(event) {
         setTimeout(() => {
             event.target.reset();
             removeFile();
+            const tipoDoc = document.getElementById('docType');
+            if (tipoDoc) tipoDoc.dispatchEvent(new Event('change'));
         }, 1000);
     })
     .catch(error => {
         console.error('Error al subir documento:', error);
         // Si hay error, cerrar el modal y mostrar notificación
         closeAutoTagsModal();
-        showNotification('Error al subir el documento. Por favor intente nuevamente.', 'error');
+        showNotification(error && error.message && !error.message.includes('fetch')
+            ? error.message
+            : 'Error al subir el documento. Por favor intente nuevamente.', 'error');
     });
     
     return false;
@@ -167,6 +187,11 @@ function handleUploadSubmit(event) {
 // ===== Funciones de gestión de la navegación por pestañas =====
 
 function showTab(tabId) {
+    // Si la pestaña no se renderizó (no corresponde al nivel del usuario), volver a Inicio
+    if (!document.getElementById(tabId + '-content')) {
+        tabId = 'overview';
+    }
+
     // Ocultar todos los contenidos de tabs
     document.querySelectorAll('.tab-content').forEach(content => {
         content.style.display = 'none';
@@ -336,7 +361,7 @@ function isElementInViewport(el) {
 
 // Función para actualizar estadísticas de uso
 function updateStatistics() {
-    fetch('actualizar_estadisticas.php')
+    fetch('Controller/actualizar_estadisticas.php')
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
@@ -356,6 +381,154 @@ function checkUrlTab() {
     if (tab) {
         showTab(tab);
     }
+}
+
+// ===== Confirmación propia (reemplaza confirm/prompt del navegador) =====
+
+/**
+ * Muestra el modal de confirmación. Devuelve una promesa con {ok, motivo}.
+ * opciones: titulo, mensaje, textoConfirmar, peligro (botón rojo), pedirMotivo, etiquetaMotivo
+ */
+function pedirConfirmacion(opciones = {}) {
+    return new Promise(resolve => {
+        const modal = document.getElementById('confirmModal');
+        if (!modal) {
+            resolve({ ok: false, motivo: '' });
+            return;
+        }
+
+        const btnAceptar = document.getElementById('confirmAceptar');
+        const btnCancelar = document.getElementById('confirmCancelar');
+        const grupoMotivo = document.getElementById('confirmMotivoGrupo');
+        const motivo = document.getElementById('confirmMotivo');
+
+        document.getElementById('confirmTitulo').textContent = opciones.titulo || '¿Confirmás?';
+        document.getElementById('confirmMensaje').textContent = opciones.mensaje || '';
+        btnAceptar.textContent = opciones.textoConfirmar || 'Aceptar';
+        btnAceptar.classList.toggle('danger', !!opciones.peligro);
+        grupoMotivo.style.display = opciones.pedirMotivo ? 'block' : 'none';
+        document.getElementById('confirmMotivoLabel').textContent = (opciones.etiquetaMotivo || 'Motivo') + (opciones.pedirMotivo ? ' *' : '');
+        motivo.value = '';
+
+        const cerrar = (ok) => {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+            btnAceptar.removeEventListener('click', onAceptar);
+            btnCancelar.removeEventListener('click', onCancelar);
+            modal.removeEventListener('click', onFondo);
+            document.removeEventListener('keydown', onTecla);
+            resolve({ ok, motivo: motivo.value.trim() });
+        };
+        const onAceptar = () => {
+            if (opciones.pedirMotivo && motivo.value.trim() === '') {
+                showNotification('Contá el motivo para poder seguir', 'error');
+                motivo.focus();
+                return;
+            }
+            cerrar(true);
+        };
+        const onCancelar = () => cerrar(false);
+        const onFondo = (e) => { if (e.target === modal) cerrar(false); };
+        const onTecla = (e) => { if (e.key === 'Escape') cerrar(false); };
+
+        btnAceptar.addEventListener('click', onAceptar);
+        btnCancelar.addEventListener('click', onCancelar);
+        modal.addEventListener('click', onFondo);
+        document.addEventListener('keydown', onTecla);
+
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => (opciones.pedirMotivo ? motivo : btnCancelar).focus(), 50);
+    });
+}
+
+// ===== Baja y reactivación de documentos (solo Admin; el servidor valida el permiso) =====
+
+function confirmarBajaDocumento(documentId) {
+    const boton = document.querySelector(`.action-btn.baja[data-id="${Number(documentId)}"]`);
+    const titulo = boton ? boton.dataset.titulo : '';
+
+    pedirConfirmacion({
+        titulo: 'Dar de baja el documento',
+        mensaje: `"${titulo}" deja de verse en las listas, la búsqueda, las estadísticas y el Asistente IA. El archivo no se borra y se puede reactivar desde Configuración.`,
+        textoConfirmar: 'Dar de baja',
+        peligro: true,
+        pedirMotivo: true,
+        etiquetaMotivo: 'Motivo de la baja'
+    }).then(respuesta => {
+        if (!respuesta.ok) return;
+
+        const formData = new FormData();
+        formData.append('id', documentId);
+        formData.append('motivo', respuesta.motivo);
+
+        fetch('Controller/dar_baja_documento.php', { method: 'POST', body: formData })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showNotification('Documento dado de baja', 'success');
+                    setTimeout(() => window.location.reload(), 1200);
+                } else {
+                    showNotification(data.message || 'No se pudo dar de baja el documento', 'error');
+                }
+            })
+            .catch(() => showNotification('Error al procesar la solicitud', 'error'));
+    });
+}
+
+function reactivarDocumento(documentId) {
+    const boton = document.querySelector(`.cfg-reactivar[onclick="reactivarDocumento(${Number(documentId)})"]`);
+    const titulo = boton ? boton.dataset.titulo : '';
+
+    pedirConfirmacion({
+        titulo: 'Reactivar documento',
+        mensaje: `"${titulo}" vuelve a verse en las listas y el Asistente IA lo indexa de nuevo.`,
+        textoConfirmar: 'Reactivar'
+    }).then(respuesta => {
+        if (!respuesta.ok) return;
+
+        const formData = new FormData();
+        formData.append('id', documentId);
+
+        fetch('Controller/reactivar_documento.php', { method: 'POST', body: formData })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showNotification('Documento reactivado', 'success');
+                    setTimeout(() => window.location.href = 'index.php?tab=settings', 1200);
+                } else {
+                    showNotification(data.message || 'No se pudo reactivar el documento', 'error');
+                }
+            })
+            .catch(() => showNotification('Error al procesar la solicitud', 'error'));
+    });
+}
+
+// ===== Plantilla vacía de procedimiento =====
+// Verifica que la plantilla exista antes de descargarla; si no, avisa sin romper nada
+function descargarPlantilla() {
+    fetch('Controller/descargar_plantilla.php?check=1')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' && data.disponible) {
+                window.location.href = 'Controller/descargar_plantilla.php';
+            } else if (data.status === 'success') {
+                showNotification('La plantilla todavía no está disponible', 'warning');
+            } else {
+                showNotification(data.message || 'No se pudo descargar la plantilla', 'error');
+            }
+        })
+        .catch(() => showNotification('No se pudo descargar la plantilla', 'error'));
+}
+
+// En Subir Documento, el enlace a la plantilla aparece solo con tipo Procedimiento
+function initPlantillaUpload() {
+    const tipo = document.getElementById('docType');
+    const box = document.getElementById('uploadPlantillaBox');
+    if (!tipo || !box) return;
+    const actualizar = () => { box.style.display = tipo.value === 'procedimiento' ? 'flex' : 'none'; };
+    tipo.addEventListener('change', actualizar);
+    actualizar();
 }
 
 // ===== Funciones para el modal de tags automáticos =====

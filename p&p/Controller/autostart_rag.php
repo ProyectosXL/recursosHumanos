@@ -1,4 +1,8 @@
 <?php
+// Acceso DocuGest: solo Admin (mantenimiento del servicio de IA)
+require_once __DIR__ . '/../Class/AccesoDocuGest.php';
+AccesoDocuGest::exigirAdmin(AccesoDocuGest::JSON);
+
 /**
  * Script de auto-inicio del servicio RAG y auto-indexación de documentos.
  * Se ejecuta automáticamente al cargar el index.php del sistema.

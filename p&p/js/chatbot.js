@@ -243,7 +243,7 @@ async function verificarServicioRAG() {
             );
 
             const docCount = data.total_documentos || data.total_documents || Math.floor(data.total_chunks / 10);
-            statusText.textContent = `En línea - ${docCount} documentos (${data.total_chunks} chunks)`;
+            statusText.textContent = `En línea`;
 
             console.log('✅ Servicio RAG conectado correctamente');
         } else {
@@ -677,8 +677,13 @@ function escapeHtml(text) {
 /**
  * Limpia el historial del chat
  */
-function limpiarChat() {
-    if (confirm('¿Estás seguro de que deseas limpiar el historial del chat?')) {
+async function limpiarChat() {
+    const respuesta = await pedirConfirmacion({
+        titulo: 'Limpiar el chat',
+        mensaje: '¿Querés borrar la conversación con el asistente?',
+        textoConfirmar: 'Limpiar'
+    });
+    if (respuesta.ok) {
         const messagesContainer = document.getElementById('chatbot-messages');
         messagesContainer.innerHTML = `
             <div class="chatbot-message bot">

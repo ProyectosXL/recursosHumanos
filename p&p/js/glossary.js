@@ -33,20 +33,73 @@ function initGlossary() {
         });
     }
     
-    // Inicializar formulario de nuevo término si existe
+    // Configuración (solo Admin): alta / edición de términos
+    initTermForm();
+}
+
+// Formulario de términos y buscador de la lista de Configuración
+function initTermForm() {
+    const form = document.getElementById('termForm');
+    if (!form) return; // Configuración no se renderizó para este usuario
+
     const newTermBtn = document.getElementById('newTermBtn');
     if (newTermBtn) {
-        newTermBtn.addEventListener('click', function() {
+        newTermBtn.addEventListener('click', function () {
+            resetTermForm();
             document.getElementById('newTermForm').style.display = 'block';
+            document.getElementById('termName').focus();
         });
     }
-    
+
     const cancelTermBtn = document.getElementById('cancelTermBtn');
     if (cancelTermBtn) {
-        cancelTermBtn.addEventListener('click', function() {
+        cancelTermBtn.addEventListener('click', function () {
+            resetTermForm();
             document.getElementById('newTermForm').style.display = 'none';
         });
     }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const termino = document.getElementById('termName').value.trim();
+        const definicion = document.getElementById('termDefinition').value.trim();
+        const sectorId = document.getElementById('termSector').value;
+        const termId = document.getElementById('termId').value;
+
+        if (!termino || !definicion) {
+            showNotification('El término y la definición son obligatorios', 'error');
+            return;
+        }
+        if (termId) {
+            editGlossaryTerm(termId, termino, definicion, sectorId);
+        } else {
+            addGlossaryTerm(termino, definicion, sectorId);
+        }
+    });
+
+    const filtro = document.getElementById('cfgTermFilter');
+    if (filtro) {
+        filtro.addEventListener('input', function () {
+            const buscado = this.value.trim().toLowerCase();
+            document.querySelectorAll('#cfgTermList .cfg-term-item').forEach(item => {
+                item.style.display = !buscado || (item.dataset.buscar || '').includes(buscado) ? '' : 'none';
+            });
+        });
+    }
+}
+
+// Dejar el formulario listo para un término nuevo
+function resetTermForm() {
+    const form = document.getElementById('termForm');
+    if (!form) return;
+    form.reset();
+    document.getElementById('termId').value = '';
+    document.getElementById('termFormTitle').textContent = 'Nuevo término';
+}
+
+// Recargar Configuración después de guardar (el glosario se arma en el servidor para todos)
+function recargarConfiguracion() {
+    setTimeout(() => window.location.href = 'index.php?tab=settings', 1200);
 }
 
 // Mostrar el modal del glosario
@@ -132,121 +185,105 @@ function filterGlossaryItems(searchTerm) {
 
 // Añadir un nuevo término al glosario
 function addGlossaryTerm(term, definition, sectorId = null) {
-    // En una implementación real, esto haría una solicitud AJAX para guardar el término
     const formData = new FormData();
     formData.append('termino', term);
     formData.append('definicion', definition);
     if (sectorId) {
         formData.append('sector_id', sectorId);
     }
-    
-    fetch('Controller/procesar_glosario.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            showNotification('Término agregado correctamente al glosario', 'success');
-            // Recargar la página o actualizar la lista de términos
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
-        } else {
-            showNotification('Error al guardar el término: ' + data.message, 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Error al procesar la solicitud', 'error');
-    });
+
+    fetch('Controller/procesar_glosario.php', { method: 'POST', body: formData })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showNotification('Término agregado al glosario', 'success');
+                recargarConfiguracion();
+            } else {
+                showNotification(data.message || 'No se pudo guardar el término', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error al procesar la solicitud', 'error');
+        });
 }
 
 // Editar un término existente
 function editGlossaryTerm(termId, term, definition, sectorId = null) {
-    // En una implementación real, esto haría una solicitud AJAX para actualizar el término
     const formData = new FormData();
     formData.append('id', termId);
     formData.append('termino', term);
     formData.append('definicion', definition);
-    if (sectorId) {
-        formData.append('sector_id', sectorId);
-    }
-    
-    fetch('Controller/actualizar_glosario.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            showNotification('Término actualizado correctamente', 'success');
-            // Recargar la página o actualizar la lista de términos
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
-        } else {
-            showNotification('Error al actualizar el término: ' + data.message, 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Error al procesar la solicitud', 'error');
-    });
+    formData.append('sector_id', sectorId || '');
+
+    fetch('Controller/actualizar_glosario.php', { method: 'POST', body: formData })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showNotification('Término actualizado', 'success');
+                recargarConfiguracion();
+            } else {
+                showNotification(data.message || 'No se pudo actualizar el término', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error al procesar la solicitud', 'error');
+        });
 }
 
-// Eliminar un término del glosario
+// Eliminar un término del glosario (con confirmación propia)
 function deleteGlossaryTerm(termId) {
-    if (confirm('¿Está seguro que desea eliminar este término del glosario?')) {
-        // En una implementación real, esto haría una solicitud AJAX para eliminar el término
-        fetch('Controller/eliminar_glosario.php?id=' + termId)
+    const boton = document.querySelector(`.cfg-delete[onclick^="deleteGlossaryTerm(${Number(termId)})"]`);
+    const nombre = boton ? boton.dataset.nombre : '';
+
+    pedirConfirmacion({
+        titulo: 'Eliminar término',
+        mensaje: `¿Querés eliminar "${nombre}" del glosario?`,
+        textoConfirmar: 'Eliminar',
+        peligro: true
+    }).then(respuesta => {
+        if (!respuesta.ok) return;
+
+        const formData = new FormData();
+        formData.append('id', termId);
+
+        fetch('Controller/eliminar_glosario.php', { method: 'POST', body: formData })
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    showNotification('Término eliminado correctamente', 'success');
-                    // Recargar la página o actualizar la lista de términos
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
+                    showNotification('Término eliminado', 'success');
+                    recargarConfiguracion();
                 } else {
-                    showNotification('Error al eliminar el término: ' + data.message, 'error');
+                    showNotification(data.message || 'No se pudo eliminar el término', 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 showNotification('Error al procesar la solicitud', 'error');
             });
-    }
+    });
 }
 
-// Cargar el formulario de edición de un término
+// Cargar un término en el formulario de Configuración para editarlo
 function loadEditGlossaryForm(termId) {
-    // En una implementación real, esto cargaría los datos del término para editar
-    fetch('Controller/obtener_termino.php?id=' + termId)
+    fetch('Controller/obtener_termino.php?id=' + encodeURIComponent(termId))
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'success') {
-                const term = data.termino;
-                
-                // Mostrar el formulario de edición
-                const editForm = document.getElementById('editTermForm');
-                editForm.style.display = 'block';
-                
-                // Completar los campos del formulario
-                document.getElementById('editTermId').value = term.id;
-                document.getElementById('editTermName').value = term.termino;
-                document.getElementById('editTermDefinition').value = term.definicion;
-                
-                const sectorSelect = document.getElementById('editTermSector');
-                if (sectorSelect) {
-                    sectorSelect.value = term.sector_id || '';
-                }
-                
-                // Desplazarse hasta el formulario
-                editForm.scrollIntoView({ behavior: 'smooth' });
-            } else {
-                showNotification('Error al cargar el término: ' + data.message, 'error');
+            if (data.status !== 'success') {
+                showNotification(data.message || 'No se pudo cargar el término', 'error');
+                return;
             }
+            const term = data.termino;
+
+            document.getElementById('newTermForm').style.display = 'block';
+            document.getElementById('termFormTitle').textContent = 'Editar término';
+            document.getElementById('termId').value = term.id;
+            document.getElementById('termName').value = term.termino;
+            document.getElementById('termDefinition').value = term.definicion;
+            document.getElementById('termSector').value = term.sector_id || '';
+
+            document.getElementById('newTermForm').scrollIntoView({ behavior: 'smooth' });
         })
         .catch(error => {
             console.error('Error:', error);

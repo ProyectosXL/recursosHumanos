@@ -1,4 +1,10 @@
 <?php
+// Acceso DocuGest: por consola no se pide nada; desde el navegador, solo Admin
+if (PHP_SAPI !== 'cli') {
+    require_once __DIR__ . '/../Class/AccesoDocuGest.php';
+    AccesoDocuGest::exigirAdmin(AccesoDocuGest::PAGINA);
+}
+
 /**
  * Script de procesamiento batch para generar tags y términos de glosario
  * Procesa todos los documentos sin tags usando la API de Hugging Face
