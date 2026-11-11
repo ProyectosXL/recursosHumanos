@@ -494,6 +494,80 @@ class Politica
     }
 
     /**
+     * Edita los datos de un documento sin cambiar el PDF ni la versión.
+     * Queda en el historial como "Edición de datos". Si cambian título, tipo o sector,
+     * se avisa al servicio de IA para que actualice los metadatos (reindexa el PDF vigente).
+     *
+     * @param array $datos ['titulo', 'tipo', 'sector_id', 'descripcion', 'tags']
+     */
+    public function editarDatosDocumento($id, $datos) {
+        $id = (int)$id;
+        $documento = $this->obtenerPorId($id, false, true);
+        if (!$documento) {
+            return ['status' => 'error', 'message' => 'El documento no existe o está dado de baja'];
+        }
+
+        $nuevo = [
+            'titulo'      => trim((string)($datos['titulo'] ?? '')),
+            'tipo'        => (string)($datos['tipo'] ?? ''),
+            'sector_id'   => (int)($datos['sector_id'] ?? 0),
+            'descripcion' => trim((string)($datos['descripcion'] ?? '')),
+            'tags'        => trim((string)($datos['tags'] ?? '')),
+        ];
+
+        if ($nuevo['titulo'] === '') {
+            return ['status' => 'error', 'message' => 'El título es obligatorio'];
+        }
+        if (!in_array($nuevo['tipo'], ['politica', 'procedimiento'], true)) {
+            return ['status' => 'error', 'message' => 'Elegí el tipo de documento'];
+        }
+        if ($nuevo['sector_id'] <= 0 || !$this->obtenerSectorPorId($nuevo['sector_id'])) {
+            return ['status' => 'error', 'message' => 'Elegí un sector válido'];
+        }
+
+        $etiquetas = [
+            'titulo'      => 'título',
+            'tipo'        => 'tipo',
+            'sector_id'   => 'sector',
+            'descripcion' => 'descripción',
+            'tags'        => 'etiquetas',
+        ];
+        $cambios = [];
+        foreach ($etiquetas as $campo => $texto) {
+            $anterior = $campo === 'sector_id' ? (int)$documento[$campo] : trim((string)($documento[$campo] ?? ''));
+            if ($anterior !== $nuevo[$campo]) {
+                $cambios[] = $texto;
+            }
+        }
+        if (empty($cambios)) {
+            return ['status' => 'error', 'message' => 'No hay cambios para guardar'];
+        }
+
+        // No toca version ni fecha_ultima_version
+        $resultado = $this->ejecutar(
+            "UPDATE Politicas_Procedimientos
+                SET titulo = ?, tipo = ?, sector_id = ?, descripcion = ?, tags = ?,
+                    fecha_actualizacion = GETDATE()
+              WHERE id = ?",
+            [$nuevo['titulo'], $nuevo['tipo'], $nuevo['sector_id'], $nuevo['descripcion'], $nuevo['tags'], $id]
+        );
+
+        if ($resultado['status'] !== 'success') {
+            return ['status' => 'error', 'message' => 'No se pudieron guardar los cambios'];
+        }
+
+        $version = trim((string)($documento['version'] ?? '')) ?: '1.0';
+        $this->registrarHistorial($id, 'edicion', $version, 'Cambió: ' . implode(', ', $cambios));
+
+        // Título, tipo o sector forman parte de los metadatos del servicio de IA
+        if (array_intersect($cambios, ['título', 'tipo', 'sector'])) {
+            $this->notificarRag('actualizado', $id);
+        }
+
+        return ['status' => 'success', 'tipo' => $nuevo['tipo']];
+    }
+
+    /**
      * Ruta en disco del PDF vigente de un documento, o null si no existe.
      * Nunca devuelve rutas de documentos/versiones/.
      */

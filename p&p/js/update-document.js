@@ -354,3 +354,52 @@ function showVersionHistory(documentId) {
             content.innerHTML = '<p class="version-empty">No se pudo cargar el historial. Probá de nuevo más tarde.</p>';
         });
 }
+
+// ===== Editar datos (sin cambiar el PDF ni la versión) =====
+
+// Alternar entre "Subir versión nueva" y "Editar datos"
+function mostrarOpcionUpdate(opcion) {
+    const esDatos = opcion === 'datos';
+    const cardVersion = document.getElementById('updateVersionCard');
+    const cardDatos = document.getElementById('updateDataCard');
+    if (cardVersion) cardVersion.style.display = esDatos ? 'none' : 'block';
+    if (cardDatos) cardDatos.style.display = esDatos ? 'block' : 'none';
+    document.querySelectorAll('.update-option').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.opcion === opcion);
+    });
+}
+
+// Completar el formulario de edición con los datos actuales
+function cargarFormularioEdicion(doc) {
+    const form = document.getElementById('editDataForm');
+    if (!form) return;
+
+    document.getElementById('editDocId').value = doc.id;
+    document.getElementById('editTitulo').value = doc.titulo || '';
+    document.getElementById('editTipo').value = doc.tipo || 'politica';
+    document.getElementById('editSector').value = String(doc.sector_id || '');
+    document.getElementById('editDescripcion').value = doc.descripcion || '';
+    document.getElementById('editTags').value = doc.tags || '';
+    loadTagsFromString(doc.tags || '', 'editTagsContainer', 'editTags');
+
+    if (!form.dataset.iniciado) {
+        form.dataset.iniciado = '1';
+        document.getElementById('editTags').addEventListener('input', function () {
+            loadTagsFromString(this.value, 'editTagsContainer', 'editTags');
+        });
+        form.addEventListener('submit', function (event) {
+            if (!document.getElementById('editTitulo').value.trim()) {
+                event.preventDefault();
+                showNotification('El título es obligatorio', 'error');
+                return;
+            }
+            const boton = document.getElementById('editDataSubmitBtn');
+            if (boton) {
+                boton.disabled = true;
+                boton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            }
+        });
+    }
+
+    mostrarOpcionUpdate('version');
+}

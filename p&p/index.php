@@ -878,7 +878,14 @@ function dg_acciones_documento($doc) {
                 </div>
 
                 <div id="updateForm" style="display: none;">
-                    <!-- OPCIONES_UPDATE -->
+                    <div class="update-options" role="tablist">
+                        <button type="button" class="update-option active" data-opcion="version" onclick="mostrarOpcionUpdate('version')">
+                            <i class="fas fa-file-upload"></i> Subir versi&oacute;n nueva
+                        </button>
+                        <button type="button" class="update-option" data-opcion="datos" onclick="mostrarOpcionUpdate('datos')">
+                            <i class="fas fa-pen"></i> Editar datos
+                        </button>
+                    </div>
                     <div class="card update-card" id="updateVersionCard">
                         <div class="card-header">
                             <h3><i class="fas fa-file-upload"></i> Subir versi&oacute;n nueva</h3>
@@ -933,7 +940,56 @@ function dg_acciones_documento($doc) {
                             </div>
                         </form>
                     </div>
-                    <!-- EDICION_DATOS -->
+                    <div class="card update-card" id="updateDataCard" style="display: none;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-pen"></i> Editar datos</h3>
+                        </div>
+                        <p class="form-hint">No cambia el PDF ni la versi&oacute;n. Queda en el historial como &laquo;Edici&oacute;n de datos&raquo;.</p>
+                        <form id="editDataForm" action="Controller/editar_datos_documento.php" method="post" novalidate>
+                            <input type="hidden" id="editDocId" name="documento_id" value="">
+
+                            <div class="form-group">
+                                <label for="editTitulo">T&iacute;tulo <span class="required">*</span></label>
+                                <input type="text" id="editTitulo" name="titulo" maxlength="255">
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="editTipo">Tipo <span class="required">*</span></label>
+                                    <select id="editTipo" name="tipo">
+                                        <option value="politica">Pol&iacute;tica</option>
+                                        <option value="procedimiento">Procedimiento</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="editSector">Sector <span class="required">*</span></label>
+                                    <select id="editSector" name="sector_id">
+                                        <?php foreach ($sectores as $sector): ?>
+                                        <option value="<?php echo (int)$sector['id']; ?>"><?php echo htmlspecialchars($sector['nombre']); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editDescripcion">Descripci&oacute;n</label>
+                                <textarea id="editDescripcion" name="descripcion" rows="3"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editTags">Etiquetas (separadas por comas)</label>
+                                <input type="text" id="editTags" name="tags">
+                                <div class="tags-container" id="editTagsContainer"></div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="btn secondary" onclick="cancelUpdate()">Cancelar</button>
+                                <button type="submit" class="btn primary" id="editDataSubmitBtn">
+                                    <i class="fas fa-save"></i> Guardar datos
+                                </button>
+                            </div>
+                        </form>
+                    </div>
 
                     <div class="card update-card">
                         <div class="card-header">

@@ -263,3 +263,46 @@
         padding: 4px 8px;
     }
 }
+
+/* Opciones de la pestaña Actualizar: versión nueva / editar datos */
+.update-options {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.update-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1px solid #dfe6ee;
+    border-radius: 8px;
+    background: #fff;
+    color: #5d6d7e;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.update-option:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.update-option.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+}
+
+@media (max-width: 576px) {
+    .update-option {
+        flex: 1;
+        justify-content: center;
+        padding: 10px 8px;
+        font-size: 13px;
+    }
+}
