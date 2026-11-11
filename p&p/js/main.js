@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof initTagsInput === 'function') initTagsInput();
     if (typeof initFormValidation === 'function') initFormValidation();
     if (typeof initUpdateForm === 'function') initUpdateForm();
+    initPlantillaUpload();
     if (typeof checkUrlTab === 'function') checkUrlTab();
     
     // Verificar si hay mensajes de estado en la URL
@@ -166,6 +167,8 @@ function handleUploadSubmit(event) {
         setTimeout(() => {
             event.target.reset();
             removeFile();
+            const tipoDoc = document.getElementById('docType');
+            if (tipoDoc) tipoDoc.dispatchEvent(new Event('change'));
         }, 1000);
     })
     .catch(error => {
@@ -377,6 +380,34 @@ function checkUrlTab() {
     if (tab) {
         showTab(tab);
     }
+}
+
+// ===== Plantilla vacía de procedimiento =====
+
+// Verifica que la plantilla exista antes de descargarla; si no, avisa sin romper nada
+function descargarPlantilla() {
+    fetch('Controller/descargar_plantilla.php?check=1')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' && data.disponible) {
+                window.location.href = 'Controller/descargar_plantilla.php';
+            } else if (data.status === 'success') {
+                showNotification('La plantilla todavía no está disponible', 'warning');
+            } else {
+                showNotification(data.message || 'No se pudo descargar la plantilla', 'error');
+            }
+        })
+        .catch(() => showNotification('No se pudo descargar la plantilla', 'error'));
+}
+
+// En Subir Documento, el enlace a la plantilla aparece solo con tipo Procedimiento
+function initPlantillaUpload() {
+    const tipo = document.getElementById('docType');
+    const box = document.getElementById('uploadPlantillaBox');
+    if (!tipo || !box) return;
+    const actualizar = () => { box.style.display = tipo.value === 'procedimiento' ? 'flex' : 'none'; };
+    tipo.addEventListener('change', actualizar);
+    actualizar();
 }
 
 // ===== Funciones para el modal de tags automáticos =====

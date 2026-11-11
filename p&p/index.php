@@ -535,6 +535,7 @@ function dg_acciones_documento($doc) {
                     <div class="card-header">
                         <h3>Procedimientos Operativos</h3>
                         <div class="filter-options">
+                            <button type="button" class="plantilla-btn" onclick="descargarPlantilla()" title="Descargar plantilla de procedimiento"><i class="fas fa-file-word"></i> Descargar plantilla de procedimiento</button>
                             <select class="filter-select" id="sectorFilterProcedures" onchange="filterProcedures()">
                                 <option value="">Todos los sectores</option>
                                 <?php foreach ($sectores as $sector): ?>
@@ -752,6 +753,10 @@ function dg_acciones_documento($doc) {
                                         <option value="politica">Política</option>
                                         <option value="procedimiento">Procedimiento</option>
                                     </select>
+                                    <div class="plantilla-box" id="uploadPlantillaBox" style="display: none;">
+                                        <i class="fas fa-file-word"></i>
+                                        <span>&iquest;No ten&eacute;s el formato? <a href="#" onclick="descargarPlantilla(); return false;">Descarg&aacute; la plantilla</a></span>
+                                    </div>
                                 </div>
                                 
                                 <div class="form-group col-md-6">
@@ -854,7 +859,10 @@ function dg_acciones_documento($doc) {
                         <div class="info-row"><span class="label">Versi&oacute;n</span><span class="value" id="docDetailVersion"></span></div>
                         <div class="info-row"><span class="label">&Uacute;ltima actualizaci&oacute;n</span><span class="value" id="docDetailDate"></span></div>
                     </div>
-                    <!-- PLANTILLA_UPDATE -->
+                    <div class="plantilla-box" id="updatePlantillaBox" style="display: none;">
+                        <i class="fas fa-file-word"></i>
+                        <span>&iquest;No ten&eacute;s el formato? <a href="#" onclick="descargarPlantilla(); return false;">Descarg&aacute; la plantilla de procedimiento</a></span>
+                    </div>
                 </div>
 
                 <div id="updateForm" style="display: none;">

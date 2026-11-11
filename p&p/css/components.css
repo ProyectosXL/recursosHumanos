@@ -1155,3 +1155,57 @@
         gap: 12px;
     }
 }
+/* ===== Plantilla de procedimiento (Word) ===== */
+.plantilla-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 1px solid #2b579a;
+    border-radius: 6px;
+    background: #fff;
+    color: #2b579a;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+}
+
+.plantilla-btn i {
+    font-size: 15px;
+}
+
+.plantilla-btn:hover {
+    background: #2b579a;
+    color: #fff;
+}
+
+.plantilla-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: rgba(43, 87, 154, 0.07);
+    color: #34495e;
+    font-size: 13px;
+}
+
+.plantilla-box i {
+    color: #2b579a;
+    font-size: 18px;
+}
+
+.plantilla-box a {
+    color: #2b579a;
+    font-weight: 600;
+}
+
+@media (max-width: 576px) {
+    .plantilla-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
