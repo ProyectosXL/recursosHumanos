@@ -4,7 +4,9 @@ Combina búsqueda semántica con generación de respuestas usando Gemini.
 """
 
 import logging
+import re
 import time
+import unicodedata
 from typing import List, Dict, Any
 import google.generativeai as genai
 
@@ -89,6 +91,120 @@ def search_relevant_chunks(
         raise RAGError(f"Error en búsqueda: {str(e)}")
 
 
+# ----------------------------------------------------------------------------
+# Documentos nombrados en la pregunta
+# ----------------------------------------------------------------------------
+# La búsqueda semántica trae los top_k fragmentos más parecidos a la pregunta.
+# Si el usuario nombra un documento ("el instructivo del sistema de etiquetas de
+# precios") y ninguno de sus fragmentos entra en ese top_k, el modelo ve el título
+# en la lista de documentos disponibles pero no su contenido, y responde que "no
+# tiene fragmentos". Por eso, si la pregunta (o la anterior del historial) nombra
+# un documento, se suman sus fragmentos más relevantes al contexto.
+
+_PALABRAS_GENERICAS = {
+    'instructivo', 'instructivos', 'procedimiento', 'procedimientos', 'manual',
+    'protocolo', 'politica', 'politicas', 'documento', 'para', 'del', 'las',
+    'los', 'con', 'por', 'una', 'uno', 'que', 'como', 'sobre', 'desde',
+}
+MAX_DOCUMENTOS_NOMBRADOS = 2
+CHUNKS_POR_DOCUMENTO_NOMBRADO = 4
+
+
+def _normalizar(texto: str) -> str:
+    """Minúsculas, sin tildes y sin signos."""
+    texto = unicodedata.normalize('NFKD', str(texto or '').lower())
+    texto = ''.join(c for c in texto if not unicodedata.combining(c))
+    return re.sub(r'[^a-z0-9]+', ' ', texto).strip()
+
+
+def _palabras_significativas(texto: str) -> set:
+    return {
+        p for p in _normalizar(texto).split()
+        if len(p) >= 3 and not p.isdigit() and p not in _PALABRAS_GENERICAS
+    }
+
+
+def _titulos_mencionados(textos: List[str], titulos: List[str]) -> List[str]:
+    """
+    Títulos de documentos que aparecen nombrados en los textos.
+    Coincide si están todas las palabras significativas del título, o al menos
+    el 75% con un mínimo de 2 palabras.
+    """
+    palabras_texto = set()
+    for t in textos:
+        palabras_texto |= _palabras_significativas(t)
+
+    candidatos = []
+    for titulo in titulos:
+        palabras_titulo = _palabras_significativas(titulo)
+        if not palabras_titulo:
+            continue
+        comunes = len(palabras_titulo & palabras_texto)
+        proporcion = comunes / len(palabras_titulo)
+        if proporcion == 1 or (comunes >= 2 and proporcion >= 0.75):
+            candidatos.append((proporcion, comunes, titulo))
+
+    candidatos.sort(reverse=True)
+    return [titulo for _, _, titulo in candidatos[:MAX_DOCUMENTOS_NOMBRADOS]]
+
+
+def _agregar_chunks(base: Dict[str, Any], extra: Dict[str, Any]) -> int:
+    """
+    Agrega al principio de `base` los chunks de `extra` que no estén ya.
+    Ambos tienen el formato de ChromaDB: listas anidadas [[...]]. Devuelve cuántos agregó.
+    """
+    if not extra or not extra.get('ids') or not extra['ids'][0]:
+        return 0
+
+    for clave in ('ids', 'documents', 'metadatas', 'similarities'):
+        if not base.get(clave):
+            base[clave] = [[]]
+
+    existentes = set(base['ids'][0])
+    nuevos = {'ids': [], 'documents': [], 'metadatas': [], 'similarities': []}
+    sims_extra = (extra.get('similarities') or [[]])[0]
+
+    for i, chunk_id in enumerate(extra['ids'][0]):
+        if chunk_id in existentes:
+            continue
+        nuevos['ids'].append(chunk_id)
+        nuevos['documents'].append(extra['documents'][0][i])
+        nuevos['metadatas'].append(extra['metadatas'][0][i])
+        nuevos['similarities'].append(sims_extra[i] if i < len(sims_extra) else 0.0)
+
+    for clave in nuevos:
+        base[clave][0] = nuevos[clave] + list(base[clave][0])
+
+    return len(nuevos['ids'])
+
+
+def _texto_de_respuesta(response) -> str:
+    """
+    Texto de una respuesta de Gemini sin usar `response.text`, que falla cuando la
+    respuesta tiene varias partes (por ejemplo, partes de razonamiento) o vino vacía.
+    """
+    partes_texto = []
+    motivo = None
+    for candidato in (getattr(response, 'candidates', None) or []):
+        motivo = getattr(candidato, 'finish_reason', motivo)
+        contenido = getattr(candidato, 'content', None)
+        for parte in (getattr(contenido, 'parts', None) or []):
+            if getattr(parte, 'thought', False):
+                continue  # razonamiento interno del modelo: no se muestra
+            texto = getattr(parte, 'text', None)
+            if texto:
+                partes_texto.append(texto)
+        if partes_texto:
+            break  # alcanza con el primer candidato que tenga texto
+
+    if partes_texto:
+        return ''.join(partes_texto).strip()
+
+    logger.warning(f"Respuesta de Gemini sin texto (finish_reason={motivo})")
+    return ("No pude generar una respuesta en este momento. "
+            "Probá reformular la pregunta o volvé a intentar en unos segundos.")
+
+
 def build_context_from_chunks(chunks_data: Dict[str, Any]) -> str:
     """
     Construye el contexto para el prompt a partir de los chunks recuperados.
@@ -166,24 +282,48 @@ def generate_rag_response(
             raise RAGError("search_results no contiene 'results'")
             
         tiempo_busqueda = search_results.get('tiempo_busqueda_ms', 0)
-        
+
+        # 1b. Lista de documentos indexados (para el prompt y para detectar documentos nombrados)
+        try:
+            stats = get_chroma_client().get_stats()
+            all_titles = list(stats.get('documents_by_title', {}).keys())
+        except Exception:
+            all_titles = []
+
+        # 1c. Si la pregunta (o la anterior del historial) nombra un documento, sumar sus fragmentos
+        textos_a_revisar = [query]
+        if historial:
+            ultima = historial[-1]
+            textos_a_revisar.append(getattr(ultima, 'pregunta', '') or '')
+        titulos_nombrados = _titulos_mencionados(textos_a_revisar, all_titles)
+        chunks_agregados = 0
+        for titulo in titulos_nombrados:
+            try:
+                extra = search_relevant_chunks(query, CHUNKS_POR_DOCUMENTO_NOMBRADO, {'titulo': titulo})
+                chunks_agregados += _agregar_chunks(chunks_data, extra.get('results'))
+            except RAGError as e:
+                logger.warning(f"No se pudieron sumar fragmentos de '{titulo}': {e}")
+        if titulos_nombrados:
+            logger.info(f"Documentos nombrados en la pregunta: {titulos_nombrados} (+{chunks_agregados} fragmentos)")
+
         # 2. Evaluar relevancia de los resultados
         contexto = ""
         fuentes = []
         chunks_usados = 0
-        
+
         # Umbral de relevancia: si el mejor resultado tiene score < 0.15, probablemente no es relevante
         # (ChromaDB convierte distance a similarity con 1-dist, scores típicos: 0.6-0.9 = muy relevante, 0.3-0.6 = relevante, <0.3 = poco relevante)
+        # Si la pregunta nombra un documento, su contenido se usa siempre.
         UMBRAL_RELEVANCIA = 0.15
-        
+
         if chunks_data.get('ids') and chunks_data['ids'][0]:
             similarities = chunks_data.get('similarities', [[]])[0]
-            
+
             if similarities and len(similarities) > 0:
-                mejor_score = similarities[0]
+                mejor_score = max(similarities)
                 logger.info(f"Mejor score de similitud: {mejor_score:.3f}")
-                
-                if mejor_score > UMBRAL_RELEVANCIA:
+
+                if mejor_score > UMBRAL_RELEVANCIA or chunks_agregados > 0:
                     # Hay resultados relevantes, construir contexto completo
                     contexto = build_context_from_chunks(chunks_data)
                     chunks_usados = len(chunks_data['ids'][0])
@@ -217,13 +357,8 @@ def generate_rag_response(
             logger.info("No se encontraron chunks en la búsqueda")
             contexto = "No hay documentos relevantes para esta consulta."
         
-        # 3. Obtener lista completa de documentos indexados
-        try:
-            stats = get_chroma_client().get_stats()
-            all_titles = list(stats.get('documents_by_title', {}).keys())
-            documentos_disponibles = "\n".join([f"- {t}" for t in sorted(all_titles)]) if all_titles else "Sin documentos indexados"
-        except Exception:
-            documentos_disponibles = "Lista no disponible"
+        # 3. Lista completa de documentos indexados (ya obtenida en 1b)
+        documentos_disponibles = "\n".join([f"- {t}" for t in sorted(all_titles)]) if all_titles else "Lista no disponible"
 
         # 4. Construir historial de conversación
         if historial:
@@ -265,11 +400,8 @@ def generate_rag_response(
             if response is None:
                 raise RAGError("La API de Gemini devolvió None")
             
-            if not hasattr(response, 'text'):
-                logger.error(f"Response sin atributo 'text': {type(response)}, dir: {dir(response)}")
-                raise RAGError(f"Respuesta de API sin formato esperado: {type(response)}")
-            
-            respuesta_texto = response.text if response.text else "No se pudo generar una respuesta."
+            # No usar response.text: falla con respuestas de varias partes o sin texto
+            respuesta_texto = _texto_de_respuesta(response)
             
             logger.info(f"✓ Respuesta generada en {tiempo_generacion:.2f}ms con {chunks_usados} chunks")
             

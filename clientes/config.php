@@ -11,9 +11,10 @@ if (!file_exists($autoloaderPath)) {
 }
 require_once $autoloaderPath;
 
-$dotenvPath = __DIR__ . '/../';
+// Configuración centralizada: único archivo htdocs/.env (el mismo que usa sistemas)
+$dotenvPath = dirname(__DIR__, 2) . '/';
 if (!file_exists($dotenvPath . '.env')) {
-    die("ERROR CRÍTICO EN CONFIG.PHP: No se encuentra el archivo '.env'.<br>Debe estar en la carpeta 'recursosHumanos'. Ruta esperada: " . realpath($dotenvPath) . DIRECTORY_SEPARATOR . '.env');
+    die("ERROR CRÍTICO EN CONFIG.PHP: No se encuentra el archivo '.env'.<br>Debe estar en htdocs. Ruta esperada: " . realpath($dotenvPath) . DIRECTORY_SEPARATOR . '.env');
 }
 
 try {

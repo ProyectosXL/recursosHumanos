@@ -1,10 +1,10 @@
-
 <?php
-// Iniciar sesión para gestión de usuarios (si se implementa)
-session_start();
+// Acceso: login del hub + nivel Ver
+require_once __DIR__ . '/../Class/AccesoDocuGest.php';
+AccesoDocuGest::exigirLogin(AccesoDocuGest::PAGINA);
 
 // Incluir la clase Politica
-require_once '../Class/Politica.php';
+require_once __DIR__ . '/../Class/Politica.php';
 
 // Crear instancia de la clase
 $politicaObj = new Politica();
@@ -16,12 +16,12 @@ try {
         $documento_id = (int)$_GET['id'];
         
         // Obtener información del documento sin incrementar vista (parámetro en false)
-        $documento = $politicaObj->obtenerPorId($documento_id, false);
+        // Los documentos dados de baja solo los ve Admin
+        $documento = $politicaObj->obtenerPorId($documento_id, false, !AccesoDocuGest::esAdmin());
         
         if ($documento) {
             // Registrar la descarga (esto incrementa el contador de descargas)
-            $usuario_id = isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : null;
-            $politicaObj->registrarAcceso($documento_id, 'descarga', $usuario_id);
+            $politicaObj->registrarAcceso($documento_id, 'descarga', AccesoDocuGest::usuarioId());
             
             // Verificar que el archivo existe y que la ruta es correcta
             $ruta_archivo = $documento['ruta_archivo'];
@@ -65,7 +65,7 @@ try {
             
         } else {
             // Documento no encontrado
-            header('Location: ../index.php?mensaje=error&texto=Documento no encontrado');
+            header('Location: ../index.php?' . http_build_query(['mensaje' => 'error', 'texto' => 'El documento no existe o fue dado de baja']));
         }
         
     } else {

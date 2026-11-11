@@ -1,0 +1,4 @@
+# DocuGest: los PDF (vigentes y versiones/ archivadas) no se sirven por URL directa.
+# Se ven y se descargan solo por Controller/ver_documento.php y Controller/descargar_documento.php,
+# que exigen login del hub y filtran documentos dados de baja.
+Require all denied

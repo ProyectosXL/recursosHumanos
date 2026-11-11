@@ -1,73 +1,109 @@
-
 // update-document.js
-// Funciones para actualizar documentos existentes
+// Pestaña "Actualizar documento": nueva versión del PDF e historial (Editar y Admin).
+// Los permisos se validan en el servidor; esto solo arma la pantalla.
+
+// Datos del documento elegido (versión actual, tipo, etc.)
+let updateDocumentoActual = null;
 
 // Inicializar el manejo de actualización de documentos
 function initUpdateForm() {
-    // Inicializar el selector de documentos
     const documentSelect = document.getElementById('documentSelect');
-    if (documentSelect) {
-        // Resetear la selección al cargar la página
-        documentSelect.value = '';
-        
-        // Ocultar formularios y detalles
-        document.getElementById('documentDetails').style.display = 'none';
-        document.getElementById('updateForm').style.display = 'none';
+    if (!documentSelect) return; // El usuario no tiene nivel Editar: la pestaña no existe
+
+    documentSelect.value = '';
+    document.getElementById('documentDetails').style.display = 'none';
+    document.getElementById('updateForm').style.display = 'none';
+
+    documentSelect.addEventListener('change', function () {
+        if (this.value) {
+            loadDocumentDetails(this.value);
+        } else {
+            cancelUpdate();
+        }
+    });
+
+    const tagsInput = document.getElementById('updateTags');
+    if (tagsInput) {
+        tagsInput.addEventListener('input', function () {
+            loadTagsFromString(this.value, 'updateTagsContainer', 'updateTags');
+        });
     }
-    
-    // Inicializar campos de archivo para la actualización
+
+    const form = document.getElementById('updateVersionForm');
+    if (form) {
+        form.addEventListener('submit', validarFormularioActualizacion);
+    }
+
     initUpdateFileUpload();
+
+    // Volver con un documento elegido (?tab=update&doc=ID, por ejemplo después de un error)
+    const docParam = new URLSearchParams(window.location.search).get('doc');
+    if (docParam) {
+        openUpdateDocument(docParam);
+    }
+}
+
+// Abrir la pestaña Actualizar con un documento ya elegido (botón "Actualizar" de las listas)
+function openUpdateDocument(documentId) {
+    const documentSelect = document.getElementById('documentSelect');
+    if (!documentSelect) return;
+
+    showTab('update');
+    documentSelect.value = String(documentId);
+    if (documentSelect.value !== String(documentId)) {
+        showNotification('El documento no está disponible para actualizar', 'error');
+        return;
+    }
+    loadDocumentDetails(documentId);
 }
 
 // Cargar los detalles del documento seleccionado
 function loadDocumentDetails(documentId) {
     if (!documentId) return;
-    
-    // Mostrar indicador de carga
-    showNotification('Cargando información del documento...', 'info');
-    
-    // Realizar petición para obtener detalles del documento
-    fetch('Controller/obtener_documento_detalles.php?id=' + documentId)
-        .then(response => response.text())
-        .then(text => {
-            try {
-                return JSON.parse(text);
-            } catch (e) {
-                console.error('Error al parsear JSON:', text);
-                throw new Error('La respuesta no es un JSON válido');
-            }
-        })
+
+    fetch('Controller/obtener_documento_detalles.php?id=' + encodeURIComponent(documentId))
+        .then(response => response.json())
         .then(data => {
-            if (data.status === 'success' && data.documento) {
-                // Mostrar el área de detalles
-                document.getElementById('documentDetails').style.display = 'block';
-                
-                // Actualizar los campos con la información del documento
-                document.getElementById('docDetailTitle').textContent = data.documento.titulo || 'No disponible';
-                document.getElementById('docDetailType').textContent = data.documento.tipo === 'politica' ? 'Política' : 'Procedimiento';
-                document.getElementById('docDetailSector').textContent = data.documento.sector_nombre || 'No disponible';
-                document.getElementById('docDetailVersion').textContent = data.documento.version || '1.0';
-                document.getElementById('docDetailDate').textContent = data.documento.fecha_actualizacion || 'No disponible';
-                
-                // Mostrar formulario de actualización
-                document.getElementById('updateForm').style.display = 'block';
-                
-                // Establecer valores iniciales en el formulario
-                document.getElementById('updateDocId').value = documentId;
-                document.getElementById('updateVersion').value = getNextVersion(data.documento.version || '1.0');
-                document.getElementById('updateDesc').value = '';
-                document.getElementById('updateTags').value = data.documento.tags || '';
-                
-                // Si hay tags, cargarlas visualmente
-                if (data.documento.tags) {
-                    loadTagsFromString(data.documento.tags, 'updateTagsContainer', 'updateTags');
-                }
-                
-                // Desplazarse al formulario
-                document.getElementById('updateForm').scrollIntoView({ behavior: 'smooth' });
-            } else {
-                showNotification('Error: ' + (data.message || 'No se pudo cargar la información del documento'), 'error');
+            if (data.status !== 'success' || !data.documento) {
+                showNotification(data.message || 'No se pudo cargar la información del documento', 'error');
+                return;
             }
+
+            const doc = data.documento;
+            updateDocumentoActual = doc;
+
+            document.getElementById('documentDetails').style.display = 'block';
+            document.getElementById('docDetailTitle').textContent = doc.titulo || 'No disponible';
+            document.getElementById('docDetailType').textContent = doc.tipo === 'politica' ? 'Política' : 'Procedimiento';
+            document.getElementById('docDetailSector').textContent = doc.sector_nombre || 'No disponible';
+            document.getElementById('docDetailVersion').textContent = doc.version || '1.0';
+            document.getElementById('docDetailDate').textContent = doc.fecha_actualizacion || 'No disponible';
+
+            // Plantilla de procedimiento (solo si el documento es un procedimiento)
+            const plantilla = document.getElementById('updatePlantillaBox');
+            if (plantilla) {
+                plantilla.style.display = doc.tipo === 'procedimiento' ? 'flex' : 'none';
+            }
+
+            // Formulario de nueva versión
+            document.getElementById('updateForm').style.display = 'block';
+            document.getElementById('updateDocId').value = doc.id;
+            document.getElementById('updateVersion').value = getNextVersion(doc.version || '1.0');
+            document.getElementById('updateVersion').dataset.actual = doc.version || '1.0';
+            document.getElementById('updateCurrentVersion').textContent = doc.version || '1.0';
+            document.getElementById('updateDesc').value = '';
+            document.getElementById('updateTags').value = doc.tags || '';
+            loadTagsFromString(doc.tags || '', 'updateTagsContainer', 'updateTags');
+            removeUpdateFile();
+
+            // Edición de datos (si existe en la pantalla)
+            if (typeof cargarFormularioEdicion === 'function') {
+                cargarFormularioEdicion(doc);
+            }
+
+            showVersionHistory(doc.id);
+
+            document.getElementById('documentDetails').scrollIntoView({ behavior: 'smooth' });
         })
         .catch(error => {
             console.error('Error:', error);
@@ -75,28 +111,71 @@ function loadDocumentDetails(documentId) {
         });
 }
 
-// Función para calcular la siguiente versión
+// Función para calcular la siguiente versión (1.0 -> 1.1, 2 -> 3)
 function getNextVersion(currentVersion) {
-    // Si no hay versión, empezar con 1.0
     if (!currentVersion) return '1.0';
-    
-    // Separar por puntos
-    const versionParts = currentVersion.split('.');
-    
-    // Si solo tiene un número, incrementar en 1
+
+    const versionParts = String(currentVersion).split('.');
+
     if (versionParts.length === 1) {
-        return (parseInt(versionParts[0]) + 1).toString();
+        const n = parseInt(versionParts[0], 10);
+        return isNaN(n) ? '1.0' : (n + 1).toString();
     }
-    
-    // Si tiene formato x.y, incrementar el segundo número
-    if (versionParts.length >= 2) {
-        const major = parseInt(versionParts[0]);
-        const minor = parseInt(versionParts[1]) + 1;
-        return `${major}.${minor}`;
+
+    const major = parseInt(versionParts[0], 10);
+    const minor = parseInt(versionParts[1], 10);
+    if (isNaN(major) || isNaN(minor)) return '1.0';
+    return `${major}.${minor + 1}`;
+}
+
+// Formato de versión: 1, 1.1, 2.0.3
+function esVersionValida(version) {
+    return /^\d{1,4}(\.\d{1,4}){0,3}$/.test(version);
+}
+
+// -1 si a < b, 0 si son iguales, 1 si a > b (compara número por número)
+function compararVersiones(a, b) {
+    const pa = String(a).split('.').map(n => parseInt(n, 10) || 0);
+    const pb = String(b).split('.').map(n => parseInt(n, 10) || 0);
+    const largo = Math.max(pa.length, pb.length);
+    for (let i = 0; i < largo; i++) {
+        const x = pa[i] || 0;
+        const y = pb[i] || 0;
+        if (x !== y) return x > y ? 1 : -1;
     }
-    
-    // Fallback
-    return '1.0';
+    return 0;
+}
+
+// Validación antes de enviar (el servidor valida lo mismo)
+function validarFormularioActualizacion(event) {
+    const fileInput = document.getElementById('updateDocFile');
+    const version = document.getElementById('updateVersion').value.trim();
+    const actual = document.getElementById('updateVersion').dataset.actual || '1.0';
+    const motivo = document.getElementById('updateDesc').value.trim();
+
+    let error = '';
+    if (!fileInput.files || fileInput.files.length === 0) {
+        error = 'Elegí el PDF nuevo';
+    } else if (!esVersionValida(version)) {
+        error = 'La versión tiene que ser un número, por ejemplo 1.1';
+    } else if (esVersionValida(actual) && compararVersiones(version, actual) <= 0) {
+        error = 'La versión nueva tiene que ser mayor que la actual (' + actual + ')';
+    } else if (motivo === '') {
+        error = 'Contá el motivo del cambio';
+    }
+
+    if (error) {
+        event.preventDefault();
+        showNotification(error, 'error');
+        return false;
+    }
+
+    const boton = document.getElementById('updateSubmitBtn');
+    if (boton) {
+        boton.disabled = true;
+        boton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
+    }
+    return true;
 }
 
 // Inicializar el manejo de carga de archivos para actualización
@@ -106,29 +185,25 @@ function initUpdateFileUpload() {
     const fileName = document.getElementById('updateFileName');
     const fileSize = document.getElementById('updateFileSize');
     const fileUploadBtn = document.getElementById('updateFileUploadBtn');
-    
+
     if (!fileInput || !fileInfo || !fileName || !fileSize || !fileUploadBtn) return;
-    
-    // Manejar la selección de archivo
-    fileInput.addEventListener('change', function() {
+
+    fileInput.addEventListener('change', function () {
         if (this.files && this.files[0]) {
             const file = this.files[0];
-            
-            // Verificar que es un PDF
-            if (file.type !== 'application/pdf') {
+
+            if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
                 showNotification('Solo se permiten archivos PDF', 'error');
                 this.value = '';
                 return;
             }
-            
-            // Verificar tamaño (10MB máximo)
+
             if (file.size > 10 * 1024 * 1024) {
-                showNotification('El archivo excede el tamaño máximo permitido (10MB)', 'error');
+                showNotification('El archivo supera el tamaño máximo (10 MB)', 'error');
                 this.value = '';
                 return;
             }
-            
-            // Mostrar información del archivo
+
             fileName.textContent = file.name;
             fileSize.textContent = formatFileSize(file.size);
             fileInfo.classList.add('show');
@@ -136,46 +211,41 @@ function initUpdateFileUpload() {
             fileUploadBtn.classList.add('has-file');
         }
     });
-    
-    // Efecto visual al arrastrar el archivo
-    fileUploadBtn.addEventListener('dragover', function(e) {
+
+    fileUploadBtn.addEventListener('dragover', function (e) {
         e.preventDefault();
         this.style.borderColor = '#3498db';
         this.style.backgroundColor = 'rgba(52, 152, 219, 0.1)';
     });
-    
-    fileUploadBtn.addEventListener('dragleave', function(e) {
+
+    fileUploadBtn.addEventListener('dragleave', function (e) {
         e.preventDefault();
         this.style.borderColor = '#ddd';
         this.style.backgroundColor = '#f8f9fa';
     });
-    
-    fileUploadBtn.addEventListener('drop', function(e) {
+
+    fileUploadBtn.addEventListener('drop', function (e) {
         e.preventDefault();
         this.style.borderColor = '#ddd';
         this.style.backgroundColor = '#f8f9fa';
-        
+
         if (e.dataTransfer.files.length) {
             fileInput.files = e.dataTransfer.files;
-            
-            // Disparar el evento change para que se procese el archivo
-            const event = new Event('change');
-            fileInput.dispatchEvent(event);
+            fileInput.dispatchEvent(new Event('change'));
         }
     });
-    
-    // Abrir el selector de archivos al hacer clic en el botón
-    fileUploadBtn.addEventListener('click', function() {
+
+    fileUploadBtn.addEventListener('click', function () {
         fileInput.click();
     });
 }
 
-// Función para eliminar el archivo seleccionado en la actualización
+// Quitar el archivo seleccionado
 function removeUpdateFile() {
     const fileInput = document.getElementById('updateDocFile');
     const fileInfo = document.getElementById('updateFileInfo');
     const fileUploadBtn = document.getElementById('updateFileUploadBtn');
-    
+
     if (fileInput) {
         fileInput.value = '';
         if (fileInfo) fileInfo.classList.remove('show');
@@ -187,123 +257,149 @@ function removeUpdateFile() {
     }
 }
 
-// Cargar etiquetas desde una cadena
+// Mostrar etiquetas como chips a partir del texto separado por comas
 function loadTagsFromString(tagsString, containerId, inputId) {
     const tagsContainer = document.getElementById(containerId);
     const tagsInput = document.getElementById(inputId);
-    
-    if (!tagsContainer || !tagsInput || !tagsString) return;
-    
-    // Limpiar el contenedor
+
+    if (!tagsContainer || !tagsInput) return;
+
     tagsContainer.innerHTML = '';
-    
-    // Separar etiquetas
-    const tagsArray = tagsString.split(',').map(tag => tag.trim()).filter(tag => tag);
-    
-    // Actualizar el atributo data-tags
+    const tagsArray = String(tagsString || '').split(',').map(tag => tag.trim()).filter(tag => tag);
     tagsInput.setAttribute('data-tags', tagsArray.join(','));
-    
-    // Crear elementos visuales
+
     tagsArray.forEach(tag => {
         const tagElement = document.createElement('div');
         tagElement.className = 'tag';
-        tagElement.innerHTML = tag + ' <i class="fas fa-times" onclick="removeUpdateTag(\'' + tag + '\', \'' + containerId + '\', \'' + inputId + '\')"></i>';
+        tagElement.appendChild(document.createTextNode(tag + ' '));
+        const quitar = document.createElement('i');
+        quitar.className = 'fas fa-times';
+        quitar.title = 'Quitar etiqueta';
+        quitar.addEventListener('click', () => removeUpdateTag(tag, containerId, inputId));
+        tagElement.appendChild(quitar);
         tagsContainer.appendChild(tagElement);
     });
 }
 
-// Eliminar una etiqueta en la actualización
+// Eliminar una etiqueta
 function removeUpdateTag(tag, containerId, inputId) {
-    const tagsContainer = document.getElementById(containerId);
     const tagsInput = document.getElementById(inputId);
-    
-    if (!tagsContainer || !tagsInput) return;
-    
-    const currentTags = tagsInput.getAttribute('data-tags') || '';
-    
-    // Crear un array de etiquetas actuales
-    let tagsArray = currentTags ? currentTags.split(',') : [];
-    
-    // Filtrar la etiqueta que se va a eliminar
-    tagsArray = tagsArray.filter(t => t !== tag);
-    
-    // Actualizar el atributo data-tags
-    tagsInput.setAttribute('data-tags', tagsArray.join(','));
-    
-    // Actualizar el campo de entrada con todas las etiquetas
+    if (!tagsInput) return;
+
+    const tagsArray = (tagsInput.getAttribute('data-tags') || '')
+        .split(',')
+        .filter(t => t && t !== tag);
+
     tagsInput.value = tagsArray.join(', ');
-    
-    // Volver a cargar las etiquetas visuales
-    loadTagsFromString(tagsArray.join(','), containerId, inputId);
+    loadTagsFromString(tagsInput.value, containerId, inputId);
 }
 
 // Cancelar la actualización
 function cancelUpdate() {
-    // Ocultar formularios y detalles
     document.getElementById('documentDetails').style.display = 'none';
     document.getElementById('updateForm').style.display = 'none';
-    
-    // Resetear la selección
+    updateDocumentoActual = null;
+
     const documentSelect = document.getElementById('documentSelect');
     if (documentSelect) {
         documentSelect.value = '';
     }
-    
-    // Limpiar el archivo
+
     removeUpdateFile();
 }
 
-// Función para mostrar el historial de versiones
+// Historial de versiones (versión, fecha, usuario y motivo). Sin enlaces a PDF anteriores.
 function showVersionHistory(documentId) {
-    if (!documentId) return;
-    
-    const modal = document.getElementById('versionHistoryModal');
-    modal.style.display = 'block';
-    
     const content = document.getElementById('versionHistoryContent');
-    content.innerHTML = '<p>Cargando historial de versiones...</p>';
-    
-    // Cargar el historial desde el servidor
-    fetch('Controller/obtener_historial_versiones.php?id=' + documentId)
+    if (!documentId || !content) return;
+
+    content.innerHTML = '<p class="version-empty">Cargando historial...</p>';
+
+    fetch('Controller/obtener_historial_versiones.php?id=' + encodeURIComponent(documentId))
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'success') {
-                let html = '';
-                
-                if (data.historial.length === 0) {
-                    html = '<p>No hay historial de versiones disponible</p>';
-                } else {
-                    html = '<div class="version-timeline">';
-                    
-                    data.historial.forEach(version => {
-                        html += `
-                            <div class="version-item">
-                                <div class="version-dot"></div>
-                                <div class="version-content">
-                                    <h4>Versión ${version.version}</h4>
-                                    <p class="version-date">${version.fecha}</p>
-                                    <p class="version-user">${version.usuario}</p>
-                                    <p class="version-desc">${version.descripcion || 'Sin descripción'}</p>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    html += '</div>';
-                }
-                
-                content.innerHTML = html;
-            } else {
-                content.innerHTML = '<p>Error al cargar el historial: ' + (data.message || 'Error desconocido') + '</p>';
+            if (data.status !== 'success') {
+                content.innerHTML = '<p class="version-empty">' + escapeHtml(data.message || 'No se pudo cargar el historial') + '</p>';
+                return;
             }
+
+            if (!data.historial || data.historial.length === 0) {
+                content.innerHTML = '<p class="version-empty">Todavía no hay cambios registrados para este documento.</p>';
+                return;
+            }
+
+            let html = '<div class="version-timeline">';
+            data.historial.forEach(item => {
+                const esVersion = item.tipo_cambio === 'version';
+                const titulo = esVersion
+                    ? 'Versión ' + escapeHtml(item.version)
+                    : escapeHtml(item.tipo_texto) + (item.version ? ' · versión ' + escapeHtml(item.version) : '');
+                html += `
+                    <div class="version-item tipo-${escapeHtml(item.tipo_cambio)}">
+                        <div class="version-dot"></div>
+                        <div class="version-content">
+                            <h4>${titulo}</h4>
+                            <p class="version-date"><i class="far fa-calendar-alt"></i> ${escapeHtml(item.fecha || '')}</p>
+                            <p class="version-user"><i class="far fa-user"></i> ${escapeHtml(item.usuario || 'Sistema')}</p>
+                            <p class="version-desc">${escapeHtml(item.descripcion || 'Sin motivo')}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            content.innerHTML = html;
         })
         .catch(error => {
             console.error('Error:', error);
-            content.innerHTML = '<p>Error al cargar el historial. Por favor, inténtelo de nuevo más tarde.</p>';
+            content.innerHTML = '<p class="version-empty">No se pudo cargar el historial. Probá de nuevo más tarde.</p>';
         });
 }
 
-// Función para cerrar el modal de historial
-function closeVersionHistory() {
-    document.getElementById('versionHistoryModal').style.display = 'none';
+// ===== Editar datos (sin cambiar el PDF ni la versión) =====
+
+// Alternar entre "Subir versión nueva" y "Editar datos"
+function mostrarOpcionUpdate(opcion) {
+    const esDatos = opcion === 'datos';
+    const cardVersion = document.getElementById('updateVersionCard');
+    const cardDatos = document.getElementById('updateDataCard');
+    if (cardVersion) cardVersion.style.display = esDatos ? 'none' : 'block';
+    if (cardDatos) cardDatos.style.display = esDatos ? 'block' : 'none';
+    document.querySelectorAll('.update-option').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.opcion === opcion);
+    });
+}
+
+// Completar el formulario de edición con los datos actuales
+function cargarFormularioEdicion(doc) {
+    const form = document.getElementById('editDataForm');
+    if (!form) return;
+
+    document.getElementById('editDocId').value = doc.id;
+    document.getElementById('editTitulo').value = doc.titulo || '';
+    document.getElementById('editTipo').value = doc.tipo || 'politica';
+    document.getElementById('editSector').value = String(doc.sector_id || '');
+    document.getElementById('editDescripcion').value = doc.descripcion || '';
+    document.getElementById('editTags').value = doc.tags || '';
+    loadTagsFromString(doc.tags || '', 'editTagsContainer', 'editTags');
+
+    if (!form.dataset.iniciado) {
+        form.dataset.iniciado = '1';
+        document.getElementById('editTags').addEventListener('input', function () {
+            loadTagsFromString(this.value, 'editTagsContainer', 'editTags');
+        });
+        form.addEventListener('submit', function (event) {
+            if (!document.getElementById('editTitulo').value.trim()) {
+                event.preventDefault();
+                showNotification('El título es obligatorio', 'error');
+                return;
+            }
+            const boton = document.getElementById('editDataSubmitBtn');
+            if (boton) {
+                boton.disabled = true;
+                boton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            }
+        });
+    }
+
+    mostrarOpcionUpdate('version');
 }

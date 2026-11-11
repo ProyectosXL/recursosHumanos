@@ -677,8 +677,13 @@ function escapeHtml(text) {
 /**
  * Limpia el historial del chat
  */
-function limpiarChat() {
-    if (confirm('¿Estás seguro de que deseas limpiar el historial del chat?')) {
+async function limpiarChat() {
+    const respuesta = await pedirConfirmacion({
+        titulo: 'Limpiar el chat',
+        mensaje: '¿Querés borrar la conversación con el asistente?',
+        textoConfirmar: 'Limpiar'
+    });
+    if (respuesta.ok) {
         const messagesContainer = document.getElementById('chatbot-messages');
         messagesContainer.innerHTML = `
             <div class="chatbot-message bot">

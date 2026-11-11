@@ -46,8 +46,16 @@ class DotEnv
         }
     }
 
+    /**
+     * Configuración centralizada: único archivo htdocs/.env (el mismo que usa sistemas).
+     */
+    public static function archivo(): string
+    {
+        return dirname(__DIR__, 2) . '/.env';
+    }
+
     public function listVars(){
-        (new DotEnv(__DIR__ . '/../.env'))->load();
+        (new DotEnv(self::archivo()))->load();
 
         $vars = array(
 

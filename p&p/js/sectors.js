@@ -1,31 +1,55 @@
 
 // sectors.js
-// Funciones para la gestión de sectores
+// Funciones para la gestión de sectores (Configuración: solo Admin; el servidor valida el permiso)
 
 // Inicializar la gestión de sectores
 function initSectors() {
-    // Inicializar formulario de nuevo sector si existe
+    const form = document.getElementById('sectorForm');
+    if (!form) return; // Configuración no se renderizó para este usuario
+
     const newSectorBtn = document.getElementById('newSectorBtn');
     if (newSectorBtn) {
-        newSectorBtn.addEventListener('click', function() {
+        newSectorBtn.addEventListener('click', function () {
+            resetSectorForm();
             document.getElementById('newSectorForm').style.display = 'block';
+            document.getElementById('sectorName').focus();
         });
     }
-    
+
     const cancelSectorBtn = document.getElementById('cancelSectorBtn');
     if (cancelSectorBtn) {
-        cancelSectorBtn.addEventListener('click', function() {
+        cancelSectorBtn.addEventListener('click', function () {
+            resetSectorForm();
             document.getElementById('newSectorForm').style.display = 'none';
         });
     }
-    
-    // Inicializar vista previa de iconos de sector
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!document.getElementById('sectorName').value.trim()) {
+            showNotification('El nombre del sector es obligatorio', 'error');
+            return;
+        }
+        saveSector(new FormData(form));
+    });
+
     const sectorIcon = document.getElementById('sectorIcon');
     if (sectorIcon) {
-        sectorIcon.addEventListener('change', function() {
+        sectorIcon.addEventListener('change', function () {
             updateIconPreview(this.value);
         });
     }
+}
+
+// Dejar el formulario listo para un sector nuevo
+function resetSectorForm() {
+    const form = document.getElementById('sectorForm');
+    if (!form) return;
+    form.reset();
+    document.getElementById('sectorId').value = '';
+    document.getElementById('sectorFormTitle').textContent = 'Nuevo sector';
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-check"></i> Guardar';
 }
 
 // Actualizar la vista previa del icono seleccionado
@@ -38,39 +62,32 @@ function updateIconPreview(iconClass) {
 
 // Editar un sector existente
 function editSector(sectorId) {
-    // En una implementación real, esto cargaría los datos del sector
-    fetch('Controller/obtener_sector.php?id=' + sectorId)
+    fetch('Controller/obtener_sector.php?id=' + encodeURIComponent(sectorId))
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'success') {
-                const sector = data.sector;
-                
-                // Mostrar el formulario de edición
-                document.getElementById('newSectorForm').style.display = 'block';
-                document.getElementById('sectorFormTitle').textContent = 'Editar Sector';
-                
-                // Establecer los valores del formulario
-                document.getElementById('sectorId').value = sector.id;
-                document.getElementById('sectorName').value = sector.nombre;
-                document.getElementById('sectorDesc').value = sector.descripcion || '';
-                
-                const iconSelect = document.getElementById('sectorIcon');
-                if (iconSelect) {
-                    iconSelect.value = sector.icono || 'fa-folder';
-                    updateIconPreview(sector.icono || 'fa-folder');
-                }
-                
-                // Cambiar el botón de envío
-                const submitBtn = document.querySelector('#sectorForm button[type="submit"]');
-                if (submitBtn) {
-                    submitBtn.textContent = 'Actualizar Sector';
-                }
-                
-                // Desplazarse al formulario
-                document.getElementById('newSectorForm').scrollIntoView({ behavior: 'smooth' });
-            } else {
-                showNotification('Error al cargar el sector: ' + data.message, 'error');
+            if (data.status !== 'success') {
+                showNotification(data.message || 'No se pudo cargar el sector', 'error');
+                return;
             }
+            const sector = data.sector;
+
+            document.getElementById('newSectorForm').style.display = 'block';
+            document.getElementById('sectorFormTitle').textContent = 'Editar sector';
+            document.getElementById('sectorId').value = sector.id;
+            document.getElementById('sectorName').value = sector.nombre;
+            document.getElementById('sectorDesc').value = sector.descripcion || '';
+
+            const iconSelect = document.getElementById('sectorIcon');
+            if (iconSelect) {
+                iconSelect.value = sector.icono || 'fa-folder';
+                if (!iconSelect.value) iconSelect.value = 'fa-folder';
+                updateIconPreview(iconSelect.value);
+            }
+
+            const submitBtn = document.querySelector('#sectorForm button[type="submit"]');
+            if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-check"></i> Guardar cambios';
+
+            document.getElementById('newSectorForm').scrollIntoView({ behavior: 'smooth' });
         })
         .catch(error => {
             console.error('Error:', error);
@@ -78,28 +95,51 @@ function editSector(sectorId) {
         });
 }
 
-// Confirmar eliminación de un sector
+// Confirmar eliminación de un sector (no se puede si tiene documentos)
 function confirmDeleteSector(sectorId) {
-    if (confirm('¿Está seguro que desea eliminar este sector? Esta acción puede afectar a los documentos asociados.')) {
-        // Enviar solicitud de eliminación
-        deleteSector(sectorId);
-    }
+    const boton = document.querySelector(`.cfg-delete[onclick^="confirmDeleteSector(${Number(sectorId)})"]`);
+    const nombre = boton ? boton.dataset.nombre : '';
+
+    checkSectorDocuments(sectorId)
+        .then(cantidad => {
+            if (cantidad.activos > 0) {
+                const n = cantidad.activos;
+                showNotification(`No se puede eliminar: el sector tiene ${n} documento${n === 1 ? '' : 's'} activo${n === 1 ? '' : 's'}.`, 'error');
+                return;
+            }
+            if (cantidad.inactivos > 0) {
+                const n = cantidad.inactivos;
+                showNotification(`No se puede eliminar: el sector tiene ${n} documento${n === 1 ? '' : 's'} dado${n === 1 ? '' : 's'} de baja.`, 'error');
+                return;
+            }
+            return pedirConfirmacion({
+                titulo: 'Eliminar sector',
+                mensaje: `¿Querés eliminar el sector "${nombre}"? Los términos del glosario de este sector quedan sin sector.`,
+                textoConfirmar: 'Eliminar',
+                peligro: true
+            }).then(respuesta => {
+                if (respuesta.ok) deleteSector(sectorId);
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification(error.message || 'Error al procesar la solicitud', 'error');
+        });
 }
 
 // Eliminar un sector
 function deleteSector(sectorId) {
-    fetch('Controller/eliminar_sector.php?id=' + sectorId)
+    const formData = new FormData();
+    formData.append('id', sectorId);
+
+    fetch('Controller/eliminar_sector.php', { method: 'POST', body: formData })
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                showNotification('Sector eliminado correctamente', 'success');
-                
-                // Recargar la página después de un breve retraso
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
+                showNotification('Sector eliminado', 'success');
+                setTimeout(() => window.location.href = 'index.php?tab=settings', 1200);
             } else {
-                showNotification('Error al eliminar el sector: ' + data.message, 'error');
+                showNotification(data.message || 'No se pudo eliminar el sector', 'error');
             }
         })
         .catch(error => {
@@ -108,57 +148,36 @@ function deleteSector(sectorId) {
         });
 }
 
-// Guardar un nuevo sector o actualizar uno existente
+// Guardar un nuevo sector o actualizar uno existente (mismo controller: con id es modificación)
 function saveSector(formData) {
-    // Verificar si es una edición o un nuevo sector
-    const sectorId = document.getElementById('sectorId')?.value;
-    
-    const url = sectorId 
-        ? 'Controller/actualizar_sector.php' 
-        : 'Controller/procesar_sector.php';
-    
-    fetch(url, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            showNotification(
-                sectorId ? 'Sector actualizado correctamente' : 'Sector creado correctamente', 
-                'success'
-            );
-            
-            // Recargar la página después de un breve retraso
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
-        } else {
-            showNotification('Error: ' + data.message, 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Error al procesar la solicitud', 'error');
-    });
+    const esEdicion = !!document.getElementById('sectorId')?.value;
+
+    fetch('Controller/procesar_sector.php', { method: 'POST', body: formData })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showNotification(esEdicion ? 'Sector actualizado' : 'Sector creado', 'success');
+                setTimeout(() => window.location.href = 'index.php?tab=settings', 1200);
+            } else {
+                showNotification(data.message || 'No se pudo guardar el sector', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error al procesar la solicitud', 'error');
+        });
 }
 
-// Verificar si un sector tiene documentos asociados
+// Cantidad de documentos de un sector: {activos, inactivos}
 function checkSectorDocuments(sectorId) {
-    return new Promise((resolve, reject) => {
-        fetch('Controller/verificar_documentos_sector.php?id=' + sectorId)
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    resolve(data.hasDocuments);
-                } else {
-                    reject(new Error(data.message));
-                }
-            })
-            .catch(error => {
-                reject(error);
-            });
-    });
+    return fetch('Controller/verificar_documentos_sector.php?id=' + encodeURIComponent(sectorId))
+        .then(response => response.json())
+        .then(data => {
+            if (data.status !== 'success') {
+                throw new Error(data.message || 'No se pudo verificar el sector');
+            }
+            return { activos: data.activos || 0, inactivos: data.inactivos || 0 };
+        });
 }
 
 // Cargar documentos por sector

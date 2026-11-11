@@ -46,7 +46,11 @@ API unificada para el sistema de gestión documental DocuGest.
 ```
 GOOGLE_API_KEY=<Gemini API key>
 PHP_SERVER_URL=https://app.xl.com.ar/recursosHumanos/p&p
+DOCUGEST_API_TOKEN=<secreto compartido con el .env del servidor PHP>
 ```
+
+`DOCUGEST_API_TOKEN` se carga como **secreto** del Space y se envía en el header
+`X-DocuGest-Token` al llamar a `api/listar_documentos.php` y `api/descargar_pdf.php`.
 
 ## Rolling update: Tags y Glosario con LLM
 
