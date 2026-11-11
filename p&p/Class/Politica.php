@@ -482,6 +482,10 @@ class Politica
         $rutaVigente = $this->rutaArchivoVigente($documento);
 
         $nuevo_nombre = $this->generarNombreArchivo($documento['titulo'], 'pdf');
+        // Nunca pisar un archivo existente (por ejemplo el vigente, si coincide el segundo del nombre)
+        if (file_exists($this->upload_dir . $nuevo_nombre)) {
+            $nuevo_nombre = pathinfo($nuevo_nombre, PATHINFO_FILENAME) . '-' . bin2hex(random_bytes(3)) . '.pdf';
+        }
         $ruta_nueva = $this->upload_dir . $nuevo_nombre;
         if (!move_uploaded_file($archivo['tmp_name'], $ruta_nueva)) {
             return ['status' => 'error', 'message' => 'No se pudo guardar el archivo nuevo'];
