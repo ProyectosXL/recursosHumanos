@@ -9,6 +9,9 @@ class Politica
 
     const TAMANIO_MAXIMO_PDF = 10485760; // 10 MB
 
+    // Días en que un documento muestra la marca "Nuevo" o "Actualizado"
+    const DIAS_NOVEDAD = 15;
+
     function __construct()
     {
         require_once __DIR__ . '/../../Class/conexion.php';
@@ -117,28 +120,68 @@ class Politica
      * Obtiene todos los documentos (políticas y procedimientos)
      */
     public function obtenerTodos($filtros = []) {
-        $sql = "SELECT p.*, s.nombre as sector_nombre, s.icono 
-                FROM Politicas_Procedimientos p 
-                JOIN Sectores s ON p.sector_id = s.id 
+        $sql = "SELECT p.*, s.nombre as sector_nombre, s.icono
+                FROM Politicas_Procedimientos p
+                JOIN Sectores s ON p.sector_id = s.id
                 WHERE p.estado = 'activo'";
-        
+        $params = [];
+
         // Aplicar filtros si existen
-        if (isset($filtros['tipo']) && !empty($filtros['tipo'])) {
-            $sql .= " AND p.tipo = '".$filtros['tipo']."'";
+        if (!empty($filtros['tipo'])) {
+            $sql .= " AND p.tipo = ?";
+            $params[] = (string)$filtros['tipo'];
         }
-        
-        if (isset($filtros['sector_id']) && !empty($filtros['sector_id'])) {
-            $sql .= " AND p.sector_id = ".$filtros['sector_id'];
+
+        if (!empty($filtros['sector_id'])) {
+            $sql .= " AND p.sector_id = ?";
+            $params[] = (int)$filtros['sector_id'];
         }
-        
-        if (isset($filtros['busqueda']) && !empty($filtros['busqueda'])) {
-            $busqueda = $filtros['busqueda'];
-            $sql .= " AND (p.titulo LIKE '%$busqueda%' OR p.descripcion LIKE '%$busqueda%' OR p.tags LIKE '%$busqueda%')";
+
+        if (!empty($filtros['busqueda'])) {
+            $like = '%' . $filtros['busqueda'] . '%';
+            $sql .= " AND (p.titulo LIKE ? OR p.descripcion LIKE ? OR p.tags LIKE ?)";
+            array_push($params, $like, $like, $like);
         }
-        
-        $sql .= " ORDER BY p.fecha_actualizacion DESC";
-        
-        return $this->retornarArray($sql);
+
+        // Novedades primero: fecha de la última versión o del alta (no fecha_actualizacion,
+        // que también cambia con bajas y ediciones de datos)
+        $sql .= " ORDER BY COALESCE(p.fecha_ultima_version, p.fecha_creacion, p.fecha_actualizacion) DESC, p.id DESC";
+
+        return $this->consultar($sql, $params) ?: [];
+    }
+
+    /**
+     * Marca de novedad de un documento:
+     *  'actualizado' si se le subió una versión nueva hace DIAS_NOVEDAD días o menos,
+     *  'nuevo' si se dio de alta hace DIAS_NOVEDAD días o menos, '' si no.
+     * Cuenta desde la fecha de alta o de la última versión (no desde fecha_actualizacion).
+     */
+    public static function marcaNovedad($documento, $ahora = null) {
+        $ahora = $ahora ?? time();
+        $limite = $ahora - self::DIAS_NOVEDAD * 86400;
+
+        $alta = self::aTimestamp($documento['fecha_creacion'] ?? null);
+        $version = self::aTimestamp($documento['fecha_ultima_version'] ?? null);
+
+        // Versión nueva: la fecha de la última versión es posterior al alta (más de 1 minuto)
+        if ($version !== null && $version >= $limite && ($alta === null || $version - $alta > 60)) {
+            return 'actualizado';
+        }
+        if ($alta !== null && $alta >= $limite) {
+            return 'nuevo';
+        }
+        return '';
+    }
+
+    private static function aTimestamp($valor) {
+        if ($valor instanceof DateTimeInterface) {
+            return $valor->getTimestamp();
+        }
+        if (is_string($valor) && trim($valor) !== '') {
+            $ts = strtotime($valor);
+            return $ts === false ? null : $ts;
+        }
+        return null;
     }
     
     /**

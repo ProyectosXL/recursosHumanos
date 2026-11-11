@@ -82,7 +82,14 @@ function dg_fecha_version($doc) {
 function dg_detalle_documento($doc, $mostrarTipo = false) {
     $version = trim((string)($doc['version'] ?? '')) ?: '1.0';
     $fecha = Politica::formatearFecha(dg_fecha_version($doc));
-    $html = '<h4>' . htmlspecialchars($doc['titulo']) . '</h4>';
+    $marca = Politica::marcaNovedad($doc);
+    $html = '<h4>' . htmlspecialchars($doc['titulo']);
+    if ($marca === 'nuevo') {
+        $html .= ' <span class="doc-badge doc-badge-nuevo">Nuevo</span>';
+    } elseif ($marca === 'actualizado') {
+        $html .= ' <span class="doc-badge doc-badge-actualizado">Actualizado</span>';
+    }
+    $html .= '</h4>';
     $html .= '<p>';
     if ($mostrarTipo) {
         $html .= '<strong>' . ($doc['tipo'] == 'politica' ? 'Pol&iacute;tica' : 'Procedimiento') . '</strong> &mdash; ';
@@ -389,7 +396,7 @@ function dg_acciones_documento($doc) {
                     <div class="left-column">
                         <div class="card">
                             <div class="card-header">
-                                <h3>Documentos Recientes</h3>
+                                <h3>Novedades</h3>
                                 <a href="#" class="see-all" onclick="showTab('all-documents')">Ver todos <i class="fas fa-chevron-right"></i></a>
                             </div>
                             
@@ -467,15 +474,10 @@ function dg_acciones_documento($doc) {
                             <p><?php echo htmlspecialchars($sector['descripcion']); ?></p>
                             
                             <?php
-                            // Contar documentos por sector
-                            $count = 0;
-                            foreach ($documentos_recientes as $doc) {
-                                if ($doc['sector_id'] == $sector['id']) {
-                                    $count++;
-                                }
-                            }
+                            // Documentos activos del sector (sobre el total, no sobre la lista filtrada)
+                            $count = $documentosPorSector[$sector['id']] ?? 0;
                             ?>
-                            <span class="count"><?php echo $count; ?> documentos</span>
+                            <span class="count"><?php echo $count; ?> documento<?php echo $count != 1 ? 's' : ''; ?></span>
                         </div>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -600,8 +602,8 @@ function dg_acciones_documento($doc) {
                 </div>
 
                 <?php
-                $total_docs = count($documentos_recientes);
-                $total_pol = count(array_filter($documentos_recientes, fn($d) => $d['tipo'] == 'politica'));
+                $total_docs = count($documentos_activos);
+                $total_pol = count(array_filter($documentos_activos, fn($d) => $d['tipo'] == 'politica'));
                 $total_proc = $total_docs - $total_pol;
                 $max_vistas = 1;
                 $max_descargas = 1;
@@ -704,7 +706,7 @@ function dg_acciones_documento($doc) {
                     <?php if (!empty($sectores)): ?>
                     <div class="stats-sectors-grid">
                         <?php foreach ($sectores as $sector):
-                            $cnt = count(array_filter($documentos_recientes, fn($d) => $d['sector_id'] == $sector['id']));
+                            $cnt = $documentosPorSector[$sector['id']] ?? 0;
                             $pct = $total_docs > 0 ? round(($cnt / $total_docs) * 100) : 0;
                             $sc2 = $sectorColorMap[$sector['id']] ?? '#3498db';
                         ?>
