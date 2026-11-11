@@ -68,6 +68,12 @@ foreach ($sectores as $i => $s) {
     $sectorColorMap[$s['id']] = '#5b8db8';
 }
 
+/** URL de un archivo estático con ?v=fecha de modificación (evita que el navegador use una versión vieja) */
+function dg_asset($ruta) {
+    $archivo = __DIR__ . '/' . $ruta;
+    return $ruta . (is_file($archivo) ? '?v=' . filemtime($archivo) : '');
+}
+
 // ── Helpers de filas de documentos ──
 
 /** Fecha de la última versión (o del alta). No usa fecha_actualizacion: cambia también con bajas y ediciones. */
@@ -125,11 +131,18 @@ function dg_acciones_documento($doc) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestión de Políticas y Procedimientos</title>
-    <link rel="icon" type="image/jpg" href="../../image/icono.jpg">
+    <link rel="icon" type="image/jpeg" href="/sistemas/assets/css/icono.jpg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/chatbot.css">
-    <link rel="stylesheet" href="css/update-document.css">
+    <!-- Cada archivo con ?v=fecha de modificación: el navegador toma siempre la última versión (antes main.css los traía por @import, sin versión) -->
+    <link rel="stylesheet" href="<?php echo dg_asset('css/base.css'); ?>">
+    <link rel="stylesheet" href="<?php echo dg_asset('css/layout.css'); ?>">
+    <link rel="stylesheet" href="<?php echo dg_asset('css/components.css'); ?>">
+    <link rel="stylesheet" href="<?php echo dg_asset('css/documents.css'); ?>">
+    <link rel="stylesheet" href="<?php echo dg_asset('css/glossary.css'); ?>">
+    <link rel="stylesheet" href="<?php echo dg_asset('css/forms.css'); ?>">
+    <link rel="stylesheet" href="<?php echo dg_asset('css/search-results.css'); ?>">
+    <link rel="stylesheet" href="<?php echo dg_asset('css/chatbot.css'); ?>">
+    <link rel="stylesheet" href="<?php echo dg_asset('css/update-document.css'); ?>">
     <style>
         /* Estilos para el modal de tags automáticos */
         #autoTagsModal .modal-content {
@@ -224,7 +237,8 @@ function dg_acciones_documento($doc) {
     <div class="container">
         <aside class="sidebar">
             <div class="logo">
-                <h1>XL DocuGest</h1>
+                <img src="/sistemas/assets/css/icono.jpg" alt="XL" class="logo-img">
+                <h1>DocuGest</h1>
             </div>
 
             <a href="<?php echo htmlspecialchars($menuDeVuelta['url']); ?>" class="sidebar-back" title="<?php echo htmlspecialchars($menuDeVuelta['texto']); ?>">
@@ -1493,14 +1507,14 @@ function dg_acciones_documento($doc) {
     <!-- ==================================================================== -->
  
     <!-- Inclusión de archivos JavaScript al final del body -->
-    <script src="js/search.js"></script>
-    <script src="js/document-viewer.js"></script>
-    <script src="js/glossary.js"></script>
-    <script src="js/upload-form.js"></script>
-    <script src="js/sectors.js"></script>
-    <script src="js/chatbot.js"></script>
-    <script src="js/update-document.js"></script>
-    <script src="js/main.js"></script>
+    <script src="<?php echo dg_asset('js/search.js'); ?>"></script>
+    <script src="<?php echo dg_asset('js/document-viewer.js'); ?>"></script>
+    <script src="<?php echo dg_asset('js/glossary.js'); ?>"></script>
+    <script src="<?php echo dg_asset('js/upload-form.js'); ?>"></script>
+    <script src="<?php echo dg_asset('js/sectors.js'); ?>"></script>
+    <script src="<?php echo dg_asset('js/chatbot.js'); ?>"></script>
+    <script src="<?php echo dg_asset('js/update-document.js'); ?>"></script>
+    <script src="<?php echo dg_asset('js/main.js'); ?>"></script>
  
 </body>
 </html>
