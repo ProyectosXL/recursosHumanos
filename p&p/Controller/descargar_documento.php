@@ -65,7 +65,7 @@ try {
             
         } else {
             // Documento no encontrado
-            header('Location: ../index.php?mensaje=error&texto=Documento no encontrado');
+            header('Location: ../index.php?' . http_build_query(['mensaje' => 'error', 'texto' => 'El documento no existe o fue dado de baja']));
         }
         
     } else {

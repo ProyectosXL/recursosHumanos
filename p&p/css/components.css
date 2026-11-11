@@ -1315,3 +1315,29 @@
         width: 100%;
     }
 }
+
+/* ===== Documentos dados de baja ===== */
+.cfg-card-wide {
+    grid-column: 1 / -1;
+}
+
+.cfg-card-icon.red { background: #f4ecf7; color: #7d3c98; }
+
+.cfg-baja-item .cfg-item-info p {
+    white-space: normal;
+}
+
+.cfg-baja-motivo {
+    margin-top: 4px !important;
+    color: #5d6d7e !important;
+}
+
+.cfg-item-actions .btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+/* Botón "Dar de baja" en las filas de documentos (solo Admin) */
+.action-btn.baja:hover {
+    color: #c0392b;
+}

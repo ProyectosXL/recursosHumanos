@@ -70,6 +70,7 @@ try {
     // Obtener todos los documentos con sus tags
     $sql = "SELECT id, titulo, sector_id, tipo, tags, ruta_archivo, archivo_nombre 
             FROM Politicas_Procedimientos 
+            WHERE estado = 'activo'
             ORDER BY titulo ASC";
     
     $stmt = sqlsrv_query($conexion, $sql);

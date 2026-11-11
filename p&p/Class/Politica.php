@@ -598,31 +598,87 @@ class Politica
     }
 
     /**
-     * Elimina un documento (marcándolo como inactivo)
+     * Da de baja un documento (estado = 'inactivo'). No borra ningún archivo.
+     * Registra fecha, usuario y motivo, y avisa al servicio de IA para que lo saque del índice.
      */
-    public function eliminarDocumento($id) {
-        $sql = "UPDATE Politicas_Procedimientos SET 
-                estado = 'inactivo', 
-                fecha_actualizacion = GETDATE() 
-                WHERE id = $id";
-        
-        $resultado = $this->ejecutarSQL($sql);
-        
-        // ========== INTEGRACIÓN RAG: Notificar documento eliminado ==========
-        if ($resultado['status'] === 'success') {
-            try {
-                require_once dirname(__FILE__) . '/RagWebhook.php';
-                $ragWebhook = new RagWebhook();
-                $ragWebhook->notificarDocumentoEliminado($id);
-            } catch (Exception $e) {
-                error_log("Error en webhook RAG (eliminación): " . $e->getMessage());
-            }
+    public function eliminarDocumento($id, $motivo = '') {
+        $id = (int)$id;
+        $motivo = trim((string)$motivo);
+        if ($motivo === '') {
+            return ['status' => 'error', 'message' => 'Contá el motivo de la baja'];
         }
-        // ====================================================================
-        
+
+        $documento = $this->obtenerPorId($id, false, true);
+        if (!$documento) {
+            return ['status' => 'error', 'message' => 'El documento no existe o ya está dado de baja'];
+        }
+
+        $resultado = $this->ejecutar(
+            "UPDATE Politicas_Procedimientos
+                SET estado = 'inactivo', fecha_actualizacion = GETDATE(),
+                    fecha_baja = GETDATE(), usuario_baja = ?, motivo_baja = ?
+              WHERE id = ? AND estado = 'activo'",
+            [$this->usuarioActual(), mb_substr($motivo, 0, 500), $id]
+        );
+
+        if ($resultado['status'] === 'success') {
+            $version = trim((string)($documento['version'] ?? '')) ?: '1.0';
+            $this->registrarHistorial($id, 'baja', $version, $motivo);
+            $this->notificarRag('eliminado', $id);
+        }
+
         return $resultado;
     }
-    
+
+    /**
+     * Vuelve a activar un documento dado de baja y avisa al servicio de IA para que lo indexe.
+     */
+    public function reactivarDocumento($id) {
+        $id = (int)$id;
+        $documento = $this->obtenerPorId($id);
+        if (!$documento) {
+            return ['status' => 'error', 'message' => 'El documento no existe'];
+        }
+        if ($documento['estado'] === 'activo') {
+            return ['status' => 'error', 'message' => 'El documento ya está activo'];
+        }
+        if ($this->rutaArchivoVigente($documento) === null) {
+            return ['status' => 'error', 'message' => 'No se encontró el PDF del documento en el servidor'];
+        }
+
+        $resultado = $this->ejecutar(
+            "UPDATE Politicas_Procedimientos
+                SET estado = 'activo', fecha_actualizacion = GETDATE(),
+                    fecha_baja = NULL, usuario_baja = NULL, motivo_baja = NULL
+              WHERE id = ?",
+            [$id]
+        );
+
+        if ($resultado['status'] === 'success') {
+            $version = trim((string)($documento['version'] ?? '')) ?: '1.0';
+            $this->registrarHistorial($id, 'reactivacion', $version, 'Documento reactivado');
+            $this->notificarRag('actualizado', $id);
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Documentos dados de baja (Configuración, solo Admin)
+     */
+    public function obtenerDadosDeBaja() {
+        $filas = $this->consultar(
+            "SELECT p.id, p.titulo, p.tipo, p.version, s.nombre AS sector_nombre,
+                    COALESCE(p.fecha_baja, p.fecha_actualizacion) AS fecha_baja,
+                    p.usuario_baja, p.motivo_baja
+               FROM Politicas_Procedimientos p
+               JOIN Sectores s ON p.sector_id = s.id
+              WHERE p.estado <> 'activo'
+              ORDER BY COALESCE(p.fecha_baja, p.fecha_actualizacion) DESC"
+        );
+        return $filas ?: [];
+    }
+
     /**
      * Elimina físicamente un documento (tanto registro como archivo)
      */

@@ -48,6 +48,9 @@ $documentos_recientes = $politicaObj->obtenerTodos($filtros);
 // Todos los documentos activos, sin los filtros de la URL (contadores por sector y pestaña Actualizar)
 $documentos_activos = empty($filtros) ? $documentos_recientes : $politicaObj->obtenerTodos();
 
+// Documentos dados de baja (card de Configuración, solo Admin)
+$documentos_baja = $esAdmin ? $politicaObj->obtenerDadosDeBaja() : [];
+
 // Cantidad de documentos activos por sector (sobre el total, no sobre la lista filtrada)
 $documentosPorSector = [];
 foreach ($documentos_activos as $docActivo) {
@@ -90,15 +93,18 @@ function dg_detalle_documento($doc, $mostrarTipo = false) {
     return $html;
 }
 
-/** Botones de la fila: ver y descargar (todos), actualizar (Editar y Admin) */
+/** Botones de la fila: ver y descargar (todos), actualizar (Editar y Admin), dar de baja (Admin) */
 function dg_acciones_documento($doc) {
-    global $puedeEditar;
+    global $puedeEditar, $esAdmin;
     $id = (int)$doc['id'];
     $html = '<div class="policy-actions">';
     $html .= '<button class="action-btn view" onclick="viewDocument(' . $id . ')" title="Ver"><i class="fas fa-eye"></i></button>';
     $html .= '<button class="action-btn download" onclick="downloadDocument(' . $id . ')" title="Descargar"><i class="fas fa-download"></i></button>';
     if ($puedeEditar) {
         $html .= '<button class="action-btn update" onclick="openUpdateDocument(' . $id . ')" title="Actualizar"><i class="fas fa-sync-alt"></i><span>Actualizar</span></button>';
+    }
+    if ($esAdmin) {
+        $html .= '<button class="action-btn baja" data-id="' . $id . '" data-titulo="' . htmlspecialchars($doc['titulo']) . '" onclick="confirmarBajaDocumento(' . $id . ')" title="Dar de baja"><i class="fas fa-archive"></i></button>';
     }
     $html .= '</div>';
     return $html;
@@ -1121,9 +1127,54 @@ function dg_acciones_documento($doc) {
                         <?php endif; ?>
                     </div>
 
+                    <!-- Documentos dados de baja -->
+                    <div class="card cfg-card cfg-card-wide">
+                        <div class="card-header cfg-card-header">
+                            <div class="cfg-card-title">
+                                <div class="cfg-card-icon red">
+                                    <i class="fas fa-archive"></i>
+                                </div>
+                                <div>
+                                    <h3>Documentos dados de baja</h3>
+                                    <p class="cfg-card-subtitle">No se ven en las listas, la b&uacute;squeda ni el Asistente IA. Los archivos se conservan.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <ul class="cfg-list">
+                            <?php if (empty($documentos_baja)): ?>
+                            <li class="cfg-empty">
+                                <i class="fas fa-archive"></i>
+                                <p>No hay documentos dados de baja.</p>
+                            </li>
+                            <?php else: ?>
+                                <?php foreach ($documentos_baja as $docBaja): ?>
+                                <li class="cfg-list-item cfg-baja-item">
+                                    <div class="cfg-item-info">
+                                        <h4><?php echo htmlspecialchars($docBaja['titulo']); ?></h4>
+                                        <p>
+                                            <?php echo $docBaja['tipo'] == 'politica' ? 'Pol&iacute;tica' : 'Procedimiento'; ?> &middot;
+                                            Sector <?php echo htmlspecialchars($docBaja['sector_nombre']); ?> &middot;
+                                            Baja: <?php echo Politica::formatearFecha($docBaja['fecha_baja']) ?: 'sin fecha'; ?>
+                                            <?php if (!empty($docBaja['usuario_baja'])): ?> por <?php echo htmlspecialchars($docBaja['usuario_baja']); ?><?php endif; ?>
+                                        </p>
+                                        <p class="cfg-baja-motivo"><strong>Motivo:</strong> <?php echo htmlspecialchars($docBaja['motivo_baja'] ?: 'Sin motivo registrado'); ?></p>
+                                    </div>
+                                    <div class="cfg-item-actions">
+                                        <button type="button" class="cfg-action-btn cfg-edit" onclick="viewDocument(<?php echo (int)$docBaja['id']; ?>)" title="Ver">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn primary btn-sm cfg-reactivar" onclick="reactivarDocumento(<?php echo (int)$docBaja['id']; ?>)" data-titulo="<?php echo htmlspecialchars($docBaja['titulo']); ?>">
+                                            <i class="fas fa-undo"></i> Reactivar
+                                        </button>
+                                    </div>
+                                </li>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </ul>
+                    </div>
+
                 </div>
             </div>
-
             <?php endif; /* fin Configuración */ ?>
 
             <!-- Vista de Todos los Documentos -->

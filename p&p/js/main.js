@@ -442,6 +442,68 @@ function pedirConfirmacion(opciones = {}) {
     });
 }
 
+// ===== Baja y reactivación de documentos (solo Admin; el servidor valida el permiso) =====
+
+function confirmarBajaDocumento(documentId) {
+    const boton = document.querySelector(`.action-btn.baja[data-id="${Number(documentId)}"]`);
+    const titulo = boton ? boton.dataset.titulo : '';
+
+    pedirConfirmacion({
+        titulo: 'Dar de baja el documento',
+        mensaje: `"${titulo}" deja de verse en las listas, la búsqueda, las estadísticas y el Asistente IA. El archivo no se borra y se puede reactivar desde Configuración.`,
+        textoConfirmar: 'Dar de baja',
+        peligro: true,
+        pedirMotivo: true,
+        etiquetaMotivo: 'Motivo de la baja'
+    }).then(respuesta => {
+        if (!respuesta.ok) return;
+
+        const formData = new FormData();
+        formData.append('id', documentId);
+        formData.append('motivo', respuesta.motivo);
+
+        fetch('Controller/dar_baja_documento.php', { method: 'POST', body: formData })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showNotification('Documento dado de baja', 'success');
+                    setTimeout(() => window.location.reload(), 1200);
+                } else {
+                    showNotification(data.message || 'No se pudo dar de baja el documento', 'error');
+                }
+            })
+            .catch(() => showNotification('Error al procesar la solicitud', 'error'));
+    });
+}
+
+function reactivarDocumento(documentId) {
+    const boton = document.querySelector(`.cfg-reactivar[onclick="reactivarDocumento(${Number(documentId)})"]`);
+    const titulo = boton ? boton.dataset.titulo : '';
+
+    pedirConfirmacion({
+        titulo: 'Reactivar documento',
+        mensaje: `"${titulo}" vuelve a verse en las listas y el Asistente IA lo indexa de nuevo.`,
+        textoConfirmar: 'Reactivar'
+    }).then(respuesta => {
+        if (!respuesta.ok) return;
+
+        const formData = new FormData();
+        formData.append('id', documentId);
+
+        fetch('Controller/reactivar_documento.php', { method: 'POST', body: formData })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showNotification('Documento reactivado', 'success');
+                    setTimeout(() => window.location.href = 'index.php?tab=settings', 1200);
+                } else {
+                    showNotification(data.message || 'No se pudo reactivar el documento', 'error');
+                }
+            })
+            .catch(() => showNotification('Error al procesar la solicitud', 'error'));
+    });
+}
+
 // ===== Plantilla vacía de procedimiento =====
 // Verifica que la plantilla exista antes de descargarla; si no, avisa sin romper nada
 function descargarPlantilla() {
