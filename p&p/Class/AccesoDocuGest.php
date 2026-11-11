@@ -15,6 +15,16 @@
 
 if (!class_exists('AccesoDocuGest')) {
 
+    // Cargar el .env de recursosHumanos ANTES que el hub. Auth (ConexionApps) vuelca otro .env
+    // en $_ENV, y DotEnv no pisa claves ya presentes: si el hub carga primero, Conexion queda
+    // sin HOST_CENTRAL / USER / PASS. ConexionApps usa igual los valores de su propio archivo.
+    require_once dirname(__DIR__, 2) . '/Class/classEnv.php';
+    try {
+        (new DotEnv(dirname(__DIR__, 2) . '/.env'))->listVars();
+    } catch (Throwable $e) {
+        error_log('AccesoDocuGest: no se pudo leer el .env de recursosHumanos: ' . $e->getMessage());
+    }
+
     $docugestDocRoot = rtrim($_SERVER['DOCUMENT_ROOT'] ?? '', '/\\');
     if ($docugestDocRoot === '') {
         // Ejecución sin servidor web: htdocs es tres niveles arriba de p&p/Class
