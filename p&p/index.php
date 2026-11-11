@@ -277,6 +277,12 @@ function dg_acciones_documento($doc) {
                         <span>Subir Documento</span>
                     </a>
                 </li>
+                <li>
+                    <a href="#" onclick="showTab('update')">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Actualizar Documento</span>
+                    </a>
+                </li>
                 <?php endif; ?>
                 <?php if ($esAdmin): ?>
                 <li>
