@@ -31,16 +31,16 @@ function viewDocument(documentId) {
                 // Establecer título
                 document.getElementById('pdfTitle').textContent = currentDocument.titulo || 'Documento sin título';
                 
-                // Preparar ruta al PDF
-                const pdfPath = 'documentos/' + currentDocument.archivo_nombre;
+                // El PDF vigente se pide al servidor (exige login; documentos/ no se sirve por URL directa)
+                const pdfPath = 'Controller/ver_documento.php?id=' + encodeURIComponent(documentId);
                 
                 // Mostrar información del documento y visor básico
                 const pdfViewer = document.getElementById('pdfViewer');
                 pdfViewer.innerHTML = `
                     <div style="padding: 20px; text-align: center;">
-                        <h4>Visualizando: ${currentDocument.titulo || 'Documento sin título'}</h4>
-                        <p>Sector: ${currentDocument.sector_nombre || 'No especificado'}</p>
-                        <p>Fecha: ${currentDocument.fecha_actualizacion || 'No disponible'}</p>
+                        <h4>Visualizando: ${escapeHtml(currentDocument.titulo || 'Documento sin título')}</h4>
+                        <p>Sector: ${escapeHtml(currentDocument.sector_nombre || 'No especificado')}</p>
+                        <p>Versión ${escapeHtml(currentDocument.version || '1.0')} · Actualizado ${escapeHtml(currentDocument.fecha_actualizacion || 'sin fecha')}</p>
                         <div class="pdf-container">
                             <object data="${pdfPath}" type="application/pdf" width="100%" height="500px">
                                 <p>Tu navegador no puede mostrar PDFs directamente. 

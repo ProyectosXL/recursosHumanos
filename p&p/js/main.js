@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof initFileUpload === 'function') initFileUpload();
     if (typeof initTagsInput === 'function') initTagsInput();
     if (typeof initFormValidation === 'function') initFormValidation();
+    if (typeof initUpdateForm === 'function') initUpdateForm();
     if (typeof checkUrlTab === 'function') checkUrlTab();
     
     // Verificar si hay mensajes de estado en la URL

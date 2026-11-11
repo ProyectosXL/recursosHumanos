@@ -210,3 +210,56 @@
         font-size: 13px;
     }
 }
+/* ===== Pestaña Actualizar documento ===== */
+.update-card {
+    margin-top: 20px;
+}
+
+.update-card .card-header h3 i {
+    color: var(--primary-color);
+    margin-right: 8px;
+}
+
+.form-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+.version-empty {
+    color: #7f8c8d;
+    font-size: 14px;
+    padding: 10px 0;
+}
+
+/* Botón "Actualizar" en las filas de documentos */
+.action-btn.update {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary-color);
+    padding: 4px 10px;
+    border: 1px solid rgba(52, 152, 219, 0.35);
+    border-radius: 6px;
+}
+
+.action-btn.update:hover {
+    background: rgba(52, 152, 219, 0.08);
+}
+
+.policy-details .doc-version {
+    white-space: nowrap;
+}
+
+@media (max-width: 576px) {
+    .action-btn.update span {
+        display: none;
+    }
+
+    .action-btn.update {
+        padding: 4px 8px;
+    }
+}

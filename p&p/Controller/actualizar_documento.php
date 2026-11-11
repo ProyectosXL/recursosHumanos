@@ -1,73 +1,47 @@
 <?php
-// Acceso: login del hub + nivel Editar
+/**
+ * Sube una versión nueva del PDF de un documento (nivel Editar).
+ * POST: documento_id, archivo (PDF), version, motivo, tags
+ */
 require_once __DIR__ . '/../Class/AccesoDocuGest.php';
 AccesoDocuGest::exigirEditar(AccesoDocuGest::PAGINA);
 
-// Incluir la clase Politica
 require_once __DIR__ . '/../Class/Politica.php';
 
-// Crear instancia de la clase
-$politicaObj = new Politica();
-
-// Verificar que sea una solicitud POST
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    
-    // Verificar que se haya proporcionado un ID de documento
-    if (isset($_POST['documento_id']) && !empty($_POST['documento_id'])) {
-        $documento_id = (int)$_POST['documento_id'];
-        
-        // Verificar que se haya enviado un archivo
-        if (isset($_FILES['archivo']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
-            
-            // Recopilar datos para la actualización
-            $datos = [
-                'version' => isset($_POST['version']) ? $_POST['version'] : '1.0',
-                'descripcion' => isset($_POST['descripcion']) ? $_POST['descripcion'] : '',
-                'tags' => isset($_POST['tags']) ? $_POST['tags'] : ''
-            ];
-            
-            // Actualizar el documento
-            $resultado = $politicaObj->actualizarDocumento($documento_id, $datos, $_FILES['archivo']);
-            
-            // Redireccionar con mensaje de resultado
-            if ($resultado['status'] === 'success') {
-                header('Location: ../index.php?mensaje=success&texto=Documento actualizado correctamente&tab=update');
-            } else {
-                header('Location: ../index.php?mensaje=error&texto=' . urlencode($resultado['message']) . '&tab=update');
-            }
-            
-        } else {
-            // Error con el archivo
-            $error = '';
-            if (isset($_FILES['archivo'])) {
-                switch ($_FILES['archivo']['error']) {
-                    case UPLOAD_ERR_INI_SIZE:
-                    case UPLOAD_ERR_FORM_SIZE:
-                        $error = 'El archivo excede el tamaño máximo permitido';
-                        break;
-                    case UPLOAD_ERR_PARTIAL:
-                        $error = 'El archivo se cargó parcialmente';
-                        break;
-                    case UPLOAD_ERR_NO_FILE:
-                        $error = 'No se seleccionó ningún archivo';
-                        break;
-                    default:
-                        $error = 'Error desconocido al subir el archivo';
-                }
-            } else {
-                $error = 'No se recibió el archivo';
-            }
-            
-            header('Location: ../index.php?mensaje=error&texto=' . urlencode($error) . '&tab=update');
-        }
-        
-    } else {
-        // ID de documento no proporcionado
-        header('Location: ../index.php?mensaje=error&texto=Documento no especificado&tab=update');
-    }
-    
-} else {
-    // No es una solicitud POST
-    header('Location: ../index.php');
+function volverConMensaje($tipo, $texto, $parametros = []) {
+    $query = array_merge(['mensaje' => $tipo, 'texto' => $texto], $parametros);
+    header('Location: ../index.php?' . http_build_query($query));
+    exit;
 }
-exit;
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: ../index.php');
+    exit;
+}
+
+// Si el archivo supera post_max_size, PHP descarta todo el POST
+if (empty($_POST) && empty($_FILES) && (int)($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+    volverConMensaje('error', 'El archivo supera el tamaño máximo (10 MB)', ['tab' => 'update']);
+}
+
+$documento_id = isset($_POST['documento_id']) ? (int)$_POST['documento_id'] : 0;
+if ($documento_id <= 0) {
+    volverConMensaje('error', 'Elegí el documento que querés actualizar', ['tab' => 'update']);
+}
+
+$datos = [
+    'version' => trim((string)($_POST['version'] ?? '')),
+    'motivo'  => trim((string)($_POST['motivo'] ?? '')),
+    'tags'    => trim((string)($_POST['tags'] ?? '')),
+];
+
+$politicaObj = new Politica();
+$resultado = $politicaObj->actualizarDocumento($documento_id, $datos, $_FILES['archivo'] ?? null);
+
+if ($resultado['status'] === 'success') {
+    // Volver a la lista del tipo de documento
+    $tab = ($resultado['tipo'] ?? '') === 'procedimiento' ? 'procedures' : 'policies';
+    volverConMensaje('success', 'Documento actualizado a la versión ' . $resultado['version'], ['tab' => $tab]);
+}
+
+volverConMensaje('error', $resultado['message'], ['tab' => 'update', 'doc' => $documento_id]);
