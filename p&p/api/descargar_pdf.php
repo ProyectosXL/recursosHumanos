@@ -1,6 +1,9 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-require_once '../Class/Politica.php';
+// Llamada servidor a servidor (servicio de IA / trigger_refresh): exige X-DocuGest-Token
+require_once __DIR__ . '/../Class/TokenApiDocuGest.php';
+TokenApiDocuGest::exigir();
+
+require_once __DIR__ . '/../Class/Politica.php';
 
 try {
     if (!isset($_GET['id'])) {

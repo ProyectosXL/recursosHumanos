@@ -59,8 +59,10 @@ if (($health_data['total_chunks'] ?? 0) > 0) {
 $source_base_url = rtrim($config->getIndexSourceUrl(), '/');
 $listar_url = $source_base_url . '/api/listar_documentos.php';
 
+require_once __DIR__ . '/../Class/TokenApiDocuGest.php';
 $ch = curl_init($listar_url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, TokenApiDocuGest::headersCurl());
 curl_setopt($ch, CURLOPT_TIMEOUT, 20);
 $listar_resp = curl_exec($ch);
 $listar_http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -157,6 +159,7 @@ foreach ($documentos as $doc) {
         $descargar_url = $source_base_url . '/api/descargar_pdf.php?id=' . urlencode((string)$doc_id);
         $ch = curl_init($descargar_url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, TokenApiDocuGest::headersCurl());
         curl_setopt($ch, CURLOPT_TIMEOUT, 60);
         $pdf_bytes = curl_exec($ch);
         $pdf_http = curl_getinfo($ch, CURLINFO_HTTP_CODE);

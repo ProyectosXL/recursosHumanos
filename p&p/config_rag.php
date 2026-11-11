@@ -10,6 +10,40 @@ class RagConfig {
     
     private function __construct() {
         $this->detectEnvironment();
+
+        // Secretos: se leen del .env de recursosHumanos (el mismo que usa Conexion), nunca del código
+        $this->config['hf_api_token'] = self::env('HF_TOKEN');
+        $this->config['docugest_api_token'] = self::env('DOCUGEST_API_TOKEN');
+    }
+
+    /**
+     * Lee una clave del entorno o del .env de recursosHumanos. Devuelve '' si no está.
+     */
+    public static function env($clave) {
+        $valor = getenv($clave);
+        if ($valor !== false && trim($valor) !== '') {
+            return trim($valor);
+        }
+        if (isset($_ENV[$clave]) && trim((string)$_ENV[$clave]) !== '') {
+            return trim((string)$_ENV[$clave]);
+        }
+
+        static $archivo = null;
+        if ($archivo === null) {
+            $archivo = [];
+            $ruta = dirname(__DIR__) . '/.env';
+            if (is_readable($ruta)) {
+                foreach (file($ruta, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $linea) {
+                    $linea = trim($linea);
+                    if ($linea === '' || $linea[0] === '#' || strpos($linea, '=') === false) {
+                        continue;
+                    }
+                    list($k, $v) = explode('=', $linea, 2);
+                    $archivo[trim($k)] = trim(trim($v), "\"'");
+                }
+            }
+        }
+        return $archivo[$clave] ?? '';
     }
     
     public static function getInstance() {
@@ -41,7 +75,6 @@ class RagConfig {
                 'index_source_url' => 'https://app.xl.com.ar/recursosHumanos/p&p',
                 'timeout' => 60,
                 'retry_attempts' => 3,
-                'hf_api_token' => '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',
                 'hf_space_id'  => 'cfedetrejo/docugest-unified',
                 // Rutas de Python en el servidor (ajustar según instalación)
                 'python_path' => '/usr/bin/python3', // Linux: ruta típica de Python 3
@@ -116,7 +149,17 @@ class RagConfig {
     }
     
     public function getHfApiToken() {
-        return $this->config['hf_api_token'] ?? null;
+        $token = $this->config['hf_api_token'] ?? '';
+        if ($token === '') {
+            error_log('DocuGest: HF_TOKEN no está definido en el .env; no se puede despertar el Space de Hugging Face.');
+            return null;
+        }
+        return $token;
+    }
+
+    /** Token compartido para api/ (header X-DocuGest-Token). '' si no está definido. */
+    public function getDocugestApiToken() {
+        return $this->config['docugest_api_token'] ?? '';
     }
 
     public function getHfSpaceId() {

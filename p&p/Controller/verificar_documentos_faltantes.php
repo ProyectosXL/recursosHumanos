@@ -52,8 +52,10 @@ try {
     $source_base_url = rtrim($config->getIndexSourceUrl(), '/');
     $listar_url = $source_base_url . '/api/listar_documentos.php';
 
+    require_once __DIR__ . '/../Class/TokenApiDocuGest.php';
     $ch = curl_init($listar_url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, TokenApiDocuGest::headersCurl());
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     $listar_response = curl_exec($ch);
     $listar_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
