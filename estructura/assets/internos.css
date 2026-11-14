@@ -1,0 +1,574 @@
+
+:root {
+    --primary-color: #0D5C63;
+    --hover-color: #094047;
+    --background-color: #f8f9fa;
+    --card-background: #ffffff;
+    --text-primary: #333;
+    --text-secondary: #666;
+    --border-color: #e9ecef;
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 8px 15px rgba(0,0,0,0.2);
+}
+
+/* Título principal */
+.main-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.main-title i {
+    margin-right: 0.5rem;
+}
+
+/* Layout */
+.sidebar {
+    height: 100vh;
+    position: fixed;
+    background-color: var(--background-color);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    width: 280px;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.main-content {
+    margin-left: 280px;
+    padding: 2rem;
+}
+
+/* Profile Card */
+.profile-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: var(--shadow-md);
+    padding: 25px;
+    margin-bottom: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.profile-image {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 2.5rem;
+    font-weight: bold;
+    box-shadow: var(--shadow-md);
+}
+
+.profile-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.profile-image img.profile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+/* Contacto y detalles */
+.contact-info {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.sector, .email, .interno, .celular {
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.celular i {
+    transform: rotate(90deg);
+}
+
+.contact-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    margin-top: auto;
+}
+
+.contact-btn:hover:not(.disabled) {
+    background-color: var(--hover-color);
+    transform: translateY(-2px);
+    color: white;
+}
+
+.contact-btn.disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.search-container {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+/* Búsqueda */
+.search-input {
+    width: 100%;
+    padding: 10px 15px 10px 40px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    pointer-events: none;
+}
+
+.clear-search {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.clear-search:hover {
+    background-color: rgba(0,0,0,0.1);
+    color: #333;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(13, 92, 99, 0.2);
+}
+
+/* Selector de Sector */
+.sector-selector {
+    margin-bottom: 1.5rem;
+}
+
+.sector-button {
+    width: 100%;
+    padding: 12px 20px;
+    background-color: white;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-primary);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.sector-button:hover {
+    border-color: var(--primary-color);
+    background-color: var(--background-color);
+}
+
+.sector-button i {
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+}
+
+.sector-button[aria-expanded="true"] i {
+    transform: rotate(180deg);
+}
+
+.sector-dropdown {
+    margin-top: 0.5rem;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.list-group {
+    max-height: 300px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) #f1f1f1;
+}
+
+.list-group::-webkit-scrollbar {
+    width: 6px;
+}
+
+.list-group::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.list-group::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
+}
+
+.list-group-item {
+    padding: 12px 20px;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    background: transparent;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
+.list-group-item:hover {
+    background-color: var(--background-color);
+    color: var(--primary-color);
+}
+
+.list-group-item.active {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 500;
+}
+
+.list-group-item.active:hover {
+    background-color: var(--hover-color);
+    color: white;
+}
+
+.sector-count {
+    background-color: var(--border-color);
+    color: var(--text-primary);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    margin-left: 8px;
+}
+
+.list-group-item.active .sector-count {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+/* Animaciones */
+.profile-img {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.profile-img.loaded {
+    opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .profile-card {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 992px) {
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        margin-bottom: 1rem;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .main-title {
+        font-size: 2.2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-image {
+        width: 120px;
+        height: 120px;
+        font-size: 2rem;
+    }
+
+    .main-title {
+        font-size: 2rem;
+    }
+
+    .profile-card {
+        margin-bottom: 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-title {
+        font-size: 1.8rem;
+    }
+
+    .profile-image {
+        width: 100px;
+        height: 100px;
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+    }
+
+    .profile-card {
+        padding: 15px;
+    }
+
+    .contact-btn {
+        padding: 8px 20px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Utilidades */
+.text-overflow-ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.word-break-all {
+    word-break: break-all;
+}
+
+.email-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.email-container .btn-link {
+    color: var(--primary-color);
+    transition: all 0.2s ease;
+}
+
+.email-container .btn-link:hover {
+    color: var(--hover-color);
+    transform: scale(1.1);
+}
+
+.email-container a {
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Estilos para el indicador de nuevo empleado */
+.new-employee-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.new-employee-badge i {
+    color: white;
+    font-size: 1.2rem;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Efecto de pulso */
+.pulse {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 215, 0, 0.4);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+    50% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+/* Asegurarse que la card tenga posición relativa para el badge */
+.profile-card {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animación de entrada para el badge */
+.new-employee-badge {
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Estilos para los toggles de vista */
+.view-toggles .btn-group {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.btn-toggle {
+    padding: 0.5rem 1rem;
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-toggle:hover {
+    background-color: #f8f9fa;
+}
+
+.btn-toggle.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.btn-toggle i {
+    margin-right: 0.5rem;
+}
+
+/* Estilos para la vista de lista */
+.table {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+    padding: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(13, 92, 99, 0.05);
+}
+
+/* Animaciones de transición */
+#cardsContainer, #listView {
+    transition: opacity 0.3s ease;
+}
+
+.fade-enter {
+    opacity: 0;
+}
+
+.fade-enter-active {
+    opacity: 1;
+}
+
+/* Controles de lista */
+.list-controls {
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 1rem;
+}
+
+.list-controls .search-container {
+    margin-bottom: 0;
+}
+
+.list-controls .btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+    transition: all 0.2s ease;
+}
+
+.list-controls .btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+    transform: translateY(-1px);
+}
+
+/* Estilos para filas ocultas */
+#listContainer tr.hidden {
+    display: none;
+}
