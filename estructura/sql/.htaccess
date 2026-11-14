@@ -1,0 +1,2 @@
+# Los scripts SQL los corre Ramiro desde SSMS: no se sirven por web (el .htaccess raíz ya bloquea *.sql)
+Require all denied
