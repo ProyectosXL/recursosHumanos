@@ -1,0 +1,199 @@
+/*
+ * Pantallas de consulta (Guía de Consultas y Contactos por área) - estilos propios.
+ * Referencia: docs/maquetas/Consultas.dc.html y Contactos.dc.html. Las fichas pasan a una
+ * columna solas en el celular (grid con minmax), sin media queries.
+ */
+
+/* ------------------------------------------------------------------ Buscador */
+.guia-buscador {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.guia-buscador-etiqueta {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.guia-buscador-caja {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    border: 2px solid var(--est-accent);
+    border-radius: 12px;
+    padding: 0 14px;
+    background: var(--est-surface);
+}
+
+.guia-buscador-caja:focus-within { box-shadow: 0 0 0 4px var(--est-accent-soft); }
+.guia-buscador-caja i { color: var(--est-ink-3); font-size: 18px; }
+
+.guia-buscador-caja input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    font-size: 17px;
+    padding: 14px 0;
+    background: transparent;
+    color: var(--est-ink);
+}
+
+/* La cruz nativa de type=search duplica "Borrar" */
+.guia-buscador-caja input::-webkit-search-cancel-button { -webkit-appearance: none; }
+
+.guia-borrar {
+    border: 0;
+    background: var(--est-canvas);
+    border-radius: var(--est-radius);
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--est-ink);
+}
+
+/* ------------------------------------------------------------------ Resultados */
+.guia-resultados {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.guia-resumen { font-size: 14px; color: var(--est-ink-2); }
+
+.guia-lista { display: flex; flex-direction: column; gap: 10px; }
+
+.res {
+    background: var(--est-surface);
+    border: 1px solid var(--est-hairline);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    align-items: center;
+}
+
+.res-tema { flex: 1 1 260px; min-width: 0; }
+.res-dato { flex: 1 1 200px; min-width: 0; }
+
+.res-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--est-ink-2);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.res h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 4px 0 0;
+}
+
+.res-valor { font-size: 14px; font-weight: 700; }
+.res-mail { font-weight: 400; overflow-wrap: anywhere; }
+.res-acciones { display: flex; gap: 8px; align-items: center; }
+.res-wa i, .contacto-wa i { color: #128C4A; font-size: 17px; }
+
+/* ------------------------------------------------------------------ Fichas */
+.est-grilla-fichas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr));
+    gap: 20px;
+    align-items: start;
+}
+
+.ficha {
+    background: var(--est-surface);
+    border: 1px solid var(--est-hairline);
+    border-radius: var(--est-radius-lg);
+    overflow: hidden;
+    scroll-margin-top: 16px;
+}
+
+.ficha[hidden] { display: none; }
+.ficha-banda { height: 6px; }
+.ficha-cabeza { padding: 18px 20px 6px; }
+.ficha-cabeza h2 { margin: 0; font-size: 20px; font-weight: 700; }
+.ficha-cabeza p { margin: 4px 0 0; font-size: 13px; color: var(--est-ink-2); line-height: 1.4; }
+
+.ficha-temas {
+    width: calc(100% - 40px);
+    margin: 8px 20px;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.ficha-temas th {
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--est-ink-3);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--est-hairline);
+}
+
+.ficha-temas th:last-child, .ficha-ref { text-align: right; }
+
+.ficha-temas td {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--est-canvas);
+    vertical-align: top;
+}
+
+.ficha-temas td:first-child { padding-right: 12px; }
+.ficha-ref { font-weight: 700; }
+.ficha-ref.est-pendiente { font-weight: 400; }
+
+.ficha-pie {
+    padding: 12px 20px 16px;
+    border-top: 1px solid var(--est-hairline);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.ficha-mail { font-weight: 600; overflow-wrap: anywhere; }
+.ficha-link { color: var(--est-accent); font-weight: 600; text-decoration: none; }
+.ficha-link:hover { text-decoration: underline; }
+
+/* ------------------------------------------------------------------ Contactos por área */
+.contacto-datos {
+    padding: 4px 20px 8px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.contacto-dato .est-etiqueta {
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+.contacto-valor {
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
+}
+
+.contacto-valor.est-pendiente { font-weight: 400; }
+
+.contacto-responsables {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.ficha:target, .ficha:focus { outline: none; box-shadow: 0 0 0 3px var(--est-accent-soft); border-color: var(--est-accent); }

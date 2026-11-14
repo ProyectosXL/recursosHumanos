@@ -1,0 +1,41 @@
+{
+    "_comentario": "Casos que corren IGUAL en PHP (tests/test_busqueda.php) y en JS (tests/paridad.html). Si se agrega uno, lo prueban los dos. 'busqueda' usa fixture_directorio.json; 'esperados' es la lista exacta 'Área › Tema' en orden.",
+    "normalizar": [
+        { "texto": "Me FALTA mercadería", "normalizado": "falta mercaderia" },
+        { "texto": "me falta mercaderia", "normalizado": "falta mercaderia" },
+        { "texto": "  No   imprime!! ", "normalizado": "imprime" },
+        { "texto": "¿Olvidé la contraseña?", "normalizado": "olvide contrasena" },
+        { "texto": "Cuándo llega mi pedido", "normalizado": "cuando llega pedido" },
+        { "texto": "Notas de crédito/débito", "normalizado": "notas credito debito" },
+        { "texto": "LOGÍSTICA", "normalizado": "logistica" },
+        { "texto": "Ñandú pingüino", "normalizado": "nandu pinguino" },
+        { "texto": "la el los las de del mi me un una que no se con por para en y tengo hay como", "normalizado": "" },
+        { "texto": "Julieta D'Almeida", "normalizado": "julieta d almeida" },
+        { "texto": "XL Gestión 2.0", "normalizado": "xl gestion 2 0" },
+        { "texto": "", "normalizado": "" }
+    ],
+    "busqueda": [
+        { "consulta": "me falta mercadería", "area": null, "esperados": ["Abastecimiento › Faltantes"] },
+        { "consulta": "Me FALTA mercaderia", "area": null, "esperados": ["Abastecimiento › Faltantes"] },
+        { "consulta": "no imprime", "area": null, "esperados": ["Sistemas › Impresoras"] },
+        { "consulta": "imprim", "area": null, "esperados": ["Sistemas › Impresoras"] },
+        { "consulta": "Cuándo llega mi pedido", "area": null, "esperados": ["Logística › Entregas"] },
+        { "consulta": "Olvidé la contraseña", "area": null, "esperados": ["Sistemas › Usuarios y accesos"] },
+        { "consulta": "Precio mal cargado", "area": null, "esperados": ["Abastecimiento › Precios"] },
+        { "consulta": "Error en la app", "area": null, "esperados": ["Innovación › Soporte de aplicaciones (uso y errores)"] },
+        { "consulta": "xyz", "area": null, "esperados": [] },
+        { "consulta": "xyz123", "area": null, "esperados": [] },
+        { "consulta": "zapatilla rota", "area": null, "esperados": [] },
+        { "consulta": "distribución", "area": null, "esperados": ["Abastecimiento › Distribución", "Logística › Distribución"] },
+        { "consulta": "distribución", "area": 2, "esperados": ["Logística › Distribución"] },
+        { "consulta": "caja", "area": 6, "esperados": ["Sistemas › Cajas / POS"] },
+        { "consulta": "x", "area": null, "esperados": [] },
+        { "consulta": "no me", "area": null, "esperados": [] }
+    ],
+    "caracteresUtiles": [
+        { "texto": "x", "caracteres": 1 },
+        { "texto": "no me", "caracteres": 0 },
+        { "texto": "la pc", "caracteres": 2 },
+        { "texto": "no imprime", "caracteres": 7 }
+    ]
+}

@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Directorio – Guía de Consultas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,Arial,sans-serif;color:#1C1916;background:#F6F3EF}
+a{color:#1C1916;text-decoration:none}a:hover{color:#9A4A1F}
+</style>
+</helmet>
+<div style="min-height: 1900px; background: #F6F3EF; display: flex; flex-wrap: wrap">
+  <nav aria-label="Directorio" style="flex: 1 1 240px; max-width: 100%; background: #FFFFFF; border-right: 1px solid #E8E2DB; padding: 20px 12px; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; font-size: 14px">
+    <a href="Main.dc.html" style="font-size: 13px; color: #6B6259; padding: 4px 12px 14px">‹ Volver a XL Gestión</a>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 12px 14px">
+      <div style="width: 30px; height: 30px; border-radius: 8px; background: #9A4A1F; color: #FFFFFF; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center">XL</div>
+      <span style="font-weight: 700; font-size: 17px">Directorio</span>
+    </div>
+    <a href="#" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: rgba(154,74,31,.10); color: #7A3A18; font-weight: 700"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></svg>Guía de Consultas</a>
+    <a href="Contactos.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M5.5 17c.7-1.6 2-2.4 3.5-2.4s2.8.8 3.5 2.4M15 9h3M15 13h3"/></svg>Contactos por área</a>
+    <a href="#" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Internos</a>
+    <div style="height: 1px; background: #E8E2DB; margin: 14px 12px"></div>
+    <a href="Admin.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: #5C544C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Administrar mi ficha</a>
+    <div style="padding: 0 12px 0 40px; font-size: 12px; color: #6B6259">Solo responsables de área</div>
+  </nav>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+    <div>
+      <h1 style="margin: 0; font-size: 30px">Guía de Consultas</h1>
+      <p style="margin: 6px 0 0; font-size: 15px; color: #5C544C">Buscá por lo que te pasa o elegí un área. El interno y el celular de cada persona están en Internos.</p>
+    </div>
+
+    <div style="background: #FFFFFF; border: 1px solid #E8E2DB; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+      <label for="q" style="font-size: 14px; font-weight: 700">¿Qué necesitás consultar?</label>
+      <div style="display: flex; gap: 10px; align-items: center; border: 2px solid #9A4A1F; border-radius: 12px; padding: 0 14px; background: #FFFFFF">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9A4A1F" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+        <input id="q" type="text" value="{{q}}" onChange="{{onQ}}" placeholder="Ej.: me falta mercadería, no imprime, olvidé la contraseña" style="flex: 1; min-width: 0; border: 0; outline: none; font-size: 17px; padding: 14px 0; background: transparent; color: #1C1916">
+        <sc-if value="{{hasQ}}" hint-placeholder-val="{{ false }}">
+          <button type="button" onClick="{{clear}}" aria-label="Borrar búsqueda" style="border: 0; background: #F6F3EF; border-radius: 8px; padding: 8px 12px; font-size: 13px; cursor: pointer; color: #1C1916">Borrar</button>
+        </sc-if>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+        <span style="font-size: 13px; color: #6B6259">Probá con:</span>
+        <sc-for list="{{ejemplos}}" as="e" hint-placeholder-count="5">
+          <button type="button" onClick="{{e.pick}}" style="border: 1px solid #E8E2DB; background: #F6F3EF; border-radius: 999px; padding: 8px 14px; font-size: 13px; cursor: pointer; color: #1C1916">{{e.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 8px">
+      <sc-for list="{{chips}}" as="c" hint-placeholder-count="7">
+        <button type="button" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{hasQ}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="font-size: 14px; color: #5C544C">{{resLabel}}</div>
+        <sc-for list="{{results}}" as="r" hint-placeholder-count="3">
+          <div style="background: #FFFFFF; border: 1px solid #E8E2DB; border-radius: 12px; padding: 16px 20px; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center">
+            <div style="flex: 1 1 260px; min-width: 0">
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #5C544C; text-transform: uppercase; letter-spacing: .05em"><span style="{{r.dot}}"></span>{{r.area}}</div>
+              <div style="font-size: 18px; font-weight: 700; margin-top: 4px">{{r.tema}}</div>
+            </div>
+            <div style="flex: 1 1 200px">
+              <div style="font-size: 12px; color: #6B6259">Referente</div>
+              <div style="{{r.refStyle}}">{{r.ref}}</div>
+            </div>
+            <div style="flex: 1 1 220px">
+              <div style="font-size: 12px; color: #6B6259">Mail de sector</div>
+              <div style="font-size: 14px">{{r.mail}}</div>
+            </div>
+            <a href="#" style="padding: 10px 14px; border-radius: 10px; border: 1px solid #E8E2DB; font-size: 13px; font-weight: 700">Ver en Internos</a>
+          </div>
+        </sc-for>
+        <sc-if value="{{noRes}}" hint-placeholder-val="{{ false }}">
+          <div style="background: #FFFFFF; border: 1px dashed #C9BFB4; border-radius: 12px; padding: 24px; font-size: 15px; color: #5C544C; line-height: 1.5">
+            <strong style="color: #1C1916">No encontramos esa consulta.</strong> Probá con otras palabras o elegí un área arriba.<br>
+            La búsqueda queda registrada para sumar el tema al mapa.
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{noQ}}" hint-placeholder-val="{{ true }}">
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 20px; align-items: start">
+        <sc-for list="{{fichas}}" as="f" hint-placeholder-count="6">
+          <section style="background: #FFFFFF; border: 1px solid #E8E2DB; border-radius: 16px; overflow: hidden">
+            <div style="{{f.band}}"></div>
+            <div style="padding: 18px 20px 6px">
+              <h2 style="margin: 0; font-size: 20px">{{f.nombre}}</h2>
+              <p style="margin: 4px 0 0; font-size: 13px; color: #5C544C; line-height: 1.4">{{f.resuelve}}</p>
+            </div>
+            <div style="padding: 6px 20px">
+              <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #6B6259; text-transform: uppercase; letter-spacing: .05em; padding: 8px 0; border-bottom: 1px solid #E8E2DB"><span>Tema</span><span>Referente</span></div>
+              <sc-for list="{{f.temas}}" as="t" hint-placeholder-count="6">
+                <div style="display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid #F0EBE5; font-size: 14px">
+                  <span>{{t.t}}</span>
+                  <span style="{{t.refStyle}}">{{t.ref}}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5C544C; background: #FBF9F6">
+              <div style="display: flex; align-items: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span style="{{f.mailStyle}}">{{f.mail}}</span></div>
+              <a href="Contactos.dc.html" style="font-weight: 700; color: #7A3A18">Celular, horario y responsables del área ›</a>
+            </div>
+          </section>
+        </sc-for>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1900}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { q: '', area: '' };
+}
+renderVals() {
+const AREAS = [
+{ id: 'abas', nombre: 'Abastecimiento', color: '#2F5FB3', resuelve: 'Pedidos, reposición, stock y precios de los locales.', mail: 'abastecimiento@xl.com.ar', gte: 'Martín Becker', jefe: 'Natalia Bontempo', temas: [
+['Ingresos futuros', 'Jessica Farias', 'ingreso mercaderia nueva cuando entra'],
+['Pedidos', 'Jessica Farias', 'pedido pedir'],
+['Reposición', 'Jessica Farias', 'reponer reposicion'],
+['Stock', 'Mariana Blanco', 'stock no tengo sin stock'],
+['Distribución', 'Mariana Blanco', 'distribucion asignacion'],
+['Rotaciones', 'Mariana Blanco', 'rotacion pasar mercaderia otro local traspaso'],
+['Faltantes', 'Jessica Farias', 'falta faltante mercaderia no llego diferencia'],
+['Sobrantes', 'Jessica Farias', 'sobra sobrante llego de mas'],
+['Planificación', "Julieta D'Almeida", 'planificacion'],
+['CADS', 'Mariana Blanco', 'cads'],
+['Presupuestos', "Julieta D'Almeida", 'presupuesto'],
+['Precios', 'Jessica Farias', 'precio mal cargado etiqueta'],
+['Codificación', 'Jessica Farias', 'codigo articulo nuevo codificacion']] },
+{ id: 'log', nombre: 'Logística', color: '#1F7A8C', resuelve: 'Entregas, transporte, remitos y reclamos de envíos.', mail: '', gte: 'Martín Becker', jefe: 'Lucas Navarro', temas: [
+['Distribución', 'Claudia Otero', 'distribucion'],
+['Entregas', 'Lucas Navarro', 'entrega cuando llega mi pedido envio'],
+['Transporte', 'Lucas Navarro', 'transporte camion flete'],
+['Seguimiento', 'Claudia Otero', 'seguimiento donde esta mi pedido'],
+['Recepción', 'Lucas Navarro', 'recepcion recibir'],
+['Ruteo', 'Lucas Navarro', 'ruteo ruta horario'],
+['Tiempos', 'Lucas Navarro', 'tiempo demora cuando llega'],
+['Incidencias', 'Claudia Otero', 'incidencia caja rota dañado'],
+['Reclamos', 'Claudia Otero', 'reclamo'],
+['Remitos', 'Claudia Otero', 'remito']] },
+{ id: 'adm', nombre: 'Administración', color: '#B23A2E', resuelve: 'Facturación, cuentas corrientes, comprobantes y compras.', mail: '', gte: 'Silvia Freire', jefe: '', temas: [
+['Facturación', '', 'factura facturacion'],
+['Pagos', '', 'pago'],
+['Cobranzas', '', 'cobranza cobro'],
+['Cuenta corriente', '', 'cuenta corriente saldo'],
+['Comprobantes', '', 'comprobante'],
+['Notas de crédito/débito', '', 'nota de credito debito'],
+['Compras', 'Diego Szmulewicz', 'compra insumos'],
+['Control sucursales', 'Silvina Leguiza', 'control sucursal arqueo']] },
+{ id: 'tes', nombre: 'Tesorería', color: '#8E3B6E', resuelve: 'Depósitos, caja y efectivo, medios de cobro.', mail: '', gte: '', jefe: '', temas: [
+['Depósitos de locales', '', 'deposito'],
+['Caja y efectivo', '', 'caja efectivo cambio'],
+['Medios de cobro', '', 'medios de cobro tarjeta'],
+['Retenciones', '', 'retencion']] },
+{ id: 'inn', nombre: 'Innovación', color: '#9A4A1F', resuelve: 'Soporte de todas las aplicaciones de la empresa y pedidos de mejoras.', mail: 'proyectos@xl.com.ar', gte: '', jefe: '', temas: [
+['Control de stock', 'Agustina Latorre', 'control de stock conteo'],
+['Soporte de aplicaciones (uso y errores)', 'Equipo Innovación', 'app aplicacion error no anda funciona xl gestion pantalla como se hace sistema'],
+['Pedidos de mejoras o nuevas herramientas', 'Equipo Innovación', 'mejora nueva herramienta idea']] },
+{ id: 'sis', nombre: 'Sistemas', color: '#5B5BA8', resuelve: 'Tango, equipos, impresoras, cajas, conectividad y accesos.', mail: '', gte: '', jefe: 'Daniel Aguero', temas: [
+['Sistema Tango', '', 'tango'],
+['Falla de facturación', '', 'no factura puedo facturar'],
+['Hardware y equipamiento', '', 'computadora pc equipo monitor'],
+['Impresoras', '', 'impresora imprime ticket'],
+['Cajas / POS', '', 'caja pos posnet'],
+['Conectividad', '', 'internet wifi sin conexion red'],
+['Usuarios y accesos', '', 'usuario contraseña clave acceso olvide'],
+['Soporte técnico', '', 'soporte tecnico']] }
+];
+const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+const STOP = ['la', 'el', 'los', 'las', 'de', 'del', 'mi', 'me', 'un', 'una', 'que', 'no', 'se', 'con', 'por', 'para', 'en', 'y', 'tengo', 'hay', 'como'];
+const refOk = 'font-size: 14px; font-weight: 700; color: #1C1916; text-align: right';
+const refPend = 'font-size: 14px; font-style: italic; color: #8A8178; text-align: right';
+const q = this.state.q;
+const words = norm(q).split(/\s+/).filter((w) => w.length > 1 && STOP.indexOf(w) === -1);
+const visibles = AREAS.filter((a) => !this.state.area || a.id === this.state.area);
+
+const results = [];
+if (words.length) {
+visibles.forEach((a) => a.temas.forEach((t) => {
+const hay = norm(t[0] + ' ' + t[2] + ' ' + a.nombre);
+if (words.every((w) => hay.indexOf(w) !== -1)) {
+results.push({
+area: a.nombre, tema: t[0], ref: t[1] || 'Referente a definir',
+refStyle: (t[1] ? refOk : refPend).replace('text-align: right', 'text-align: left'),
+mail: a.mail || 'Mail de sector a dar de alta',
+dot: 'width: 10px; height: 10px; border-radius: 3px; background: ' + a.color
+});
+}
+}));
+}
+
+const chipBase = 'border-radius: 999px; padding: 9px 16px; font-size: 14px; cursor: pointer; font-weight: 600; ';
+const chips = [{ id: '', nombre: 'Todas las áreas' }].concat(AREAS).map((a) => ({
+label: a.nombre,
+style: chipBase + (this.state.area === a.id ? 'background: #1C1916; color: #FFFFFF; border: 1px solid #1C1916' : 'background: #FFFFFF; color: #1C1916; border: 1px solid #E8E2DB'),
+pick: () => this.setState({ area: a.id })
+}));
+
+const ejemplos = ['Me falta mercadería', 'No imprime', 'Cuándo llega mi pedido', 'Olvidé la contraseña', 'Precio mal cargado', 'Error en la app'].map((l) => ({
+label: l, pick: () => this.setState({ q: l })
+}));
+
+const fichas = visibles.map((a) => ({
+nombre: a.nombre, resuelve: a.resuelve,
+band: 'height: 6px; background: ' + a.color,
+mail: a.mail || 'Mail de sector a dar de alta',
+mailStyle: a.mail ? 'color: #1C1916; font-weight: 600' : 'font-style: italic; color: #8A8178',
+gte: a.gte || 'a definir', jefe: a.jefe || 'a definir',
+temas: a.temas.map((t) => ({ t: t[0], ref: t[1] || 'A definir', refStyle: t[1] ? refOk : refPend }))
+}));
+
+const hasQ = q.trim().length > 0;
+return {
+q, hasQ, noQ: !hasQ,
+onQ: (e) => this.setState({ q: e.target.value }),
+clear: () => this.setState({ q: '' }),
+results, noRes: hasQ && results.length === 0,
+resLabel: !words.length ? 'Escribí un poco más…' : (results.length === 1 ? '1 resultado' : results.length + ' resultados'),
+chips, ejemplos, fichas
+};
+}
+}
+</script>
+</body>
+</html>

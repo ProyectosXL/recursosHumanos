@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Directorio – Administrar ficha de área</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,Arial,sans-serif;color:#1C1916;background:#F6F3EF}
+a{color:#1C1916;text-decoration:none}a:hover{color:#9A4A1F}
+</style>
+</helmet>
+<div style="min-height: 1100px; background: #F6F3EF; display: flex; flex-wrap: wrap">
+  <nav aria-label="Directorio" style="flex: 1 1 240px; max-width: 100%; background: #FFFFFF; border-right: 1px solid #E8E2DB; padding: 20px 12px; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; font-size: 14px">
+    <a href="Main.dc.html" style="font-size: 13px; color: #6B6259; padding: 4px 12px 14px">‹ Volver a XL Gestión</a>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 12px 14px">
+      <div style="width: 30px; height: 30px; border-radius: 8px; background: #9A4A1F; color: #FFFFFF; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center">XL</div>
+      <span style="font-weight: 700; font-size: 17px">Directorio</span>
+    </div>
+    <a href="Consultas.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px">Guía de Consultas</a>
+    <a href="Contactos.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px">Contactos por área</a>
+    <a href="#" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px">Internos</a>
+    <div style="height: 1px; background: #E8E2DB; margin: 14px 12px"></div>
+    <a href="#" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: rgba(154,74,31,.10); color: #7A3A18; font-weight: 700"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Administrar mi ficha</a>
+  </nav>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 32px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+    <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+      <div>
+        <div style="font-size: 13px; color: #6B6259">Administrar mi ficha</div>
+        <h1 style="margin: 4px 0 0; font-size: 30px">Abastecimiento</h1>
+        <p style="margin: 6px 0 0; font-size: 14px; color: #5C544C">Cada responsable mantiene su ficha. Los cambios se ven al instante en la Guía de Consultas</p>
+      </div>
+
+      <section style="background: #FFFFFF; border: 1px solid #E8E2DB; border-radius: 16px; padding: 24px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px">
+        <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px">
+          <label for="resuelve" style="font-size: 13px; font-weight: 700">Qué resuelve el área (una línea)</label>
+          <input id="resuelve" type="text" value="Pedidos, reposición, stock y precios de los locales." style="border: 1px solid #D9D1C7; border-radius: 10px; padding: 12px; font-size: 14px">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="mail" style="font-size: 13px; font-weight: 700">Mail de sector</label>
+          <input id="mail" type="text" value="abastecimiento@xl.com.ar" style="border: 1px solid #D9D1C7; border-radius: 10px; padding: 12px; font-size: 14px">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="cel" style="font-size: 13px; font-weight: 700">Celular de sector</label>
+          <input id="cel" type="text" value="[número del celular del sector]" style="border: 1px solid #D9D1C7; border-radius: 10px; padding: 12px; font-size: 14px">
+        </div>
+        <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px">
+          <label for="hor" style="font-size: 13px; font-weight: 700">Horario de atención</label>
+          <input id="hor" type="text" value="[Lun a vie, de … a … h]" style="border: 1px solid #D9D1C7; border-radius: 10px; padding: 12px; font-size: 14px">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="gte" style="font-size: 13px; font-weight: 700">Gerente de área</label>
+          <select id="gte" style="border: 1px solid #D9D1C7; border-radius: 10px; padding: 12px; font-size: 14px; background: #FFFFFF"><option>Martín Becker</option></select>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="jefe" style="font-size: 13px; font-weight: 700">Jefe de área</label>
+          <select id="jefe" style="border: 1px solid #D9D1C7; border-radius: 10px; padding: 12px; font-size: 14px; background: #FFFFFF"><option>Natalia Bontempo</option></select>
+        </div>
+        <div style="grid-column: 1 / -1; font-size: 12px; color: #6B6259">Las personas se eligen de Internos: si alguien cambia de interno o se va, la ficha se actualiza sola.</div>
+      </section>
+
+      <section style="background: #FFFFFF; border: 1px solid #E8E2DB; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px">
+          <h2 style="margin: 0; font-size: 18px">Temas frecuentes</h2>
+          <button type="button" style="border: 1px solid #9A4A1F; color: #9A4A1F; background: #FFFFFF; border-radius: 10px; padding: 10px 14px; font-size: 14px; font-weight: 700; cursor: pointer">+ Agregar tema</button>
+        </div>
+        <div style="overflow-x: auto">
+          <div style="min-width: 680px; display: flex; flex-direction: column">
+            <div style="display: grid; grid-template-columns: 1.1fr 1.1fr 2fr 44px; gap: 12px; font-size: 12px; font-weight: 700; color: #6B6259; text-transform: uppercase; letter-spacing: .05em; padding: 8px 0; border-bottom: 1px solid #E8E2DB">
+              <span>Tema</span><span>Referente (de Internos)</span><span>Palabras con que lo buscan los locales</span><span></span>
+            </div>
+            <sc-for list="{{temas}}" as="t" hint-placeholder-count="5">
+              <div style="display: grid; grid-template-columns: 1.1fr 1.1fr 2fr 44px; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid #F0EBE5">
+                <input type="text" value="{{t.t}}" aria-label="Tema" style="border: 1px solid #D9D1C7; border-radius: 8px; padding: 9px 10px; font-size: 14px; min-width: 0">
+                <select aria-label="Referente" style="border: 1px solid #D9D1C7; border-radius: 8px; padding: 9px 10px; font-size: 14px; background: #FFFFFF; min-width: 0"><option>{{t.ref}}</option></select>
+                <input type="text" value="{{t.kw}}" aria-label="Palabras clave" style="border: 1px solid #D9D1C7; border-radius: 8px; padding: 9px 10px; font-size: 14px; min-width: 0">
+                <button type="button" aria-label="Quitar tema" style="width: 44px; height: 40px; border: 1px solid #E8E2DB; background: #FFFFFF; border-radius: 8px; cursor: pointer; color: #5C544C">✕</button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding-top: 8px">
+          <span style="font-size: 13px; color: #6B6259">Última actualización: [fecha] por [usuario]</span>
+          <button type="button" style="border: 0; background: #9A4A1F; color: #FFFFFF; border-radius: 10px; padding: 12px 22px; font-size: 15px; font-weight: 700; cursor: pointer">Guardar ficha</button>
+        </div>
+      </section>
+    </div>
+
+    <aside style="flex: 1 1 280px; background: #FFFFFF; border: 1px solid #E8E2DB; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 16px">Búsquedas sin resultado</h2>
+      <p style="margin: 0; font-size: 13px; color: #5C544C; line-height: 1.45">Lo que buscaron los locales y no encontró ningún tema. Sumalo como palabra clave o como tema nuevo.</p>
+      <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px">
+        <div style="padding: 10px 12px; border-radius: 10px; background: #F6F3EF">"[ejemplo de búsqueda]" · <span style="color: #6B6259">[n] veces</span></div>
+        <div style="padding: 10px 12px; border-radius: 10px; background: #F6F3EF">"[ejemplo de búsqueda]" · <span style="color: #6B6259">[n] veces</span></div>
+        <div style="padding: 10px 12px; border-radius: 10px; background: #F6F3EF">"[ejemplo de búsqueda]" · <span style="color: #6B6259">[n] veces</span></div>
+      </div>
+      <div style="font-size: 12px; color: #6B6259; line-height: 1.45">Esta lista es también la base para entrenar el chatbot de la etapa 2.</div>
+    </aside>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1100}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+temas: [
+{ t: 'Faltantes', ref: 'Jessica Farias', kw: 'me falta, no llegó, diferencia' },
+{ t: 'Sobrantes', ref: 'Jessica Farias', kw: 'me sobra, llegó de más' },
+{ t: 'Stock', ref: 'Mariana Blanco', kw: 'sin stock, no tengo' },
+{ t: 'Rotaciones', ref: 'Mariana Blanco', kw: 'pasar mercadería a otro local' },
+{ t: 'Precios', ref: 'Jessica Farias', kw: 'precio mal cargado, etiqueta' }
+]
+};
+}
+}
+</script>
+</body>
+</html>

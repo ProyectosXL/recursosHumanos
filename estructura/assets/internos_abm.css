@@ -1,0 +1,75 @@
+/*
+ * Administrar internos (ABM) - estilos propios (sobre estructura.css e internos.css).
+ * Reescrito desde comercial/recepcion/Style/listado.css con la estética de XL Gestión. Los
+ * botones del modal siguen siendo los de Bootstrap (btn-primary, btn-secondary), con los colores
+ * de estructura.
+ */
+.abm-encabezado {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+.abm-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.abm-filtros .search-container { flex: 1 1 280px; max-width: 480px; }
+
+.table thead th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--est-ink-3);
+    border-bottom-color: var(--est-hairline);
+    white-space: nowrap;
+}
+
+.table td { font-size: 14px; border-color: var(--est-hairline); }
+
+.btn-edit, .btn-status {
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 6px 10px;
+}
+
+.btn-edit {
+    background: var(--est-surface);
+    border: 1px solid var(--est-hairline);
+    color: var(--est-ink);
+}
+
+.btn-edit:hover { border-color: var(--est-ink-3); color: var(--est-ink); }
+
+.btn-status.btn-success { background: var(--est-ok-soft); border-color: var(--est-ok-soft); color: var(--est-ok); }
+.btn-status.btn-danger { background: var(--est-danger-soft); border-color: #FECDCA; color: var(--est-danger); }
+.badge.bg-success { background: var(--est-ok-soft) !important; color: var(--est-ok); }
+.badge.bg-danger { background: var(--est-danger-soft) !important; color: var(--est-danger); }
+
+.spinner-border { color: var(--est-accent); }
+
+.form-check-input:checked { background-color: var(--est-accent); border-color: var(--est-accent); }
+
+/* Modal */
+.modal-content { border: 0; border-radius: var(--est-radius-lg); }
+.modal-header, .modal-footer { border-color: var(--est-hairline); }
+.modal-title { font-weight: 700; }
+.form-label { font-weight: 700; font-size: 14px; }
+.form-control:focus, .form-select:focus {
+    border-color: var(--est-accent);
+    box-shadow: 0 0 0 3px var(--est-accent-soft);
+}
+.modal .btn-primary { background: var(--est-accent); border-color: var(--est-accent); font-weight: 700; }
+.modal .btn-primary:hover { background: var(--est-accent-ink); border-color: var(--est-accent-ink); }
+.modal .btn-secondary { background: var(--est-surface); border-color: var(--est-hairline); color: var(--est-ink); font-weight: 700; }
+
+/* Personas desactivadas (filtro "Ver también las personas desactivadas"): se distinguen sin esconderse */
+.fila-inactiva td { color: var(--est-pendiente); }
+.fila-inactiva .fw-semibold { text-decoration: line-through; }

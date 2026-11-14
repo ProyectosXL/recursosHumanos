@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Directorio – Administrar áreas (Innovación)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,Arial,sans-serif;color:#1C1916;background:#F6F3EF}
+a{color:#1C1916;text-decoration:none}a:hover{color:#9A4A1F}
+</style>
+</helmet>
+<div style="min-height: 1250px; background: #F6F3EF; display: flex; flex-wrap: wrap">
+  <nav aria-label="Directorio" style="flex: 1 1 240px; max-width: 100%; background: #FFFFFF; border-right: 1px solid #E8E2DB; padding: 20px 12px; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; font-size: 14px">
+    <a href="Main.dc.html" style="font-size: 13px; color: #6B6259; padding: 4px 12px 14px">‹ Volver a XL Gestión</a>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 12px 14px">
+      <div style="width: 30px; height: 30px; border-radius: 8px; background: #9A4A1F; color: #FFFFFF; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center">XL</div>
+      <span style="font-weight: 700; font-size: 17px">Directorio</span>
+    </div>
+    <a href="Consultas.dc.html" style="padding: 10px 12px; border-radius: 8px">Guía de Consultas</a>
+    <a href="Contactos.dc.html" style="padding: 10px 12px; border-radius: 8px">Contactos por área</a>
+    <a href="#" style="padding: 10px 12px; border-radius: 8px">Internos</a>
+    <div style="height: 1px; background: #E8E2DB; margin: 14px 12px"></div>
+    <a href="Admin.dc.html" style="padding: 10px 12px; border-radius: 8px; color: #5C544C">Administrar mi ficha</a>
+    <a href="#" style="padding: 10px 12px; border-radius: 8px; background: rgba(154,74,31,.10); color: #7A3A18; font-weight: 700">Administrar áreas</a>
+    <div style="padding: 0 12px; font-size: 12px; color: #6B6259">Solo Innovación</div>
+  </nav>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px">
+      <div>
+        <div style="font-size: 13px; color: #6B6259">Administración · Innovación</div>
+        <h1 style="margin: 4px 0 0; font-size: 30px">Áreas del Directorio</h1>
+        <p style="margin: 6px 0 0; font-size: 14px; color: #5C544C">Alta, baja y responsables de cada área. Los datos de la ficha los completa cada responsable.</p>
+      </div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap">
+        <button type="button" style="border: 1px solid #9A4A1F; color: #9A4A1F; background: #FFFFFF; border-radius: 10px; padding: 11px 16px; font-size: 14px; font-weight: 700; cursor: pointer">Importar listado</button>
+        <button type="button" style="border: 0; background: #9A4A1F; color: #FFFFFF; border-radius: 10px; padding: 11px 16px; font-size: 14px; font-weight: 700; cursor: pointer">+ Nueva área</button>
+      </div>
+    </div>
+
+    <section style="background: #FFFFFF; border: 1px solid #E8E2DB; border-radius: 16px; overflow-x: auto">
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px; min-width: 820px">
+        <thead>
+          <tr style="text-align: left; font-size: 12px; color: #6B6259; text-transform: uppercase; letter-spacing: .05em">
+            <th style="padding: 14px 16px; border-bottom: 1px solid #E8E2DB">Orden</th>
+            <th style="padding: 14px 16px; border-bottom: 1px solid #E8E2DB">Área</th>
+            <th style="padding: 14px 16px; border-bottom: 1px solid #E8E2DB">Responsables de la ficha</th>
+            <th style="padding: 14px 16px; border-bottom: 1px solid #E8E2DB">Temas</th>
+            <th style="padding: 14px 16px; border-bottom: 1px solid #E8E2DB">Ficha completa</th>
+            <th style="padding: 14px 16px; border-bottom: 1px solid #E8E2DB">Estado</th>
+            <th style="padding: 14px 16px; border-bottom: 1px solid #E8E2DB"><span style="position: absolute; left: -9999px">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <sc-for list="{{areas}}" as="a" hint-placeholder-count="6">
+            <tr>
+              <td style="padding: 12px 16px; border-bottom: 1px solid #F0EBE5; color: #6B6259">{{a.orden}}</td>
+              <td style="padding: 12px 16px; border-bottom: 1px solid #F0EBE5"><span style="display: inline-flex; align-items: center; gap: 10px; font-weight: 700"><span style="{{a.dot}}"></span>{{a.nombre}}</span></td>
+              <td style="padding: 12px 16px; border-bottom: 1px solid #F0EBE5; {{a.respStyle}}">{{a.resp}}</td>
+              <td style="padding: 12px 16px; border-bottom: 1px solid #F0EBE5">{{a.temas}}</td>
+              <td style="padding: 12px 16px; border-bottom: 1px solid #F0EBE5"><span style="{{a.compStyle}}">{{a.comp}}</span></td>
+              <td style="padding: 12px 16px; border-bottom: 1px solid #F0EBE5"><span style="font-size: 12px; font-weight: 700; background: #E7F4EC; color: #17663A; border-radius: 999px; padding: 4px 10px">Activa</span></td>
+              <td style="padding: 12px 16px; border-bottom: 1px solid #F0EBE5; text-align: right"><button type="button" style="border: 1px solid #E8E2DB; background: #FFFFFF; border-radius: 8px; padding: 8px 12px; font-size: 13px; cursor: pointer">Editar</button></td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </section>
+
+    <section style="background: #FFFFFF; border: 2px dashed #C9BFB4; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; align-items: center">
+        <div>
+          <h2 style="margin: 0; font-size: 18px">Importar listado</h2>
+          <p style="margin: 4px 0 0; font-size: 14px; color: #5C544C">Para la carga inicial o cambios masivos. Una fila por tema; los datos del área se repiten en cada fila.</p>
+        </div>
+        <a href="#" style="font-size: 14px; font-weight: 700; color: #7A3A18">Descargar plantilla Excel</a>
+      </div>
+      <div style="overflow-x: auto; border: 1px solid #E8E2DB; border-radius: 10px">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px; min-width: 980px">
+          <thead>
+            <tr style="background: #F6F3EF; text-align: left">
+              <th style="padding: 8px 10px">Área</th><th style="padding: 8px 10px">Qué resuelve</th><th style="padding: 8px 10px">Mail de sector</th><th style="padding: 8px 10px">Celular</th><th style="padding: 8px 10px">Horario</th><th style="padding: 8px 10px">Gerente</th><th style="padding: 8px 10px">Jefe</th><th style="padding: 8px 10px">Tema</th><th style="padding: 8px 10px">Referente</th><th style="padding: 8px 10px">Palabras clave</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">Abastecimiento</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">Pedidos, reposición…</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">abastecimiento@xl.com.ar</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">[celular]</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">[horario]</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">Martín Becker</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">Natalia Bontempo</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">Faltantes</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">Jessica Farias</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">me falta, no llegó</td></tr>
+            <tr><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">Abastecimiento</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">Pedidos, reposición…</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">abastecimiento@xl.com.ar</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">[celular]</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">[horario]</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">Martín Becker</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">Natalia Bontempo</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">Stock</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">Mariana Blanco</td><td style="padding: 8px 10px; border-top: 1px solid #E8E2DB">sin stock</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; font-size: 13px">
+        <div style="background: #F6F3EF; border-radius: 10px; padding: 14px"><strong style="display: block; margin-bottom: 4px">1. Subir el archivo</strong>Se arrastra el Excel completo.</div>
+        <div style="background: #F6F3EF; border-radius: 10px; padding: 14px"><strong style="display: block; margin-bottom: 4px">2. Revisar antes de guardar</strong>Muestra qué áreas y temas se crean o cambian, y avisa si un nombre no está en Internos.</div>
+        <div style="background: #F6F3EF; border-radius: 10px; padding: 14px"><strong style="display: block; margin-bottom: 4px">3. Confirmar</strong>Recién ahí se publica en la Guía de Consultas y Contactos por área.</div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1250}}'>
+class Component extends DCLogic {
+renderVals() {
+const full = 'font-size: 12px; font-weight: 700; background: #E7F4EC; color: #17663A; border-radius: 999px; padding: 4px 10px';
+const part = 'font-size: 12px; font-weight: 700; background: #FDEFD9; color: #8A4A06; border-radius: 999px; padding: 4px 10px';
+const rows = [
+['Abastecimiento', '#2F5FB3', 'Martín Becker, Natalia Bontempo', 13, 'Falta celular y horario', false],
+['Logística', '#1F7A8C', 'Martín Becker, Lucas Navarro', 10, 'Falta mail, celular y horario', false],
+['Administración', '#B23A2E', 'Silvia Freire', 8, '6 temas sin referente', false],
+['Tesorería', '#8E3B6E', '', 4, 'Sin responsable', false],
+['Innovación', '#9A4A1F', 'Equipo Innovación', 3, 'Falta celular y horario', false],
+['Sistemas', '#5B5BA8', 'Daniel Aguero', 8, 'Temas sin referente', false]
+];
+return {
+areas: rows.map((r, i) => ({
+orden: i + 1, nombre: r[0], dot: 'width: 12px; height: 12px; border-radius: 4px; background: ' + r[1],
+resp: r[2] || 'Asignar responsable', respStyle: r[2] ? '' : 'font-style: italic; color: #8A8178',
+temas: r[3], comp: r[5] ? 'Completa' : r[4], compStyle: r[5] ? full : part
+}))
+};
+}
+}
+</script>
+</body>
+</html>
