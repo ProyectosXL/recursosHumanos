@@ -47,8 +47,8 @@ $pagina = array(
     'titulo' => 'Administrar áreas',
     'activo' => 'admin',
     'css'    => array('admin.css'),
-    'js'     => array('admin_comun.js', 'admin_areas.js'),
-
+    'js'     => array('admin_comun.js', 'admin_areas.js', 'admin_importar.js'),
+    'libs'   => array('xlsx'),   // SheetJS: leer el Excel y generar la plantilla (la misma versión que Internos)
 );
 require __DIR__ . '/../partials/cabecera.php';
 ?>
@@ -59,6 +59,9 @@ require __DIR__ . '/../partials/cabecera.php';
             </div>
             <?php if ($estado['ok']): ?>
             <div class="adm-botones">
+                <button type="button" class="est-btn" id="abrirImportar" aria-expanded="false" aria-controls="importar">
+                    <i class="bi bi-file-earmark-arrow-up" aria-hidden="true"></i> Importar listado
+                </button>
                 <a class="est-btn est-btn--primario" href="<?= $e(ESTRUCTURA_URL_ADMIN_AREA) ?>">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i> Nueva área
                 </a>
@@ -76,6 +79,7 @@ require __DIR__ . '/../partials/cabecera.php';
         <div id="admMensaje" class="est-aviso" role="alert" hidden></div>
 
         <?php if ($estado['ok']): ?>
+        <?php require __DIR__ . '/../partials/admin_importar.php'; ?>
 
         <div class="est-panel adm-panel-tabla">
             <div class="table-responsive">
