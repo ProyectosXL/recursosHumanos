@@ -56,6 +56,46 @@ class Interno {
     }
     
 
+    /**
+     * URL de la foto de una persona, o null si no tiene.
+     *
+     * Por qué en el servidor: antes el navegador pedía siempre "<nombre>.jpg" y, si no existía,
+     * quedaba un 404 en la consola. Mientras Ramiro no mueva la carpeta de fotos al lugar nuevo
+     * nadie tiene foto, y serían 404 en todas las tarjetas. Mirando el disco acá, la tarjeta se
+     * dibuja directamente con las iniciales, como hoy cuando una persona no tiene foto.
+     *
+     * Busca los dos formatos que ya aceptaba formatearNombreArchivo() ("Apellido Nombre.jpg" y
+     * "Nombre_Apellido.jpg") y el que armaba el JS viejo (sólo el primer espacio pasado a "_"),
+     * para que ninguna foto que hoy se ve deje de verse. Sin carpeta no mira nada ni loguea.
+     */
+    public function fotoUrl($nombre_apellido) {
+        static $hayCarpeta = null;
+        if ($hayCarpeta === null) {
+            $hayCarpeta = is_dir(ESTRUCTURA_FOTOS_DIR);
+        }
+        $nombre = trim((string)$nombre_apellido);
+        if (!$hayCarpeta || $nombre === '') {
+            return null;
+        }
+
+        $candidatos = array();
+        $palabras = preg_split('/\s+/', $nombre);
+        if (count($palabras) >= 2) {
+            $apellido = array_pop($palabras);
+            $candidatos[] = $apellido . ' ' . implode(' ', $palabras) . '.jpg';
+        }
+        $candidatos[] = str_replace(' ', '_', $nombre) . '.jpg';
+        $candidatos[] = preg_replace('/ /', '_', $nombre, 1) . '.jpg';
+
+        foreach (array_unique($candidatos) as $archivo) {
+            // basename: el nombre viene de la base, pero nunca debe poder salir de la carpeta
+            if ($archivo === basename($archivo) && is_file(ESTRUCTURA_FOTOS_DIR . '/' . $archivo)) {
+                return ESTRUCTURA_FOTOS_URL . rawurlencode($archivo);
+            }
+        }
+        return null;
+    }
+
     public function getAllInternos() {
         try {
             // Primero actualizamos los registros que tienen INACTIVO en NULL
@@ -198,10 +238,11 @@ class Interno {
                     'celular' => trim($row['celular']) ?: '',
                     'interno' => trim($row['interno']) ?: '',
                     'inactivo' => $row['inactivo'],
-                    'fecha_modif' => $row['FECHA_MODIF'] ? $row['FECHA_MODIF']->format('Y-m-d H:i:s') : null
+                    'fecha_modif' => $row['FECHA_MODIF'] ? $row['FECHA_MODIF']->format('Y-m-d H:i:s') : null,
+                    'foto' => $this->fotoUrl($row['nombre_apellido'])
                 );
             }
-            
+
             return $results;
         } catch (Exception $e) {
             error_log("Error en buscarInternos: " . $e->getMessage());

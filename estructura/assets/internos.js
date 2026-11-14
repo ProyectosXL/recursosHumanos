@@ -1,8 +1,6 @@
 
 // Variables globales
 let timeoutId;
-// Rutas desde PHP (partials/config_js.php): no se escriben a mano en el JS
-const BASE_IMAGE_PATH = window.ESTRUCTURA.fotosUrl;
 const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
 const EXCEL_EXTENSION = '.xlsx';
 
@@ -81,7 +79,8 @@ function createProfileCard(empleado) {
     const sector = empleado.sector || 'Sin Sector';
     const mail = empleado.mail || '';
     const interno = empleado.interno || '';
-    const fotoUrl = `${BASE_IMAGE_PATH}${empleado.nombre_apellido.replace(" ", "_")}.jpg`;
+    // La foto la resuelve el servidor (Interno::fotoUrl): si no hay, no se pide nada y no hay 404
+    const fotoUrl = empleado.foto || '';
     const esNuevo = isNewEmployee(empleado.fecha_modif) && empleado.inactivo == 0;
 
     return `
@@ -94,11 +93,11 @@ function createProfileCard(empleado) {
                     </div>
                 ` : ''}
                 <div class="profile-image">
-                    <img src="${fotoUrl}" 
-                         alt="${nombre}" 
+                    ${fotoUrl ? `<img src="${fotoUrl}"
+                         alt="${nombre}"
                          onerror="this.onerror=null; this.src=''; this.parentNode.innerHTML='${getInitials(nombre)}';"
                          onload="this.classList.add('loaded')"
-                         class="profile-img">
+                         class="profile-img">` : getInitials(nombre)}
                 </div>
                 <h5 class="mb-3">${nombre}</h5>
                 <p class="sector mb-2">

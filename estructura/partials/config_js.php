@@ -10,7 +10,6 @@ $estructuraJs = array(
     'url'          => ESTRUCTURA_URL,
     'internos'     => ESTRUCTURA_URL_INTERNOS,
     'internosAjax' => ESTRUCTURA_URL_INTERNOS_AJAX,
-    'fotosUrl'     => ESTRUCTURA_FOTOS_URL,
 );
 if (!empty($estructuraJsExtra) && is_array($estructuraJsExtra)) {
     $estructuraJs = array_merge($estructuraJs, $estructuraJsExtra);
