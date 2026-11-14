@@ -37,6 +37,22 @@ class Permisos
         return self::puedeAdministrar();
     }
 
+    /**
+     * ¿Ya se corrió sql/04_estructura_permiso.sql? Sin el permiso en FP_PERMISOS sólo entra el
+     * administrador total (Auth::puede le da todo): la pantalla lo avisa para que no parezca un error.
+     * null si no se pudo saber (sin conexión a XL-APPS).
+     */
+    public static function permisoRegistrado()
+    {
+        $conn = class_exists('ConexionApps') ? ConexionApps::get() : null;
+        if (!$conn) {
+            return null;
+        }
+        $st = sqlsrv_query($conn, 'SELECT COUNT(*) AS n FROM dbo.FP_PERMISOS WHERE clave = ?', array(ESTRUCTURA_PERMISO_ADMINISTRAR));
+        $f = $st ? sqlsrv_fetch_array($st, SQLSRV_FETCH_ASSOC) : null;
+        return $f ? (int)$f['n'] > 0 : null;
+    }
+
     /** ['crear' => bool, 'editar' => bool, 'eliminar' => bool] del ABM de Internos para la sesión actual. */
     public static function abmInternos()
     {
@@ -132,6 +148,43 @@ class Permisos
             return !empty($abm['crear']) || !empty($abm['editar']) || !empty($abm['eliminar']);
         }
         return !empty($abm[$requerido]);
+    }
+
+    /**
+     * Acciones de ajax/admin.php. TODAS piden el permiso de administración (o el del área, que
+     * hoy es lo mismo) y, salvo 'plantilla' (sólo lee), CSRF y POST.
+     */
+    const ACCIONES_ADMIN = array(
+        'guardarFicha', 'desactivarArea', 'reactivarArea', 'moverArea', 'reactivarTema',
+        'descartarBusqueda', 'previsualizarImportacion', 'confirmarImportacion', 'plantilla',
+    );
+
+    /**
+     * ¿Se puede ejecutar esta acción de administración? Pura (recibe lo que ya se sabe de la
+     * sesión) para probar que ninguna acción queda abierta aunque se la llame directo.
+     *
+     * @return array|null null si se puede; si no, [código HTTP, mensaje]
+     */
+    public static function autorizarAdmin($accion, $haySesion, $tienePermiso, $csrfValido, $metodo)
+    {
+        if (!in_array($accion, self::ACCIONES_ADMIN, true)) {
+            return array(400, 'Acción no válida.');
+        }
+        if (!$haySesion) {
+            return array(401, 'Tu sesión terminó. Volvé a ingresar al hub.');
+        }
+        if (!$tienePermiso) {
+            return array(403, 'Tu usuario no tiene permiso para administrar las áreas.');
+        }
+        if ($accion !== 'plantilla') {
+            if ($metodo !== 'POST') {
+                return array(405, 'Acción no válida.');
+            }
+            if (!$csrfValido) {
+                return array(403, 'La página quedó vieja. Recargala y probá de nuevo.');
+            }
+        }
+        return null;
     }
 
     /**

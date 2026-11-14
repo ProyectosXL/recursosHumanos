@@ -279,6 +279,8 @@ a:hover { color: var(--est-accent); }
 }
 
 .est-aviso--error { background: var(--est-danger-soft); color: var(--est-danger); border-color: #FECDCA; }
+.est-aviso--ok { background: var(--est-ok-soft); color: var(--est-ok); border-color: #B7E1C6; }
+.est-aviso[hidden] { display: none; }
 .est-aviso code { color: inherit; font-weight: 700; }
 
 .est-punto {

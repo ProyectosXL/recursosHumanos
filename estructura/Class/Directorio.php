@@ -69,11 +69,18 @@ class Directorio
         return $st;
     }
 
-    /** ID generado por el último INSERT de esta conexión. */
-    private function ultimoId()
+    /**
+     * INSERT que devuelve el ID generado. Con OUTPUT INSERTED.ID en la misma sentencia: un
+     * SELECT SCOPE_IDENTITY() aparte corre en otro lote y devuelve NULL. (OUTPUT sin INTO no
+     * anda con triggers; las tablas del Directorio no tienen.) $sql va sin el VALUES: "INSERT INTO t (cols)".
+     */
+    public function insertarConId($sqlInsert, $sqlValues, array $params)
     {
-        $f = $this->filas('SELECT CAST(SCOPE_IDENTITY() AS INT) AS id');
-        return isset($f[0]['id']) ? (int)$f[0]['id'] : 0;
+        $f = $this->filas($sqlInsert . ' OUTPUT INSERTED.ID ' . $sqlValues, $params);
+        if (empty($f[0]['ID'])) {
+            throw new RuntimeException('El INSERT no devolvió el ID');
+        }
+        return (int)$f[0]['ID'];
     }
 
     private static function fecha($valor)
@@ -253,6 +260,346 @@ class Directorio
     private static function nombreActivo($id, array $personas)
     {
         return Reglas::estadoPersona($id, $personas) === 'activa' ? $personas[(int)$id]['nombre'] : null;
+    }
+
+    /* ================================================================ Administración: lectura */
+
+    /** Temas quitados (baja lógica) por área: ID_AREA => [['id', 'tema', 'fecha_baja', 'usuario_baja']] */
+    public function temasQuitados()
+    {
+        $res = array();
+        $sql = 'SELECT ID, ID_AREA, TEMA, USUARIO_BAJA, FECHA_BAJA FROM dbo.RO_T_DIR_TEMAS WHERE ACTIVO = 0 ORDER BY TEMA';
+        foreach ($this->filas($sql) as $f) {
+            $res[(int)$f['ID_AREA']][] = array('id' => (int)$f['ID'], 'tema' => (string)$f['TEMA'],
+                'usuario_baja' => (string)$f['USUARIO_BAJA'], 'fecha_baja' => self::fecha($f['FECHA_BAJA']));
+        }
+        return $res;
+    }
+
+    /** Áreas (activas e inactivas) con sus temas quitados: el estado contra el que se valida. */
+    public function areasCompletas()
+    {
+        $quitados = $this->temasQuitados();
+        $areas = $this->areas(false);
+        foreach ($areas as $i => $a) {
+            $areas[$i]['temas_quitados'] = isset($quitados[$a['id']]) ? $quitados[$a['id']] : array();
+        }
+        return $areas;
+    }
+
+    public function area($id)
+    {
+        foreach ($this->areasCompletas() as $a) {
+            if ($a['id'] === (int)$id) {
+                return $a;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Búsquedas de los últimos $dias días sin resultado, agrupadas por texto normalizado, de la
+     * más buscada a la menos. Las descartadas no aparecen, salvo que se hayan vuelto a buscar
+     * DESPUÉS de descartarlas (es una señal nueva).
+     */
+    public function busquedasSinResultado($dias = 30)
+    {
+        $sql = 'SELECT b.TEXTO_NORMALIZADO, COUNT(*) AS VECES, MAX(b.FECHA) AS ULTIMA, MAX(b.TEXTO) AS EJEMPLO
+                  FROM dbo.RO_T_DIR_BUSQUEDAS b
+                  LEFT JOIN dbo.RO_T_DIR_BUSQUEDAS_DESCARTADAS d ON d.TEXTO_NORMALIZADO = b.TEXTO_NORMALIZADO
+                 WHERE b.CANT_RESULTADOS = 0
+                   AND b.FECHA >= DATEADD(DAY, -?, GETDATE())
+                   AND (d.ID IS NULL OR b.FECHA > d.FECHA_DESCARTE)
+                 GROUP BY b.TEXTO_NORMALIZADO
+                 ORDER BY COUNT(*) DESC, MAX(b.FECHA) DESC';
+        $res = array();
+        foreach ($this->filas($sql, array((int)$dias)) as $f) {
+            $res[] = array('normalizado' => (string)$f['TEXTO_NORMALIZADO'], 'veces' => (int)$f['VECES'],
+                'ultima' => self::fecha($f['ULTIMA']), 'ejemplo' => (string)$f['EJEMPLO']);
+        }
+        return $res;
+    }
+
+    /* ================================================================ Administración: escritura */
+
+    /** Corre $fn dentro de una transacción: o todo, o nada. */
+    private function enTransaccion($fn)
+    {
+        if (!$this->cid || !sqlsrv_begin_transaction($this->cid)) {
+            throw new RuntimeException('No se pudo iniciar la transacción');
+        }
+        try {
+            $r = $fn();
+            sqlsrv_commit($this->cid);
+            $this->memo = array();
+            return $r;
+        } catch (Throwable $e) {
+            sqlsrv_rollback($this->cid);
+            throw $e;
+        }
+    }
+
+    /** Descarta una búsqueda del panel (sin borrarla): esconde las hechas hasta ahora. */
+    public function descartarBusqueda($normalizado, $usuario)
+    {
+        $this->ejecutar(
+            'IF EXISTS (SELECT 1 FROM dbo.RO_T_DIR_BUSQUEDAS_DESCARTADAS WHERE TEXTO_NORMALIZADO = ?)
+                 UPDATE dbo.RO_T_DIR_BUSQUEDAS_DESCARTADAS
+                    SET FECHA_DESCARTE = GETDATE(), USUARIO_MODIF = ?, FECHA_MODIF = GETDATE()
+                  WHERE TEXTO_NORMALIZADO = ?
+             ELSE
+                 INSERT INTO dbo.RO_T_DIR_BUSQUEDAS_DESCARTADAS (TEXTO_NORMALIZADO, FECHA_DESCARTE, USUARIO_ALTA)
+                 VALUES (?, GETDATE(), ?)',
+            array($normalizado, $usuario, $normalizado, $normalizado, $usuario)
+        );
+    }
+
+    /**
+     * Desactiva (baja lógica: deja de verse en la consulta) o reactiva un área.
+     * @return string|null el motivo si no se pudo
+     */
+    public function cambiarEstadoArea($id, $activar, $usuario)
+    {
+        $area = $this->area($id);
+        if (!$area) {
+            return 'El área no existe.';
+        }
+        if ($activar) {
+            if ($area['activa']) {
+                return null;
+            }
+            foreach ($this->areas(true) as $o) {
+                if (Reglas::clave($o['nombre']) === Reglas::clave($area['nombre'])) {
+                    return 'Ya hay otra área activa que se llama "' . $o['nombre'] . '".';
+                }
+            }
+            $orden = 1;
+            foreach ($this->areas(true) as $o) {
+                $orden = max($orden, $o['orden'] + 1);
+            }
+            // Vuelve al final: su orden viejo puede estar ocupado
+            $this->ejecutar('UPDATE dbo.RO_T_DIR_AREAS SET ACTIVA = 1, ORDEN = ?, USUARIO_BAJA = NULL, FECHA_BAJA = NULL,
+                                    USUARIO_MODIF = ?, FECHA_MODIF = GETDATE() WHERE ID = ?', array($orden, $usuario, (int)$id));
+        } else {
+            $this->ejecutar('UPDATE dbo.RO_T_DIR_AREAS SET ACTIVA = 0, USUARIO_BAJA = ?, FECHA_BAJA = GETDATE(),
+                                    USUARIO_MODIF = ?, FECHA_MODIF = GETDATE() WHERE ID = ? AND ACTIVA = 1', array($usuario, $usuario, (int)$id));
+        }
+        $this->memo = array();
+        return null;
+    }
+
+    /**
+     * Sube o baja un área un lugar entre las activas. Renumera 1..n antes de intercambiar: así un
+     * orden repetido o salteado (por la importación o por reactivar) no deja el botón sin efecto.
+     */
+    public function moverArea($id, $direccion, $usuario)
+    {
+        $ids = array();
+        foreach ($this->areas(true) as $a) {
+            $ids[] = $a['id'];
+        }
+        $pos = array_search((int)$id, $ids, true);
+        if ($pos === false) {
+            return 'El área no está activa.';
+        }
+        $otro = $direccion === 'subir' ? $pos - 1 : $pos + 1;
+        if ($otro < 0 || $otro >= count($ids)) {
+            return null;   // ya está en el borde
+        }
+        $tmp = $ids[$pos];
+        $ids[$pos] = $ids[$otro];
+        $ids[$otro] = $tmp;
+        $self = $this;
+        $this->enTransaccion(function () use ($self, $ids, $id, $usuario) {
+            foreach ($ids as $i => $idArea) {
+                $self->ejecutarPublico('UPDATE dbo.RO_T_DIR_AREAS SET ORDEN = ? WHERE ID = ?', array($i + 1, $idArea));
+            }
+            $self->ejecutarPublico('UPDATE dbo.RO_T_DIR_AREAS SET USUARIO_MODIF = ?, FECHA_MODIF = GETDATE() WHERE ID = ?', array($usuario, (int)$id));
+        });
+        return null;
+    }
+
+    /** Para los closures de enTransaccion (PHP 7.3: no hay $this tipado en closures estáticas). */
+    public function ejecutarPublico($sql, array $params)
+    {
+        return $this->ejecutar($sql, $params);
+    }
+
+    /** Reactiva un tema quitado (vuelve al final de su área). @return string|null motivo */
+    public function reactivarTema($idTema, $usuario)
+    {
+        $f = $this->filas('SELECT ID, ID_AREA, TEMA, ACTIVO FROM dbo.RO_T_DIR_TEMAS WHERE ID = ?', array((int)$idTema));
+        if (!$f) {
+            return 'El tema no existe.';
+        }
+        $area = $this->area((int)$f[0]['ID_AREA']);
+        foreach ($area ? $area['temas'] : array() as $t) {
+            if (Reglas::clave($t['tema']) === Reglas::clave($f[0]['TEMA'])) {
+                return 'Ya hay un tema activo con ese nombre en el área.';
+            }
+        }
+        $orden = 1;
+        foreach ($area ? $area['temas'] : array() as $t) {
+            $orden = max($orden, $t['orden'] + 1);
+        }
+        $this->ejecutar('UPDATE dbo.RO_T_DIR_TEMAS SET ACTIVO = 1, ORDEN = ?, USUARIO_BAJA = NULL, FECHA_BAJA = NULL,
+                                USUARIO_MODIF = ?, FECHA_MODIF = GETDATE() WHERE ID = ?', array($orden, $usuario, (int)$idTema));
+        $this->ejecutar('UPDATE dbo.RO_T_DIR_AREAS SET USUARIO_MODIF = ?, FECHA_MODIF = GETDATE() WHERE ID = ?',
+            array($usuario, (int)$f[0]['ID_AREA']));
+        $this->memo = array();
+        return null;
+    }
+
+    /**
+     * Valida (Ficha::validar) y guarda la ficha de un área en una transacción. Si algo no pasa,
+     * no se guarda nada y se devuelven los errores campo por campo.
+     * @return array ['ok', 'id', 'errores', 'errores_temas']
+     */
+    public function guardarFicha(array $entrada, $usuario)
+    {
+        require_once __DIR__ . '/Ficha.php';
+        $id = !empty($entrada['id']) ? (int)$entrada['id'] : null;
+        $areas = $this->areasCompletas();
+        $actual = null;
+        foreach ($areas as $a) {
+            if ($a['id'] === $id) {
+                $actual = $a;
+            }
+        }
+        if ($id !== null && (!$actual || !$actual['activa'])) {
+            return array('ok' => false, 'id' => $id, 'errores' => array('general' => 'El área no existe o está desactivada.'), 'errores_temas' => array());
+        }
+        $v = Ficha::validar($entrada, $actual, $areas, $actual ? $actual['temas_quitados'] : array(), $this->personas());
+        if (!$v['ok']) {
+            return array('ok' => false, 'id' => $id, 'errores' => $v['errores'], 'errores_temas' => $v['errores_temas']);
+        }
+
+        $self = $this;
+        $areasActivas = $this->areas(true);
+        $idGuardado = $this->enTransaccion(function () use ($self, $v, $id, $usuario, $areasActivas) {
+            $d = $v['datos'];
+            $vacio = function ($s) { return ($s === null || $s === '') ? null : $s; };
+            if ($id === null) {
+                $orden = 1;
+                foreach ($areasActivas as $a) {
+                    $orden = max($orden, $a['orden'] + 1);
+                }
+                $id = $self->insertarConId(
+                    'INSERT INTO dbo.RO_T_DIR_AREAS (NOMBRE, COLOR, ORDEN, RESUELVE, MAIL_SECTOR, CELULAR_SECTOR, HORARIO, ID_GERENTE, ID_JEFE, USUARIO_ALTA)',
+                    'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    array($d['nombre'], $d['color'], $orden, $vacio($d['resuelve']), $vacio($d['mail_sector']),
+                        $vacio($d['celular_sector']), $vacio($d['horario']), $d['id_gerente'], $d['id_jefe'], $usuario));
+            } else {
+                $self->ejecutarPublico(
+                    'UPDATE dbo.RO_T_DIR_AREAS
+                        SET NOMBRE = ?, COLOR = ?, RESUELVE = ?, MAIL_SECTOR = ?, CELULAR_SECTOR = ?, HORARIO = ?,
+                            ID_GERENTE = ?, ID_JEFE = ?, USUARIO_MODIF = ?, FECHA_MODIF = GETDATE()
+                      WHERE ID = ? AND ACTIVA = 1',
+                    array($d['nombre'], $d['color'], $vacio($d['resuelve']), $vacio($d['mail_sector']), $vacio($d['celular_sector']),
+                        $vacio($d['horario']), $d['id_gerente'], $d['id_jefe'], $usuario, $id));
+            }
+            // Bajas primero: así un tema nuevo puede llevar el nombre de uno que se quitó en la misma edición
+            foreach ($v['quitar'] as $idTema) {
+                $self->ejecutarPublico('UPDATE dbo.RO_T_DIR_TEMAS SET ACTIVO = 0, USUARIO_BAJA = ?, FECHA_BAJA = GETDATE()
+                                         WHERE ID = ? AND ID_AREA = ? AND ACTIVO = 1', array($usuario, $idTema, $id));
+            }
+            foreach ($v['temas'] as $t) {
+                $params = array($t['tema'], $t['orden'], $t['id_referente'], $t['referente_equipo'] ? 1 : 0, $vacio($t['palabras_clave']), $usuario);
+                if ($t['id'] === null) {
+                    $self->ejecutarPublico('INSERT INTO dbo.RO_T_DIR_TEMAS (TEMA, ORDEN, ID_REFERENTE, REFERENTE_EQUIPO, PALABRAS_CLAVE, USUARIO_ALTA, ID_AREA)
+                                             VALUES (?, ?, ?, ?, ?, ?, ?)', array_merge($params, array($id)));
+                } else {
+                    $self->ejecutarPublico('UPDATE dbo.RO_T_DIR_TEMAS
+                                               SET TEMA = ?, ORDEN = ?, ID_REFERENTE = ?, REFERENTE_EQUIPO = ?, PALABRAS_CLAVE = ?,
+                                                   USUARIO_MODIF = ?, FECHA_MODIF = GETDATE()
+                                             WHERE ID = ? AND ID_AREA = ?', array_merge($params, array($t['id'], $id)));
+                }
+            }
+            return $id;
+        });
+        return array('ok' => true, 'id' => $idGuardado, 'errores' => array(), 'errores_temas' => array());
+    }
+
+    /**
+     * Aplica un plan de Importacion::planificar() SIN errores, en una transacción, y deja el
+     * registro en RO_T_DIR_IMPORTACIONES. El plan se calcula de nuevo justo antes (no se usa el de
+     * la vista previa): si alguien cambió algo en el medio, se aplica sobre lo último.
+     * @return array resumen
+     */
+    public function aplicarImportacion(array $plan, $archivo, $usuario)
+    {
+        if ($plan['errores']) {
+            throw new RuntimeException('El plan tiene errores');
+        }
+        $self = $this;
+        return $this->enTransaccion(function () use ($self, $plan, $archivo, $usuario) {
+            $ids = array();   // clave de área → ID (para los temas de las áreas nuevas)
+            foreach ($plan['areas'] as $a) {
+                $val = $a['valores'];
+                if ($a['accion'] === 'crear') {
+                    $ids[$a['clave']] = $self->insertarConId(
+                        'INSERT INTO dbo.RO_T_DIR_AREAS (NOMBRE, COLOR, ORDEN, RESUELVE, MAIL_SECTOR, CELULAR_SECTOR, HORARIO, ID_GERENTE, ID_JEFE, USUARIO_ALTA)',
+                        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                        array($val['nombre'], $val['color'], $val['orden'], $val['resuelve'], $val['mail_sector'], $val['celular_sector'],
+                            $val['horario'], $val['id_gerente'], $val['id_jefe'], $usuario));
+                    continue;
+                }
+                $ids[$a['clave']] = $a['id'];
+                if ($a['accion'] === 'actualizar') {
+                    $columnas = array('orden' => 'ORDEN', 'color' => 'COLOR', 'resuelve' => 'RESUELVE', 'mail_sector' => 'MAIL_SECTOR',
+                        'celular_sector' => 'CELULAR_SECTOR', 'horario' => 'HORARIO', 'id_gerente' => 'ID_GERENTE', 'id_jefe' => 'ID_JEFE');
+                    $set = array();
+                    $params = array();
+                    foreach ($val as $campo => $valor) {
+                        $set[] = $columnas[$campo] . ' = ?';
+                        $params[] = $valor;
+                    }
+                    $params[] = $usuario;
+                    $params[] = $a['id'];
+                    $self->ejecutarPublico('UPDATE dbo.RO_T_DIR_AREAS SET ' . implode(', ', $set) . ', USUARIO_MODIF = ?, FECHA_MODIF = GETDATE()
+                                             WHERE ID = ? AND ACTIVA = 1', $params);
+                }
+            }
+            foreach ($plan['temas'] as $t) {
+                $val = $t['valores'];
+                if ($t['accion'] === 'crear') {
+                    $self->ejecutarPublico(
+                        'INSERT INTO dbo.RO_T_DIR_TEMAS (ID_AREA, TEMA, ORDEN, ID_REFERENTE, REFERENTE_EQUIPO, PALABRAS_CLAVE, USUARIO_ALTA)
+                         VALUES (?, ?, ?, ?, ?, ?, ?)',
+                        array($ids[$t['clave_area']], $val['tema'], $val['orden'], $val['id_referente'], $val['referente_equipo'] ? 1 : 0,
+                            $val['palabras_clave'] !== '' ? $val['palabras_clave'] : null, $usuario));
+                } elseif ($t['accion'] === 'actualizar') {
+                    $set = array();
+                    $params = array();
+                    if (array_key_exists('id_referente', $val)) {
+                        $set[] = 'ID_REFERENTE = ?, REFERENTE_EQUIPO = ?';
+                        $params[] = $val['id_referente'];
+                        $params[] = $val['referente_equipo'] ? 1 : 0;
+                    }
+                    if (array_key_exists('palabras_clave', $val)) {
+                        $set[] = 'PALABRAS_CLAVE = ?';
+                        $params[] = $val['palabras_clave'];
+                    }
+                    $params[] = $usuario;
+                    $params[] = $t['id'];
+                    $self->ejecutarPublico('UPDATE dbo.RO_T_DIR_TEMAS SET ' . implode(', ', $set) . ', USUARIO_MODIF = ?, FECHA_MODIF = GETDATE()
+                                             WHERE ID = ? AND ACTIVO = 1', $params);
+                }
+            }
+            $r = $plan['resumen'];
+            $detalle = json_encode(array(
+                'areas' => array_values(array_filter($plan['areas'], function ($x) { return $x['accion'] !== 'igual'; })),
+                'temas' => array_values(array_filter($plan['temas'], function ($x) { return $x['accion'] !== 'igual'; })),
+                'avisos' => $plan['avisos'],
+            ), JSON_UNESCAPED_UNICODE);
+            $self->ejecutarPublico(
+                'INSERT INTO dbo.RO_T_DIR_IMPORTACIONES (ARCHIVO, AREAS_CREADAS, AREAS_ACTUALIZADAS, TEMAS_CREADOS, TEMAS_ACTUALIZADOS,
+                                                         FILAS_OMITIDAS, AVISOS, DETALLE, USUARIO_ALTA)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                array(mb_substr((string)$archivo, 0, 255, 'UTF-8'), $r['areas_crear'], $r['areas_actualizar'], $r['temas_crear'],
+                    $r['temas_actualizar'], $plan['omitidas'], count($plan['avisos']), $detalle, $usuario));
+            return $r;
+        });
     }
 
     /* ================================================================ Registro de búsquedas */
