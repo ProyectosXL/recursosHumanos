@@ -1,6 +1,6 @@
 <?php
 /**
- * Estructura XL - acciones de administración (requieren el permiso estructura.administrar)
+ * Estructura XL - acciones de administración (requieren el permiso directorio.administrar)
  *
  * Toda acción pasa primero por Permisos::autorizarAdmin(): sin sesión del hub, sin permiso, sin
  * POST o sin CSRF responde error y no toca nada, aunque se la llame directo. La validación manda

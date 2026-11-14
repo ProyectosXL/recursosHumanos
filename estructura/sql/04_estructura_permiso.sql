@@ -11,16 +11,21 @@
       NO ACTIVAR este módulo: aparecería como app suelta en el hub.
 
     - Permiso (FP_PERMISOS, colgado del módulo ESTRUCTURA):
-        estructura.administrar   alta, baja y edición de áreas y de sus fichas, importación de
+        directorio.administrar   alta, baja y edición de áreas y de sus fichas, importación de
                                  Excel y panel de búsquedas sin resultado.
       No empieza con "hub.app.": no toca qué apps ve cada rol en el hub.
       El administrador total lo tiene (Auth::puede devuelve true).
-      Ojo: ya existe "estructura.ver" en el módulo NODO (la estructura organizacional de Nodo).
-      No tiene relación con este; por eso éste cuelga de su propio módulo y dice [Directorio].
+      Se llama "directorio." y no "estructura." porque ya existe "estructura.ver" en el módulo
+      NODO (el organigrama de Nodo), que no tiene relación: con el mismo prefijo se confundían
+      al asignar permisos desde Gestionusuarios.
+
+    - RENOMBRE: la primera versión de este script creaba "estructura.administrar". Si esa fila
+      existe, se renombra a "directorio.administrar" conservando su id, así los roles que ya lo
+      tuvieran asignado lo siguen teniendo.
 
     - NO asigna el permiso a ningún rol: Ramiro lo asigna a los roles de Innovación desde el hub.
 
-    - Etapa siguiente (no se crea ahora): un permiso estructura.editar_ficha para los responsables
+    - Etapa siguiente (no se crea ahora): un permiso directorio.editar_ficha para los responsables
       de cada área. Se suma a esta lista y a Permisos::puedeEditarArea(); no hay que rehacer nada.
 
     Script idempotente: se puede correr más de una vez. Si el módulo o el permiso ya existen,
@@ -45,9 +50,16 @@ GO
 
 DECLARE @moduloId INT = (SELECT id FROM dbo.FP_MODULOS WHERE codigo = 'ESTRUCTURA');
 
+-- Renombre de la clave vieja (ver arriba). Sólo si la nueva todavía no existe.
+UPDATE dbo.FP_PERMISOS
+   SET clave = 'directorio.administrar'
+ WHERE clave = 'estructura.administrar'
+   AND modulo_id = @moduloId
+   AND NOT EXISTS (SELECT 1 FROM dbo.FP_PERMISOS WHERE clave = 'directorio.administrar');
+
 DECLARE @permisos TABLE (clave VARCHAR(100), nombre VARCHAR(100), descripcion VARCHAR(255));
 INSERT INTO @permisos (clave, nombre, descripcion) VALUES
-    ('estructura.administrar', 'Administrar áreas del Directorio',
+    ('directorio.administrar', 'Administrar áreas del Directorio',
      '[Directorio] Alta, baja y edición de áreas y fichas, importación de Excel y búsquedas sin resultado');
 
 UPDATE p

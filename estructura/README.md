@@ -11,8 +11,8 @@ Vive en `recursosHumanos/estructura/`. Usa la sesión, `Auth` y `ConexionApps` d
 | Guía de Consultas | `/recursosHumanos/estructura/` y `/recursosHumanos/estructura/guia/` | No |
 | Contactos por área | `/recursosHumanos/estructura/contactos/` | No |
 | Internos | `/recursosHumanos/estructura/internos/` | No |
-| Administrar áreas | `/recursosHumanos/estructura/admin/` | Hub + permiso `estructura.administrar` |
-| Ficha de un área (Editar y Nueva área) | `/recursosHumanos/estructura/admin/area.php?id=N` | Hub + permiso `estructura.administrar` |
+| Administrar áreas | `/recursosHumanos/estructura/admin/` | Hub + permiso `directorio.administrar` |
+| Ficha de un área (Editar y Nueva área) | `/recursosHumanos/estructura/admin/area.php?id=N` | Hub + permiso `directorio.administrar` |
 | Administrar internos (ABM) | `/recursosHumanos/estructura/internos/listado.php` | Hub (la regla de siempre, ver Permisos) |
 
 Todas comparten el mismo menú lateral (`partials/menu.php`) y la estética de XL Gestión. En el celular, el menú queda arriba y las fichas pasan a una columna. Los ítems de administración del menú se dibujan sólo si ya hay una sesión del hub con permiso: el menú nunca obliga a loguearse.
@@ -98,19 +98,19 @@ Sin ningún script corrido, Internos funciona igual que antes: no usa nada del D
 
 ## Permisos
 
-- **`estructura.administrar`**, en `FP_PERMISOS`, módulo `ESTRUCTURA`, que queda inactivo a propósito para no aparecer como app en el hub.
+- **`directorio.administrar`**, en `FP_PERMISOS`, módulo `ESTRUCTURA`, que queda inactivo a propósito para no aparecer como app en el hub.
   - Da acceso a Administrar áreas, la ficha, la importación y el panel de búsquedas.
   - Se asigna desde el hub (Gestionusuarios) a los roles de Innovación. El script no lo asigna a ningún rol.
   - El administrador total lo tiene siempre.
   - Toda acción de administración se valida en el servidor (`ajax/admin.php` → `Permisos::autorizarAdmin()`), aunque se la llame directo.
-  - Ojo: existe otro permiso, `estructura.ver`, del módulo NODO (el organigrama de Nodo). No tiene relación con este.
+  - Se llama `directorio.` y no `estructura.` porque ya existe `estructura.ver`, del módulo NODO (el organigrama de Nodo), que no tiene relación. El script 04 renombra la fila `estructura.administrar` si ya existe, conservando su id y los roles asignados.
 - **Administrar internos.** El ítem se ve si hay sesión del hub y alguno de los tres permisos del ABM es verdadero. La regla es la de `comercial/recepcion/listado.php`:
   - crear: sólo admin o Sistemas;
   - editar y desactivar: admin, Sistemas o Recepcionista.
 - **Etapa siguiente: un permiso por área**, para los responsables de cada ficha. Se suma **sin rehacer nada**:
-  - todo lo que toca una ficha ya pasa por `Permisos::puedeEditarArea($idArea)`, que hoy sólo mira `estructura.administrar`;
+  - todo lo que toca una ficha ya pasa por `Permisos::puedeEditarArea($idArea)`, que hoy sólo mira `directorio.administrar`;
   - para sumar responsables:
-    1. agregar en `sql/04` un permiso `estructura.editar_ficha`;
+    1. agregar en `sql/04` un permiso `directorio.editar_ficha`;
     2. crear una tabla `RO_T_DIR_AREAS_RESPONSABLES` (ID_AREA, USUARIO, más la auditoría);
     3. en `puedeEditarArea()`, devolver verdadero también si el usuario tiene ese permiso y es responsable del área.
 
@@ -146,7 +146,7 @@ Los corre Ramiro, en este orden. Todos son idempotentes: se pueden correr más d
 | 1 | `sql/01_internos_id.sql` | Central | Sólo verifica que `RO_T_INTERNOS_PERSONAL.ID` sea IDENTITY y único. No modifica nada. |
 | 2 | `sql/02_directorio_tablas.sql` | Central | Crea `dbo.RO_FN_DIR_CLAVE` y las tablas `RO_T_DIR_*`. |
 | 3 | `sql/03_directorio_carga_inicial.sql` | Central | Carga las 6 áreas y sus temas. Resuelve las personas por nombre contra Internos y avisa con `PRINT` las que no encuentra. Sólo agrega lo que falta: no pisa ediciones. |
-| 4 | `sql/04_estructura_permiso.sql` | **XL-APPS** | Crea el módulo `ESTRUCTURA` y el permiso `estructura.administrar`, sin asignarlo a ningún rol. |
+| 4 | `sql/04_estructura_permiso.sql` | **XL-APPS** | Crea el módulo `ESTRUCTURA` y el permiso `directorio.administrar`, sin asignarlo a ningún rol. Si ya se había corrido la versión que creaba `estructura.administrar`, hay que volver a correrlo: renombra esa fila. |
 
 Después: asignar el permiso a los roles de Innovación desde el hub, y mover la carpeta de fotos (ver abajo).
 

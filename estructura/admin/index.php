@@ -1,6 +1,6 @@
 <?php
 /**
- * Administrar áreas - requiere sesión del hub con el permiso estructura.administrar.
+ * Administrar áreas - requiere sesión del hub con el permiso directorio.administrar.
  * Referencia: docs/maquetas/Areas.dc.html, SIN la columna "Responsables de la ficha" (es de una
  * etapa siguiente).
  *

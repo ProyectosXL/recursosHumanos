@@ -9,7 +9,7 @@
  * - Administrar áreas y fichas: permiso del hub ESTRUCTURA_PERMISO_ADMINISTRAR (FP_PERMISOS,
  *   sql/04_estructura_permiso.sql). Hoy es centralizado (Innovación).
  *   Etapa siguiente, sin rehacer nada: todo lo de una ficha pasa por puedeEditarArea($idArea);
- *   alcanza con sumar ahí "o es responsable de esa área" (un permiso estructura.editar_ficha y una
+ *   alcanza con sumar ahí "o es responsable de esa área" (un permiso directorio.editar_ficha y una
  *   tabla de responsables por área). Las pantallas y los endpoints ya preguntan por área.
  * - Administrar internos (ABM): la regla que tenía comercial/recepcion/listado.php, sin cambios.
  *
@@ -17,7 +17,7 @@
  */
 
 if (!defined('ESTRUCTURA_PERMISO_ADMINISTRAR')) {
-    define('ESTRUCTURA_PERMISO_ADMINISTRAR', 'estructura.administrar');
+    define('ESTRUCTURA_PERMISO_ADMINISTRAR', 'directorio.administrar');
 }
 
 class Permisos
