@@ -1,23 +1,47 @@
-
 <?php
 /**
  * Internos - acciones AJAX (migrado desde comercial/recepcion/ajax/interno_ajax.php).
- * A propósito NO arranca la sesión: el original tampoco (la conexión de comercial sólo la abría
- * para las bases de sucursal, no para 'central'), así que acá el filtro de "Direccion" según
- * $_SESSION['entorno'] nunca se aplicaba y el selector de sectores del ABM trae "Direccion".
- * Se mantiene igual para no cambiar el comportamiento.
+ *
+ * Permisos: el original no validaba nada en el servidor; cualquiera, sin login, podía guardar o
+ * desactivar llamando a esta URL. Ahora cada acción pide el permiso de la tabla
+ * Permisos::permisoAccionInternos() (la regla de siempre del ABM) y las que escriben piden CSRF.
+ * buscar y getSectores siguen públicas: las usa la vista de Internos, que no pide login.
+ *
+ * Abre la sesión (antes no) porque la necesita para saber quién llama. Efecto a cuidar: el filtro
+ * de "Direccion" de getSectores() depende de la sesión; acá se llama sin filtro para que el
+ * selector del ABM siga trayendo todos los sectores, como siempre.
  */
+require_once __DIR__ . '/../Class/bootstrap.php';
 require_once __DIR__ . '/../Class/Interno.php';
+require_once __DIR__ . '/../Class/Permisos.php';
 
 header('Content-Type: application/json');
 
+/** Corta con un error JSON (sin debug_info: no se le muestra la traza a quien no tiene permiso). */
+function internosAjaxRechazar($codigo, $mensaje)
+{
+    http_response_code($codigo);
+    echo json_encode(array('success' => false, 'message' => $mensaje));
+    exit;
+}
+
+$action = isset($_POST['action']) ? (string)$_POST['action'] : '';
+
+$requerido = Permisos::permisoAccionInternos($action, $_POST);
+if ($requerido !== null) {
+    if (!Auth::check()) {
+        internosAjaxRechazar(401, 'Tu sesión terminó. Volvé a ingresar.');
+    }
+    if (!Permisos::alcanzaPermisoInternos($requerido, Permisos::abmInternos())) {
+        internosAjaxRechazar(403, 'Tu usuario no tiene permiso para esta acción.');
+    }
+}
+if (Permisos::accionInternosEscribe($action) && !Permisos::csrfValido(isset($_POST['csrf']) ? $_POST['csrf'] : null)) {
+    internosAjaxRechazar(403, 'La página quedó vieja. Recargala y probá de nuevo.');
+}
+
 try {
     $interno = new Interno();
-    $action = $_POST['action'] ?? '';
-    
-    // Debug - Registrar datos recibidos
-    error_log("Action recibida: " . $action);
-    error_log("POST data: " . print_r($_POST, true));
 
     switch($action) {
         case 'guardar':
@@ -30,16 +54,11 @@ try {
                 'modoEdicion' => $_POST['modoEdicion'] ?? '',
                 'nombreApellidoOriginal' => $_POST['nombreApellidoOriginal'] ?? ''
             ];
-            
-            error_log("Datos a guardar: " . print_r($datos, true));
-            
             $response = $interno->guardarEmpleado($datos);
-            
-            error_log("Respuesta del guardado: " . print_r($response, true));
             break;
 
         case 'getSectores':
-            $response = $interno->getSectores();
+            $response = $interno->getSectores(false);
             break;
 
         case 'buscar':
@@ -47,18 +66,21 @@ try {
             $sector = $_POST['sector'] ?? '';
             $response = $interno->buscarInternos($busqueda, $sector);
             break;
-        
+
+        case 'listarAbm':
+            $response = $interno->listarParaAbm($_POST['busqueda'] ?? '', !empty($_POST['incluirInactivos']));
+            break;
+
         case 'toggleStatus':
             $nombre_apellido = $_POST['nombre_apellido'] ?? null;
             $status = $_POST['status'] ?? null;
-                
+
             if ($nombre_apellido === null || $status === null) {
                 throw new Exception('Parámetros incompletos');
             }
-                
-            error_log("Toggle Status - Nombre: " . $nombre_apellido . ", Status: " . $status);
             $response = $interno->toggleStatus($nombre_apellido, $status);
             break;
+
         case 'getEmpleado':
             $nombre_apellido = $_POST['nombre_apellido'] ?? null;
             if (!$nombre_apellido) {
@@ -74,15 +96,7 @@ try {
     echo json_encode($response);
 
 } catch (Exception $e) {
-    error_log("Error en interno_ajax: " . $e->getMessage());
-    $error_response = [
-        'success' => false,
-        'message' => $e->getMessage(),
-        'debug_info' => [
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-            'trace' => $e->getTraceAsString()
-        ]
-    ];
-    echo json_encode($error_response);
+    // El detalle (archivo, línea, traza) va al log, no a la respuesta: el original lo devolvía
+    error_log("Error en internos/ajax.php: " . $e->getMessage());
+    echo json_encode(array('success' => false, 'message' => $e->getMessage()));
 }

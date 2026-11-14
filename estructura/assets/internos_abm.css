@@ -234,3 +234,6 @@ body {
     background-color: #5a6268;
     border-color: #545b62;
 }
+/* Personas desactivadas (filtro "Ver también las personas desactivadas"): se distinguen sin esconderse */
+.fila-inactiva td { color: #8A8178; }
+.fila-inactiva .fw-semibold { text-decoration: line-through; }

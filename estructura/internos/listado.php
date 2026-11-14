@@ -1,4 +1,3 @@
-
 <?php
 /**
  * Administrar internos (ABM) - migrado desde comercial/recepcion/listado.php.
@@ -10,31 +9,22 @@
  */
 require_once __DIR__ . '/../Class/bootstrap.php';
 require_once __DIR__ . '/../Class/Interno.php';
+require_once __DIR__ . '/../Class/Permisos.php';
 
 Auth::exigir();
-$user = Auth::usuario();
-$username = Auth::username();
-$esAdmin = Auth::esAdmin();
 
-$rol = $_SESSION['rol'] ?? ($user['rol'] ?? '');
-$rolNom = strtoupper(trim($user['rol_nombre'] ?? $rol ?? ''));
-$sectorCod = strtoupper($user['sector_codigo'] ?? '');
-$sectorNom = strtoupper($user['sector_nombre'] ?? '');
-$subsectorNom = strtoupper($user['subsector_nombre'] ?? '');
+// La regla de siempre, ahora en Permisos::reglaAbmInternos() para que ajax.php y el menú usen
+// la misma. Antes $puede_editar y $puede_eliminar se calculaban pero no se usaban: cualquier
+// usuario logueado podía editar y desactivar. Ahora esconden los botones y el servidor las valida.
+$abm = Permisos::abmInternos();
+$puede_crear    = $abm['crear'];
+$puede_editar   = $abm['editar'];
+$puede_eliminar = $abm['eliminar'];
 
-$es_admin_sistemas = $esAdmin 
-                  || in_array(strtolower($rol), ['admin', 'sistemas', 'gerencia_adm', 'superadmin', 'controltotal']) 
-                  || in_array(strtolower($username ?? ''), ['admin', 'sistemas', 'francopertus', 'franco.pertus'])
-                  || in_array($sectorCod, ['SISTEMAS', 'IT']);
-
-$es_recepcionista = ($rolNom === 'RECEPCIONISTA' || ($user['rol_id'] ?? 0) == 18)
-                 || ($sectorNom === 'COMERCIAL Y VENTAS' && $subsectorNom === 'ANALISTAS' && $rolNom === 'RECEPCIONISTA');
-
-$puede_crear    = $es_admin_sistemas;
-$puede_editar   = $es_admin_sistemas || $es_recepcionista;
-$puede_eliminar = $es_admin_sistemas || $es_recepcionista;
-
-$interno = new Interno();
+$estructuraJsExtra = array(
+    'abm'  => $abm,
+    'csrf' => Permisos::csrf(),
+);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -78,6 +68,13 @@ $interno = new Interno();
                                         class="search-input" 
                                         placeholder="Buscar por nombre, sector, mail..."
                                         autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-center mt-2 mt-md-0">
+                                <!-- Antes el ABM sólo listaba activos: una persona desactivada no se podía reactivar -->
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="verInactivos">
+                                    <label class="form-check-label" for="verInactivos">Ver también las personas desactivadas</label>
                                 </div>
                             </div>
                         </div>

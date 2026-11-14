@@ -1,3 +1,19 @@
+/*
+ * Administrar internos (ABM) - migrado desde comercial/recepcion/js/listado.js.
+ *
+ * Permisos: window.ESTRUCTURA.abm = {crear, editar, eliminar} sale de Permisos::abmInternos(),
+ * la misma regla que valida ajax.php. Acá sólo se esconden los botones: el servidor es el que manda.
+ * Los nombres van en atributos data-* (no dentro de onclick="..."): un apellido con apóstrofo
+ * (D'Almeida) cortaba el onclick y el botón no hacía nada.
+ */
+const ABM = (window.ESTRUCTURA && window.ESTRUCTURA.abm) || { crear: false, editar: false, eliminar: false };
+const CSRF = (window.ESTRUCTURA && window.ESTRUCTURA.csrf) || '';
+
+function esc(valor) {
+    return String(valor == null ? '' : valor)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 
 // Event Listeners
 $(document).ready(function() {
@@ -6,11 +22,18 @@ $(document).ready(function() {
     let timeoutId;
     $('#searchInput').on('input', function() {
         clearTimeout(timeoutId);
-        const searchValue = $(this).val();
-        
         timeoutId = setTimeout(() => {
-            cargarDatos(searchValue);
+            cargarDatos();
         }, 300);
+    });
+    $('#verInactivos').on('change', function() {
+        cargarDatos();
+    });
+    $('#tableBody').on('click', '[data-accion="estado"]', function() {
+        toggleStatus($(this).data('nombre'), $(this).data('nuevo'));
+    });
+    $('#tableBody').on('click', '[data-accion="editar"]', function() {
+        editarRegistro($(this).data('nombre'));
     });
 });
 
@@ -18,43 +41,48 @@ $(document).ready(function() {
 let currentData = [];
 
 function createTableRow(empleado) {
+    const inactivo = empleado.inactivo == 1;
+    const nombre = esc(empleado.nombre_apellido);
+    const estado = `<i class="bi ${inactivo ? 'bi-x-circle' : 'bi-check-circle'} me-1"></i>${inactivo ? 'Inactivo' : 'Activo'}`;
     return `
-        <tr>
-            <td>${empleado.interno || '-'}</td>
+        <tr class="${inactivo ? 'fila-inactiva' : ''}">
+            <td>${esc(empleado.interno) || '-'}</td>
             <td>
-                <div class="fw-semibold">${empleado.nombre_apellido}</div>
+                <div class="fw-semibold">${nombre}</div>
             </td>
-            <td>${empleado.sector || '-'}</td>
+            <td>${esc(empleado.sector) || '-'}</td>
             <td>
                 ${empleado.mail ? 
-                    `<a href="mailto:${empleado.mail}" class="text-decoration-none text-primary">
-                        ${empleado.mail}
+                    `<a href="mailto:${esc(empleado.mail)}" class="text-decoration-none text-primary">
+                        ${esc(empleado.mail)}
                     </a>` : 
                     '-'
                 }
             </td>
-            <td>${empleado.celular || '-'}</td>
+            <td>${esc(empleado.celular) || '-'}</td>
             <td class="text-center">
-                <button class="btn ${empleado.inactivo == 1 ? 'btn-danger' : 'btn-success'} btn-status" 
-                        onclick="toggleStatus('${empleado.nombre_apellido}', ${empleado.inactivo == 1 ? 0 : 1})"
+                ${ABM.eliminar ? `
+                <button type="button" class="btn ${inactivo ? 'btn-danger' : 'btn-success'} btn-status"
+                        data-accion="estado" data-nombre="${nombre}" data-nuevo="${inactivo ? 0 : 1}"
+                        aria-label="${inactivo ? 'Reactivar' : 'Desactivar'} a ${nombre}"
                         style="width: 100px;">
-                    <i class="bi ${empleado.inactivo == 1 ? 'bi-x-circle' : 'bi-check-circle'} me-1"></i>
-                    ${empleado.inactivo == 1 ? 'Inactivo' : 'Activo'}
-                </button>
+                    ${estado}
+                </button>` : `<span class="badge ${inactivo ? 'bg-danger' : 'bg-success'}">${estado}</span>`}
             </td>
             <td class="text-end">
-                <button class="btn btn-edit" onclick="editarRegistro('${empleado.nombre_apellido}')"
+                ${ABM.editar ? `
+                <button type="button" class="btn btn-edit" data-accion="editar" data-nombre="${nombre}"
                         style="width: 100px;">
                     <i class="bi bi-pencil-square me-1"></i>
                     Editar
-                </button>
+                </button>` : ''}
             </td>
         </tr>
     `;
 }
 
 
-function cargarDatos(busqueda = '') {
+function cargarDatos() {
     $('#loadingState').removeClass('d-none');
     $('#emptyState').addClass('d-none');
     $('#tableBody').empty();
@@ -63,8 +91,10 @@ function cargarDatos(busqueda = '') {
         url: window.ESTRUCTURA.internosAjax,
         method: 'POST',
         data: {
-            action: 'buscar',
-            busqueda: busqueda
+            // listarAbm: como 'buscar' (mismo filtro por nombre), pero puede traer a los desactivados
+            action: 'listarAbm',
+            busqueda: $('#searchInput').val() || '',
+            incluirInactivos: $('#verInactivos').is(':checked') ? 1 : 0
         },
         success: function(response) {
             $('#loadingState').addClass('d-none');
@@ -78,12 +108,15 @@ function cargarDatos(busqueda = '') {
                 $('#tableBody').html(html);
             } else {
                 $('#emptyState').removeClass('d-none');
+                if (response && response.success === false) {
+                    mostrarNotificacion(response.message, 'error');
+                }
             }
         },
         error: function(xhr, status, error) {
             $('#loadingState').addClass('d-none');
             console.error('Error:', error);
-            // Mostrar mensaje de error
+            mostrarNotificacion('Error al cargar el listado', 'error');
         }
     });
 }
@@ -103,11 +136,9 @@ function initializeModal() {
     // Agregar event listeners
     document.getElementById('saveEmpleado').addEventListener('click', guardarEmpleado);
     document.getElementById('empleadoModal').addEventListener('hidden.bs.modal', resetearFormulario);
-    
-    // Agregar listener para el botón de nuevo registro
-    document.querySelector('.btn-primary[onclick="nuevoRegistro()"]').addEventListener('click', nuevoRegistro);
+    // "Nuevo Registro" llama a nuevoRegistro() desde su onclick. Antes se le sumaba otro listener
+    // con querySelector: si el usuario no podía crear el botón no existía y el JS tiraba un error.
 }
-
 function nuevoRegistro() {
     // Limpiar el formulario
     resetearFormulario();
@@ -131,7 +162,8 @@ function nuevoRegistro() {
 }
 
 function cargarSectores() {
-    $.ajax({
+    // Devuelve la promesa: editarRegistro() espera a los sectores con .then() (antes devolvía undefined)
+    return $.ajax({
         url: window.ESTRUCTURA.internosAjax,
         method: 'POST',
         data: { action: 'getSectores' },
@@ -145,7 +177,7 @@ function cargarSectores() {
                 response.forEach(sector => {
                     if (sector) { // Verificar que el sector no esté vacío
                         sectorSelect.innerHTML += `
-                            <option value="${sector}">${sector}</option>
+                            <option value="${esc(sector)}">${esc(sector)}</option>
                         `;
                     }
                 });
@@ -264,6 +296,7 @@ function guardarEmpleado() {
     
     // Asegurarnos de que el modo edición se envía correctamente
     datos.action = 'guardar';
+    datos.csrf = CSRF;
     datos.modoEdicion = document.getElementById('modoEdicion').value;
     datos.nombreApellidoOriginal = document.getElementById('nombreApellidoOriginal').value;
 
@@ -379,7 +412,8 @@ function resetValidation() {
 function toggleStatus(nombre_apellido, newStatus) {
     Swal.fire({
         title: `¿Está seguro de ${newStatus == 0 ? 'habilitar' : 'inhabilitar'} este empleado?`,
-        text: "No podrá ser revertido posteriormente.",
+        // Ya no dice "No podrá ser revertido": con "Ver también las personas desactivadas" se reactiva
+        text: newStatus == 0 ? 'Vuelve a aparecer en Internos.' : 'Deja de aparecer en Internos. Se puede reactivar desde este listado.',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#0D5C63',
@@ -393,6 +427,7 @@ function toggleStatus(nombre_apellido, newStatus) {
                 method: 'POST',
                 data: {
                     action: 'toggleStatus',
+                    csrf: CSRF,
                     nombre_apellido: nombre_apellido,
                     status: newStatus
                 },

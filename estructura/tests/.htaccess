@@ -1,0 +1,5 @@
+# Las pruebas PHP se corren por consola (php estructura/tests/run.php), nunca desde el navegador.
+# paridad.html si se abre en el navegador: prueba el normalizador JS.
+<FilesMatch "\.php$">
+    Require all denied
+</FilesMatch>

@@ -162,14 +162,20 @@ class Interno {
         return null;
     }
 
-    public function getSectores() {
+    /**
+     * @param bool $filtrarDireccion Sacar "Direccion" según $_SESSION['entorno'] (regla de siempre,
+     *   ver README: pendiente de definir). El ABM pasa false: su ajax no abría la sesión, así que el
+     *   selector de sectores del ABM siempre trajo "Direccion"; ahora que ajax.php abre la sesión
+     *   (para validar permisos), sin este parámetro un admin no podría elegir ese sector.
+     */
+    public function getSectores($filtrarDireccion = true) {
         try {
-            $query = "SELECT DISTINCT sector 
-                      FROM RO_T_INTERNOS_PERSONAL 
+            $query = "SELECT DISTINCT sector
+                      FROM RO_T_INTERNOS_PERSONAL
 
                       WHERE sector IS NOT NULL";
 
-        if (isset($_SESSION['entorno']) && $_SESSION['entorno'] == 'sistemas') {
+        if ($filtrarDireccion && isset($_SESSION['entorno']) && $_SESSION['entorno'] == 'sistemas') {
             $query .= " AND sector != 'Direccion'";
         }
 
@@ -246,6 +252,52 @@ class Interno {
             return $results;
         } catch (Exception $e) {
             error_log("Error en buscarInternos: " . $e->getMessage());
+            return array();
+        }
+    }
+
+    /**
+     * Listado del ABM: el mismo filtro por nombre que buscarInternos(), pero puede traer a las
+     * personas desactivadas. Antes el ABM usaba buscarInternos() (sólo activos) y una persona dada
+     * de baja no se podía reactivar. Sin filtro de "Direccion": quien administra ve a todos.
+     */
+    public function listarParaAbm($busqueda, $incluirInactivos) {
+        try {
+            $query = "SELECT
+                        ISNULL(nombre_apellido, '') as nombre_apellido,
+                        ISNULL(sector, '') as sector,
+                        ISNULL(mail, '') as mail,
+                        ISNULL(celular, '') as celular,
+                        ISNULL(interno, '') as interno,
+                        ISNULL(INACTIVO, 0) as inactivo
+                      FROM RO_T_INTERNOS_PERSONAL
+                      WHERE nombre_apellido LIKE ?";
+            $params = array('%' . $busqueda . '%');
+            if (!$incluirInactivos) {
+                $query .= " AND ISNULL(INACTIVO, 0) = 0";
+            }
+            // Activos primero: los desactivados quedan al final, para no tapar el uso de siempre
+            $query .= " ORDER BY ISNULL(INACTIVO, 0), nombre_apellido";
+
+            $stmt = sqlsrv_query($this->cid_central, $query, $params);
+            if ($stmt === false) {
+                throw new Exception(print_r(sqlsrv_errors(), true));
+            }
+
+            $results = array();
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $results[] = array(
+                    'nombre_apellido' => trim($row['nombre_apellido']) ?: 'Sin Nombre',
+                    'sector' => trim($row['sector']) ?: 'Sin Sector',
+                    'mail' => trim($row['mail']),
+                    'celular' => trim($row['celular']),
+                    'interno' => trim($row['interno']),
+                    'inactivo' => (int)$row['inactivo'],
+                );
+            }
+            return $results;
+        } catch (Exception $e) {
+            error_log("Error en listarParaAbm: " . $e->getMessage());
             return array();
         }
     }
