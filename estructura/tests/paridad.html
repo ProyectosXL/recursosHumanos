@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paridad del normalizador JS</title>
+<!--
+    Prueba que assets/normalizar.js da lo mismo que Reglas.php: corre los MISMOS casos que
+    tests/test_busqueda.php (casos_compartidos.json + fixture_directorio.json), con el mapa de
+    tildes y las palabras vacías que manda PHP (ajax/consulta.php?accion=reglas), como en la Guía.
+
+    Abrir en el navegador: /recursosHumanos/estructura/tests/paridad.html
+    (No hay Node en los equipos; por eso la prueba JS es una página.)
+    El título queda "Paridad OK" o "Paridad FALLA", para poder mirarlo también con Chrome headless.
+-->
+<style>
+    body { font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif; background: #F6F3EF; color: #1C1916; margin: 32px; }
+    h1 { font-size: 22px; }
+    .ok { color: #17663A; }
+    .falla { color: #B42318; font-weight: 700; }
+    li { margin: 2px 0; font-size: 14px; }
+</style>
+</head>
+<body>
+<h1 id="resumen">Corriendo…</h1>
+<ul id="detalle"></ul>
+<script src="../assets/normalizar.js"></script>
+<script>
+(function () {
+    'use strict';
+    var detalle = document.getElementById('detalle');
+    var ok = 0, fallas = 0;
+
+    function igual(esperado, obtenido, nombre) {
+        var a = JSON.stringify(esperado), b = JSON.stringify(obtenido);
+        var li = document.createElement('li');
+        if (a === b) { ok++; li.className = 'ok'; li.textContent = 'OK  ' + nombre; }
+        else { fallas++; li.className = 'falla'; li.textContent = 'FALLA  ' + nombre + ': esperado ' + a + ', obtenido ' + b; }
+        detalle.appendChild(li);
+    }
+
+    function json(url) {
+        return fetch(url, { cache: 'no-store' }).then(function (r) {
+            if (!r.ok) { throw new Error(url + ' → ' + r.status); }
+            return r.json();
+        });
+    }
+
+    Promise.all([
+        json('../ajax/consulta.php?accion=reglas'),
+        json('casos_compartidos.json'),
+        json('fixture_directorio.json')
+    ]).then(function (r) {
+        var n = EstructuraNormalizar.crear(r[0]);
+        var casos = r[1], temas = r[2].temas;
+
+        casos.normalizar.forEach(function (c) {
+            igual(c.normalizado, n.normalizar(c.texto), 'normalizar ' + JSON.stringify(c.texto));
+        });
+        casos.caracteresUtiles.forEach(function (c) {
+            igual(c.caracteres, n.caracteresUtiles(c.texto), 'caracteres útiles ' + JSON.stringify(c.texto));
+        });
+        casos.busqueda.forEach(function (c) {
+            var res = n.buscar(c.consulta, temas, c.area).map(function (t) { return t.area + ' › ' + t.tema; });
+            igual(c.esperados, res, 'buscar ' + JSON.stringify(c.consulta) + (c.area ? ' en el área ' + c.area : ''));
+        });
+        // Registro: mismos casos que test_busqueda.php
+        igual(false, n.debeRegistrar('pc', ''), 'no registra "pc"');
+        igual(false, n.debeRegistrar('no me la', ''), 'no registra "no me la"');
+        igual(true, n.debeRegistrar('caja', ''), 'registra "caja"');
+        igual(false, n.debeRegistrar('NO IMPRIME!', n.normalizar('No imprime')), 'no registra dos veces "no imprime"');
+        igual(true, n.debeRegistrar('no imprime el ticket', n.normalizar('No imprime')), 'registra "no imprime el ticket"');
+
+        var res = document.getElementById('resumen');
+        res.textContent = fallas ? ('Paridad FALLA: ' + fallas + ' de ' + (ok + fallas)) : ('Paridad OK: ' + ok + ' casos');
+        res.className = fallas ? 'falla' : 'ok';
+        document.title = fallas ? 'Paridad FALLA' : 'Paridad OK';
+    }).catch(function (e) {
+        document.getElementById('resumen').textContent = 'No se pudo correr: ' + e.message;
+        document.title = 'Paridad FALLA';
+    });
+})();
+</script>
+</body>
+</html>

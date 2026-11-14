@@ -151,6 +151,9 @@ a:hover { color: var(--est-accent); }
 
 /* En el celular el menú queda arriba (flex-wrap): los ítems pasan a una fila que se corta */
 @media (max-width: 800px) {
+    /* Con min-height 100vh y flex-wrap, el alto sobrante se repartía entre las filas y el menú quedaba con huecos */
+    .est-app { align-content: flex-start; }
+    .est-menu { align-content: flex-start; }
     .est-menu {
         flex-direction: row;
         flex-wrap: wrap;
