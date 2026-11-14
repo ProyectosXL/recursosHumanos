@@ -25,97 +25,71 @@ $estructuraJsExtra = array(
     'abm'  => $abm,
     'csrf' => Permisos::csrf(),
 );
+
+$pagina = array(
+    'titulo' => 'Administrar internos',
+    'activo' => 'internos_abm',
+    'css'    => array('internos.css', 'internos_abm.css'), // internos.css: el buscador es el mismo
+    'js'     => array('internos_abm.js'),
+    'libs'   => array('jquery', 'sweetalert'),
+);
+require __DIR__ . '/../partials/cabecera.php';
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listado de Personal</title>
-    <link rel="icon" type="image/jpg" href="<?php echo ESTRUCTURA_URL_ICONO; ?>">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4/bootstrap-4.min.css" rel="stylesheet">
-    <link href="<?php echo ESTRUCTURA_URL_ASSETS; ?>/internos_abm.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <!-- Header Section -->
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h1 class="card-title mb-0">
-                                <i class="bi bi-people-fill me-2"></i>
-                                Listado de Personal
-                            </h1>
-                            <?php if ($puede_crear): ?>
-                            <button class="btn btn-primary" onclick="nuevoRegistro()">
-                                <i class="bi bi-plus-lg me-2"></i>
-                                Nuevo Registro
-                            </button>
-                            <?php endif; ?>
-                        </div>
+        <div class="est-encabezado abm-encabezado">
+            <div>
+                <h1>Administrar internos</h1>
+                <p>Alta, edición y baja de las personas que se ven en Internos.</p>
+            </div>
+            <?php if ($puede_crear): ?>
+            <button type="button" class="est-btn est-btn--primario" onclick="nuevoRegistro()">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> Nuevo registro
+            </button>
+            <?php endif; ?>
+        </div>
 
-                        <!-- Search Section -->
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="search-container">
-                                    <i class="bi bi-search search-icon"></i>
-                                    <input type="text" 
-                                        id="searchInput" 
-                                        class="search-input" 
-                                        placeholder="Buscar por nombre, sector, mail..."
-                                        autocomplete="off">
-                                </div>
-                            </div>
-                            <div class="col-md-6 d-flex align-items-center mt-2 mt-md-0">
-                                <!-- Antes el ABM sólo listaba activos: una persona desactivada no se podía reactivar -->
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="verInactivos">
-                                    <label class="form-check-label" for="verInactivos">Ver también las personas desactivadas</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Table Section -->
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Interno</th>
-                                    <th>Nombre y Apellido</th>
-                                    <th>Sector</th>
-                                    <th>Mail</th>
-                                    <th>Celular</th>
-                                    <th class="text-center">Estado</th>
-                                    <th class="text-end">Editar</th>
-                                </tr>
-                            </thead>
-                                <tbody id="tableBody">
-                                    <!-- Los datos se cargarán dinámicamente -->
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Loading State -->
-                        <div id="loadingState" class="text-center py-4 d-none">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Cargando...</span>
-                            </div>
-                        </div>
-
-                        <!-- Empty State -->
-                        <div id="emptyState" class="text-center py-4 d-none">
-                            <i class="bi bi-inbox-fill text-muted" style="font-size: 2rem;"></i>
-                            <p class="text-muted mt-2">No se encontraron resultados</p>
-                        </div>
-                    </div>
+        <div class="est-panel">
+            <div class="abm-filtros">
+                <div class="search-container">
+                    <i class="bi bi-search search-icon" aria-hidden="true"></i>
+                    <label for="searchInput" class="visually-hidden">Buscar por nombre</label>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre" autocomplete="off">
+                </div>
+                <!-- Antes el ABM sólo listaba activos: una persona desactivada no se podía reactivar -->
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="verInactivos">
+                    <label class="form-check-label" for="verInactivos">Ver también las personas desactivadas</label>
                 </div>
             </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">Interno</th>
+                            <th scope="col">Nombre y Apellido</th>
+                            <th scope="col">Sector</th>
+                            <th scope="col">Mail</th>
+                            <th scope="col">Celular</th>
+                            <th scope="col" class="text-center">Estado</th>
+                            <th scope="col" class="text-end"><span class="visually-hidden">Acciones</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Los datos se cargan acá -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="loadingState" class="text-center py-4 d-none">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+
+            <div id="emptyState" class="text-center py-4 d-none">
+                <p class="est-pendiente mb-0">No se encontraron resultados</p>
+            </div>
         </div>
-    </div>
 
         <!-- Modal Nuevo/Editar Empleado -->
         <div class="modal fade" id="empleadoModal" tabindex="-1" aria-labelledby="empleadoModalLabel" aria-hidden="true">
@@ -201,10 +175,4 @@ $estructuraJsExtra = array(
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <?php require __DIR__ . '/../partials/config_js.php'; ?>
-    <script src="<?php echo ESTRUCTURA_URL_ASSETS; ?>/internos_abm.js"></script>
-</body>
-</html>
+<?php require __DIR__ . '/../partials/pie.php'; ?>

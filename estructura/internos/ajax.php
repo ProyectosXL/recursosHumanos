@@ -95,7 +95,8 @@ try {
 
     echo json_encode($response);
 
-} catch (Exception $e) {
+} catch (Throwable $e) {
+    // Throwable y no Exception: con PHP 8, una conexión caída (sqlsrv_query(false)) es un TypeError.
     // El detalle (archivo, línea, traza) va al log, no a la respuesta: el original lo devolvía
     error_log("Error en internos/ajax.php: " . $e->getMessage());
     echo json_encode(array('success' => false, 'message' => $e->getMessage()));

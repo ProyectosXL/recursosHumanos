@@ -1,0 +1,307 @@
+/*
+ * Estructura XL - estilos compartidos (menú lateral, layout y componentes)
+ *
+ * Colores de XL Gestión (sistemas/xlgestion/assets/xlgestion.css) COPIADOS como variables propias:
+ * a propósito no se enlaza el CSS de otro repo, para que un cambio allá no rompa estas pantallas.
+ * Layout como en las maquetas (docs/maquetas): el menú y el contenido son dos cajas flex que se
+ * apilan solas cuando no entran (en el celular el menú queda arriba), sin depender de JS.
+ */
+:root {
+    --est-canvas:       #F6F3EF;   /* fondo */
+    --est-surface:      #FFFFFF;   /* tarjetas, menú */
+    --est-hairline:     #E8E2DB;   /* bordes y separadores */
+    --est-ink:          #1C1916;   /* texto */
+    --est-ink-2:        #5C544D;   /* texto secundario */
+    --est-ink-3:        #6B625A;   /* etiquetas */
+    --est-pendiente:    #8A8178;   /* "a definir", "a dar de alta" */
+    --est-accent:       #9A4A1F;
+    --est-accent-ink:   #7A3A18;
+    --est-accent-soft:  rgba(154, 74, 31, .10);
+    --est-ok:           #17663A;
+    --est-ok-soft:      #E7F4EC;
+    --est-warn:         #8A4A06;
+    --est-warn-soft:    #FDEFD9;
+    --est-danger:       #B42318;
+    --est-danger-soft:  #FEF3F2;
+    --est-radius:       8px;
+    --est-radius-lg:    16px;
+    --est-font: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    background: var(--est-canvas);
+    color: var(--est-ink);
+    font-family: var(--est-font);
+}
+
+a { color: var(--est-ink); }
+a:hover { color: var(--est-accent); }
+
+:focus-visible {
+    outline: 2px solid var(--est-accent);
+    outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ Layout */
+.est-app {
+    min-height: 100vh;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.est-main {
+    flex: 999 1 560px;
+    min-width: 0;
+    padding: 32px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.est-encabezado h1 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 700;
+}
+
+.est-encabezado p {
+    margin: 6px 0 0;
+    font-size: 15px;
+    color: var(--est-ink-2);
+}
+
+/* ------------------------------------------------------------------ Menú lateral */
+.est-menu {
+    flex: 1 1 240px;
+    max-width: 100%;
+    background: var(--est-surface);
+    border-right: 1px solid var(--est-hairline);
+    padding: 20px 12px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 14px;
+}
+
+.est-menu-volver {
+    font-size: 13px;
+    color: var(--est-ink-3);
+    padding: 4px 12px 14px;
+    text-decoration: none;
+}
+
+.est-marca {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px 14px;
+}
+
+.est-marca-logo {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--est-radius);
+    background: var(--est-accent);
+    color: #FFFFFF;
+    font-weight: 800;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.est-marca-nombre {
+    font-weight: 700;
+    font-size: 17px;
+}
+
+.est-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--est-radius);
+    color: var(--est-ink);
+    text-decoration: none;
+}
+
+.est-menu-item i { font-size: 17px; }
+
+.est-menu-item:hover {
+    background: var(--est-canvas);
+    color: var(--est-ink);
+}
+
+.est-menu-item[aria-current="page"] {
+    background: var(--est-accent-soft);
+    color: var(--est-accent-ink);
+    font-weight: 700;
+}
+
+.est-menu-item--admin { color: var(--est-ink-2); }
+
+.est-menu-sep {
+    height: 1px;
+    background: var(--est-hairline);
+    margin: 14px 12px;
+}
+
+/* En el celular el menú queda arriba (flex-wrap): los ítems pasan a una fila que se corta */
+@media (max-width: 800px) {
+    .est-menu {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        border-right: 0;
+        border-bottom: 1px solid var(--est-hairline);
+        padding: 12px;
+    }
+    .est-menu-volver, .est-marca { width: 100%; }
+    .est-marca { padding-bottom: 8px; }
+    .est-menu-volver { padding-bottom: 8px; }
+    .est-menu-sep { display: none; }
+    .est-menu-item { padding: 8px 10px; }
+    .est-main { padding: 20px 16px; }
+    .est-encabezado h1 { font-size: 24px; }
+}
+
+/* ------------------------------------------------------------------ Componentes */
+.est-panel {
+    background: var(--est-surface);
+    border: 1px solid var(--est-hairline);
+    border-radius: var(--est-radius-lg);
+    padding: 20px;
+}
+
+.est-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.est-chip {
+    border-radius: 999px;
+    padding: 9px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--est-surface);
+    color: var(--est-ink);
+    border: 1px solid var(--est-hairline);
+    line-height: 1.2;
+}
+
+.est-chip:hover { border-color: var(--est-ink-3); }
+
+.est-chip[aria-pressed="true"] {
+    background: var(--est-ink);
+    color: #FFFFFF;
+    border-color: var(--est-ink);
+}
+
+.est-chip--suave {
+    background: var(--est-canvas);
+    font-weight: 400;
+    font-size: 13px;
+    padding: 8px 14px;
+}
+
+.est-etiqueta {
+    font-size: 12px;
+    color: var(--est-ink-3);
+}
+
+.est-pendiente {
+    font-style: italic;
+    color: var(--est-pendiente);
+}
+
+.est-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--est-hairline);
+    background: var(--est-surface);
+    color: var(--est-ink);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    line-height: 1.2;
+}
+
+.est-btn:hover { border-color: var(--est-ink-3); color: var(--est-ink); }
+.est-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+.est-btn--primario {
+    background: var(--est-accent);
+    border-color: var(--est-accent);
+    color: #FFFFFF;
+}
+
+.est-btn--primario:hover { background: var(--est-accent-ink); border-color: var(--est-accent-ink); color: #FFFFFF; }
+
+.est-btn--chico { padding: 6px 10px; font-size: 13px; }
+
+.est-btn--icono { padding: 7px 9px; }
+
+.est-btn--peligro { color: var(--est-danger); }
+
+.est-badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 4px 10px;
+}
+
+.est-badge--ok { background: var(--est-ok-soft); color: var(--est-ok); }
+.est-badge--warn { background: var(--est-warn-soft); color: var(--est-warn); }
+.est-badge--off { background: var(--est-canvas); color: var(--est-ink-3); }
+
+.est-aviso {
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 14px;
+    background: var(--est-warn-soft);
+    color: var(--est-warn);
+    border: 1px solid #F5D9AE;
+}
+
+.est-aviso--error { background: var(--est-danger-soft); color: var(--est-danger); border-color: #FECDCA; }
+.est-aviso code { color: inherit; font-weight: 700; }
+
+.est-punto {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex: none;
+}
+
+.est-vacio {
+    background: var(--est-surface);
+    border: 1px dashed #C9BFB4;
+    border-radius: 12px;
+    padding: 24px;
+    font-size: 15px;
+    color: var(--est-ink-2);
+    line-height: 1.5;
+}
+
+.est-vacio strong { color: var(--est-ink); }
+
+.visually-hidden-focusable:not(:focus) {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+}

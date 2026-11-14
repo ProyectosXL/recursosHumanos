@@ -296,7 +296,7 @@ class Interno {
                 );
             }
             return $results;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             error_log("Error en listarParaAbm: " . $e->getMessage());
             return array();
         }
