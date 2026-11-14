@@ -1,0 +1,2060 @@
+/*
+ * Estilos compartidos del hub y de la Intranet XL.
+ * - Base: variables, fondo, barra superior y pie (antes estaban dentro de hub/index.php).
+ * - Componentes de la Intranet XL: columna del hub, tarjetas, etiquetas y listas.
+ */
+
+/* ==================== Base ==================== */
+
+:root {
+    --bg-page: #f8fafc;
+    --text-title: #0f172a;
+    --text-body: #334155;
+    --text-muted: #64748b;
+    --border-subtle: #e2e8f0;
+    --primary: #4f46e5;
+    --primary-dark: #312e81;
+    --primary-light: #eef2ff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-page);
+    background-image:
+        radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.05) 0px, transparent 50%);
+    background-attachment: fixed;
+    color: var(--text-body);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+.navbar-custom {
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 0.75rem 1.25rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.brand-logo {
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: -0.5px;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    text-decoration: none;
+}
+
+.brand-badge {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border: 1px solid rgba(79, 70, 229, 0.15);
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-weight: 700;
+}
+
+.user-pill {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    padding: 4px 12px 4px 5px;
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.78rem;
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+    flex-shrink: 0;
+}
+
+.btn-logout {
+    border: 1px solid #fee2e2;
+    background: #fff5f5;
+    color: #e11d48;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: 30px;
+    padding: 5px 12px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-logout:hover {
+    background: #fee2e2;
+    color: #be123c;
+    border-color: #fca5a5;
+}
+
+.footer-bar {
+    margin-top: auto;
+    border-top: 1px solid var(--border-subtle);
+    padding: 1.1rem 0;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.78rem;
+    background: #ffffff;
+}
+
+@media (max-width: 767.98px) {
+    .navbar-custom {
+        padding: 0.65rem 0.9rem;
+    }
+
+    .brand-logo {
+        font-size: 1.05rem;
+        gap: 7px;
+    }
+
+    .brand-logo img {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    .brand-badge {
+        display: none;
+    }
+}
+
+/* ==================== Intranet XL: columna del hub ==================== */
+
+/* Solo desde 1200 px. Por debajo, se entra por el acceso directo de la barra izquierda. */
+.intra-col {
+    display: none;
+}
+
+@media (min-width: 1200px) {
+    .intra-col {
+        width: 340px;
+        flex-shrink: 0;
+        background: #ffffff;
+        border-left: 1px solid var(--border-subtle);
+        box-shadow: -1px 0 4px rgba(0, 0, 0, 0.02);
+        /* Ocupa el alto disponible del hub y se desplaza por su cuenta (el hub fija su alto a la
+           pantalla desde 1200 px: ver hub/index.php). Barra fina para que no compita con el resto. */
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+        display: flex;
+        flex-direction: column;
+        gap: 1.15rem;
+        padding: 1.5rem 1.1rem;
+        z-index: 100;
+    }
+}
+
+/* Con scroll propio, las tarjetas de la columna no se achican: se desplazan */
+.intra-col > * {
+    flex-shrink: 0;
+}
+
+.intra-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.intra-head-title {
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+}
+
+.intra-head-title i {
+    color: var(--primary);
+}
+
+.intra-link {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.intra-link:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+/* ==================== Intranet XL: componentes ==================== */
+
+/* Tarjeta "Hoy" (índigo oscuro) */
+.intra-hoy {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, #4338ca 100%);
+    color: #ffffff;
+    border-radius: 14px;
+    padding: 0.95rem 1rem;
+    box-shadow: 0 8px 18px -8px rgba(49, 46, 129, 0.55);
+}
+
+.intra-hoy-fecha {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 0.55rem;
+}
+
+.intra-hoy-linea {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.84rem;
+    line-height: 1.35;
+}
+
+.intra-hoy-linea + .intra-hoy-linea {
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.intra-hoy-icono {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.14);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+}
+
+.intra-hoy strong {
+    font-weight: 700;
+}
+
+.intra-hoy-sub {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.74rem;
+}
+
+/* Bloques con título */
+.intra-bloque-titulo {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.intra-lista {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.intra-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.intra-item-texto {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.intra-item-titulo {
+    font-size: 0.83rem;
+    font-weight: 700;
+    color: var(--text-title);
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.intra-item-sub {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Recuadro con el día (y mes o "HOY") */
+.intra-dia {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-weight: 800;
+    font-size: 0.92rem;
+    color: var(--text-title);
+}
+
+.intra-dia small {
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.intra-dia.es-hoy {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+    font-size: 0.68rem;
+    letter-spacing: 0.4px;
+}
+
+/* Etiquetas de tipo y categoría */
+.intra-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 6px;
+    line-height: 1.4;
+    white-space: nowrap;
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.intra-tag-feriado   { color: #b91c1c; background: #fef2f2; }
+.intra-tag-comercial { color: #9a3412; background: #fff7ed; }
+.intra-tag-operativa { color: #0e7490; background: #ecfeff; }
+.intra-tag-cat       { color: #4338ca; background: #eef2ff; }
+.intra-tag-fijado    { color: #9a3412; background: #ffedd5; }
+.intra-tag-auto      { color: #047857; background: #ecfdf5; }
+
+/* Comunicado compacto (columna del hub) */
+.intra-com {
+    display: block;
+    padding: 0.6rem 0.75rem;
+    background: #ffffff;
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.18s ease;
+}
+
+.intra-com:hover {
+    border-color: #818cf8;
+    box-shadow: 0 4px 12px -4px rgba(79, 70, 229, 0.15);
+    color: inherit;
+}
+
+.intra-com.es-fijado {
+    background: #fff7ed;
+    border-color: #fed7aa;
+}
+
+.intra-com-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+}
+
+.intra-com-titulo {
+    font-size: 0.83rem;
+    font-weight: 700;
+    color: var(--text-title);
+    line-height: 1.3;
+}
+
+.intra-mas {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 0.4rem;
+}
+
+.intra-mas:hover {
+    text-decoration: underline;
+    color: var(--primary-dark);
+}
+
+/* ==================== Intranet XL: pantalla ==================== */
+
+.intra-card {
+    background: #ffffff;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+/* Botones aptos para el dedo: 44 px de alto como mínimo */
+.intra-btn {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 1.1rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid var(--border-subtle);
+    background: #ffffff;
+    color: var(--text-body);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.intra-btn:hover {
+    border-color: #818cf8;
+    color: var(--primary);
+}
+
+.intra-btn-primario {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+}
+
+.intra-btn-primario:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: #ffffff;
+}
+
+/* Círculo con iniciales */
+.intra-avatar {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.74rem;
+    font-weight: 800;
+}
+
+/* Tarjeta de comunicado (intranet y vista previa de la carga) */
+.com-card.es-fijado {
+    background: #fff7ed;
+    border-color: #fed7aa;
+}
+
+.com-titulo {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-title);
+    margin: 0.35rem 0 0.4rem;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.com-texto {
+    white-space: pre-line;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--text-body);
+    overflow-wrap: anywhere;
+}
+
+/* "Leer más": se pliega solo el texto marcado como plegable (las imágenes siempre se ven) */
+.com-plegable {
+    max-height: 7.75em; /* unas 5 líneas */
+    overflow: hidden;
+}
+
+.com-card.abierto .com-plegable {
+    max-height: none;
+}
+
+.com-leer {
+    min-height: 44px;
+    border: 0;
+    background: none;
+    padding: 0;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--primary);
+    cursor: pointer;
+}
+
+.com-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.4rem;
+}
+
+/* Bloques de la columna del hub como tarjetas separadas */
+.intra-bloque {
+    background: #ffffff;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 0.85rem 0.9rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+/* Aniversarios redondos (5, 10, 15... años) */
+.intra-tag-hito {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+.intra-item.es-hito .intra-dia {
+    background: #fef3c7;
+    border-color: #fcd34d;
+    color: #92400e;
+}
+
+.intra-item.es-hito .intra-dia small {
+    color: #b45309;
+}
+
+.intra-sub-titulo {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin: 0 0 0.4rem;
+}
+
+/* Saludo personal el día del cumpleaños del usuario */
+.intra-saludo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(135deg, #fdf2f8 0%, #eef2ff 100%);
+    border: 1px solid #fbcfe8;
+    border-radius: 14px;
+    padding: 0.85rem 0.9rem 0.85rem 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 14px -6px rgba(219, 39, 119, 0.25);
+}
+
+.intra-saludo-icono {
+    width: 46px;
+    min-width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #db2777 0%, #4f46e5 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.intra-saludo-texto {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.intra-saludo-titulo {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-title);
+    line-height: 1.25;
+}
+
+.intra-saludo-sub {
+    font-size: 0.84rem;
+    color: var(--text-muted);
+}
+
+.intra-saludo-cerrar {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+}
+
+.intra-saludo-cerrar:hover {
+    background: rgba(255, 255, 255, 0.7);
+    color: var(--text-title);
+}
+
+/* Saludo de aniversario en XL: ámbar */
+.intra-saludo.es-aniversario {
+    background: linear-gradient(135deg, #fffbeb 0%, #eef2ff 100%);
+    border-color: #fde68a;
+    box-shadow: 0 4px 14px -6px rgba(180, 83, 9, 0.25);
+}
+
+.intra-saludo.es-aniversario .intra-saludo-icono {
+    background: linear-gradient(135deg, #d97706 0%, #4f46e5 100%);
+}
+
+/* Etiqueta de aniversario redondo dentro de la tarjeta "Hoy" (fondo índigo) */
+.intra-hoy .intra-tag-hito {
+    margin-left: 4px;
+}
+
+/* Comunicado publicado hoy o ayer */
+.intra-tag-nuevo {
+    color: #be123c;
+    background: #ffe4e6;
+}
+
+/* ==================== Animaciones ====================
+ * Sutiles y cortas: solo transform y opacity (no recargan la página).
+ * Todo se desactiva si el usuario pidió reducir animaciones (al final).
+ */
+
+/* Aparición escalonada: style="--i: N" define el orden */
+.intra-aparece {
+    animation: intra-subir 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) backwards; /* backwards: no fija transform al terminar (deja andar el hover) */
+    animation-delay: calc(0.1s + var(--i, 0) * 120ms);
+}
+
+@keyframes intra-subir {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: none; }
+}
+
+/* Tarjetas que se elevan al pasar el mouse */
+.intra-elevable {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.intra-elevable:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px -12px rgba(15, 23, 42, 0.22);
+}
+
+.intra-com {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.intra-com:hover {
+    transform: translateY(-2px);
+}
+
+/* Degradé que se mueve lento en las tarjetas destacadas */
+.intra-hoy,
+.intra-kpi.es-destacada {
+    background-size: 220% 220% !important;
+    background-image: linear-gradient(135deg, var(--primary-dark) 0%, #4338ca 45%, #6366f1 70%, var(--primary-dark) 100%) !important;
+    animation: intra-degrade 14s ease-in-out infinite;
+}
+
+.intra-hoy.intra-aparece {
+    /* Entrada + degradé: dos animaciones en la misma tarjeta */
+    animation: intra-subir 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) backwards, intra-degrade 14s ease-in-out infinite;
+    animation-delay: calc(0.1s + var(--i, 0) * 120ms), 0s;
+}
+
+@keyframes intra-degrade {
+    0%, 100% { background-position: 0% 50%; }
+    50%      { background-position: 100% 50%; }
+}
+
+/* "HOY" y "Nuevo": laten unas veces y se quedan quietos */
+.intra-dia.es-hoy {
+    animation: intra-latido 1.8s ease-out 0.6s 3;
+}
+
+@keyframes intra-latido {
+    0%   { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.45); }
+    70%  { box-shadow: 0 0 0 9px rgba(79, 70, 229, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+}
+
+.intra-tag-nuevo {
+    animation: intra-latido-nuevo 1.8s ease-out 0.8s 3;
+}
+
+@keyframes intra-latido-nuevo {
+    0%   { box-shadow: 0 0 0 0 rgba(190, 18, 60, 0.35); }
+    70%  { box-shadow: 0 0 0 6px rgba(190, 18, 60, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(190, 18, 60, 0); }
+}
+
+/* Íconos con movimiento: torta del saludo y medallas */
+.intra-saludo-icono i {
+    display: inline-block;
+    animation: intra-bamboleo 1.2s ease-in-out 0.5s 2;
+}
+
+@keyframes intra-bamboleo {
+    0%, 100% { transform: rotate(0); }
+    20% { transform: rotate(-14deg) scale(1.08); }
+    40% { transform: rotate(12deg) scale(1.08); }
+    60% { transform: rotate(-8deg); }
+    80% { transform: rotate(5deg); }
+}
+
+/* Saludo: aparece con un pequeño rebote y suelta papel picado */
+.intra-saludo {
+    position: relative;
+    overflow: hidden;
+    animation: intra-rebote 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+@keyframes intra-rebote {
+    from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    to   { opacity: 1; transform: none; }
+}
+
+.intra-confeti {
+    position: absolute;
+    top: -10px;
+    width: 7px;
+    height: 11px;
+    border-radius: 2px;
+    pointer-events: none;
+    opacity: 0;
+    animation: intra-confeti 2.2s cubic-bezier(0.25, 0.6, 0.4, 1) forwards;
+}
+
+@keyframes intra-confeti {
+    0%   { opacity: 1; transform: translate(0, 0) rotate(0); }
+    100% { opacity: 0; transform: translate(var(--dx, 0px), 110px) rotate(var(--rot, 360deg)); }
+}
+
+/* Respeto por "reducir animaciones" del sistema */
+@media (prefers-reduced-motion: reduce) {
+    .intra-aparece,
+    .intra-hoy,
+    .intra-kpi.es-destacada,
+    .intra-dia.es-hoy,
+    .intra-tag-nuevo,
+    .intra-saludo,
+    .intra-saludo-icono i {
+        animation: none !important;
+    }
+
+    .intra-elevable,
+    .intra-com {
+        transition: none;
+    }
+
+    .intra-elevable:hover,
+    .intra-com:hover {
+        transform: none;
+    }
+
+    .intra-confeti {
+        display: none;
+    }
+}
+
+/* ==================== Estilos predeterminados de comunicado ====================
+ * Se aplican a .com-card (intranet y vista previa) y a .intra-com (columna del hub).
+ * Clásico no tiene clase: es la tarjeta blanca de siempre.
+ */
+.com-estilo-destacado,
+.com-estilo-importante,
+.com-estilo-celebracion,
+.com-estilo-recordatorio {
+    border-left-width: 4px !important;
+}
+
+.com-estilo-destacado {
+    background: linear-gradient(135deg, #eef2ff 0%, #ffffff 70%);
+    border-color: #c7d2fe;
+    border-left-color: var(--primary) !important;
+}
+
+.com-estilo-importante {
+    background: linear-gradient(135deg, #fef2f2 0%, #ffffff 70%);
+    border-color: #fecaca;
+    border-left-color: #dc2626 !important;
+}
+
+.com-estilo-importante .com-titulo,
+.com-estilo-importante .intra-com-titulo {
+    color: #991b1b;
+}
+
+.com-estilo-celebracion {
+    background: linear-gradient(135deg, #fdf2f8 0%, #fffbeb 60%, #ffffff 100%);
+    border-color: #fbcfe8;
+    border-left-color: #db2777 !important;
+}
+
+.com-estilo-recordatorio {
+    background: linear-gradient(135deg, #ecfeff 0%, #ffffff 70%);
+    border-color: #a5f3fc;
+    border-left-color: #0891b2 !important;
+}
+
+.intra-tag-estilo-destacado    { color: #4338ca; background: #e0e7ff; }
+.intra-tag-estilo-importante   { color: #b91c1c; background: #fee2e2; }
+.intra-tag-estilo-celebracion  { color: #be185d; background: #fce7f3; }
+.intra-tag-estilo-recordatorio { color: #0e7490; background: #cffafe; }
+
+/* Celebración: brillo suave que cruza la tarjeta una vez */
+.com-card.com-estilo-celebracion,
+.intra-com.com-estilo-celebracion {
+    position: relative;
+    overflow: hidden;
+}
+
+.com-card.com-estilo-celebracion::after,
+.intra-com.com-estilo-celebracion::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.7) 50%, transparent 70%);
+    transform: translateX(-100%);
+    animation: intra-brillo 1.6s ease-in-out 1s 1;
+    pointer-events: none;
+}
+
+@keyframes intra-brillo {
+    to { transform: translateX(100%); }
+}
+
+/* Importante: el ícono de la etiqueta tiembla un par de veces */
+.intra-tag-estilo-importante i {
+    display: inline-block;
+    animation: intra-bamboleo 1s ease-in-out 0.9s 2;
+}
+
+/* Selector visual de estilo en la carga */
+.intra-estilos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.5rem;
+}
+
+.intra-estilo-opcion {
+    position: relative;
+    margin: 0;
+}
+
+.intra-estilo-opcion input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.intra-estilo-opcion span {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    background: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-body);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.intra-estilo-opcion span.com-estilo-destacado,
+.intra-estilo-opcion span.com-estilo-importante,
+.intra-estilo-opcion span.com-estilo-celebracion,
+.intra-estilo-opcion span.com-estilo-recordatorio {
+    border-left-width: 4px;
+}
+
+.intra-estilo-opcion input:checked + span {
+    box-shadow: 0 0 0 2px var(--primary);
+    border-color: var(--primary);
+}
+
+.intra-estilo-opcion input:focus-visible + span {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* ==================== Carga de imágenes y PDF ==================== */
+.intra-archivos-lista,
+.intra-archivos-errores {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.intra-archivos-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.intra-archivo,
+.intra-archivo-subiendo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    background: #ffffff;
+    min-width: 0;
+}
+
+.intra-archivo-subiendo {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    background: #f8fafc;
+}
+
+.intra-archivo-mini {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    object-fit: contain;
+    background: #f1f5f9;
+    border-radius: 8px;
+}
+
+.intra-archivo-icono {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    background: #fef2f2;
+    color: #b91c1c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+}
+
+.intra-archivo-datos {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.intra-archivo-datos .form-control {
+    min-height: 38px;
+    margin-bottom: 2px;
+}
+
+.intra-archivo-nombre {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-title);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.intra-archivo-peso {
+    font-size: 0.75rem;
+    color: #047857;
+    font-weight: 700;
+}
+
+.intra-archivo-acciones {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.intra-archivo-acciones .intra-btn {
+    padding: 0 0.75rem;
+    font-size: 0.8rem;
+}
+
+.intra-archivos-errores li {
+    font-size: 0.8rem;
+    color: #b91c1c;
+    margin-bottom: 0.35rem;
+}
+
+.intra-archivos-tope {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-left: 0.5rem;
+}
+
+/* Zona para soltar archivos */
+.intra-soltar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border: 2px dashed #c7d2fe;
+    border-radius: 12px;
+    background: #f8faff;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.intra-soltar > i {
+    font-size: 1.4rem;
+    color: #818cf8;
+}
+
+.intra-soltar.sobre {
+    background: var(--primary-light);
+    border-color: var(--primary);
+}
+
+.intra-soltar.lleno .intra-soltar-texto {
+    display: none;
+}
+
+/* Botones chicos de cada archivo (flechas, ver, quitar): 44 px, aptos para el dedo */
+.intra-btn-mini {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    background: #ffffff;
+    color: var(--text-body);
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+
+.intra-btn-mini:hover:not(:disabled),
+.intra-btn-mini:focus-visible {
+    border-color: #818cf8;
+    color: var(--primary);
+}
+
+.intra-btn-mini:disabled {
+    opacity: 0.35;
+}
+
+.intra-archivo {
+    cursor: grab;
+}
+
+.intra-archivo input {
+    cursor: text;
+}
+
+.intra-archivo.arrastrando {
+    opacity: 0.4;
+}
+
+/* Grilla de imágenes */
+.intra-grilla {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+}
+
+.intra-archivo-img {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
+}
+
+.intra-archivo-img.es-portada {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 1px #f59e0b;
+}
+
+.intra-archivo-foto {
+    position: relative;
+}
+
+.intra-archivo-foto img {
+    display: block;
+    width: 100%;
+    height: 140px;
+    object-fit: contain;
+    background: #f1f5f9;
+    border-radius: 8px;
+}
+
+.intra-portada {
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    min-height: 36px;
+    padding: 0 0.6rem;
+    border: 0;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--text-body);
+    font-size: 0.74rem;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
+}
+
+.intra-portada[aria-pressed="true"] {
+    background: #f59e0b;
+    color: #ffffff;
+}
+
+.intra-archivo-img .intra-archivo-acciones {
+    justify-content: space-between;
+}
+
+@media (max-width: 575.98px) {
+    .intra-archivo {
+        flex-wrap: wrap;
+    }
+
+    .intra-archivo-acciones {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .com-card.com-estilo-celebracion::after,
+    .intra-com.com-estilo-celebracion::after,
+    .intra-tag-estilo-importante i {
+        animation: none;
+    }
+}
+
+/* ==================== Comunicados v2: esquemas con imagen ====================
+ * Las imágenes se ven enteras (object-fit: contain) sobre un fondo neutro, con una altura
+ * máxima por esquema para que una foto vertical no ocupe toda la pantalla.
+ */
+.com-card {
+    --com-media-alto: 360px;
+}
+
+.com-esq-izquierda,
+.com-esq-derecha {
+    --com-media-alto: 300px;
+}
+
+.com-esq-flyer {
+    --com-media-alto: 620px;
+}
+
+.com-media {
+    margin: 0 0 0.75rem;
+}
+
+.com-esq-abajo .com-media,
+.com-esq-centro .com-media {
+    margin: 0.75rem 0;
+}
+
+.com-figura {
+    margin: 0;
+}
+
+.com-media-caja {
+    background: #f1f5f9;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.com-media-caja img {
+    display: block;
+    max-width: 100%;
+    max-height: var(--com-media-alto);
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+.com-epigrafe {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 0.35rem;
+    line-height: 1.35;
+}
+
+/* Imagen y cuerpo lado a lado (40 / 60); en celular se apilan con la imagen arriba */
+.com-lado {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.com-lado-derecha {
+    flex-direction: row-reverse;
+}
+
+.com-lado-media {
+    flex: 0 0 40%;
+    min-width: 0;
+}
+
+.com-lado-media .com-media {
+    margin: 0;
+}
+
+.com-lado-cuerpo {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* Carrusel: alto fijo para que no salte entre fotos de distinta proporción */
+.com-carrusel .com-media-caja {
+    height: var(--com-media-alto);
+}
+
+.com-carrusel .com-media-caja img {
+    max-height: 100%;
+}
+
+.com-carrusel .com-epigrafe {
+    min-height: 1.35em;
+}
+
+/* Fundido suave de ~0,9 s (Bootstrap toma la duración de esta transición) */
+.com-carrusel.carousel-fade .carousel-item {
+    transition: opacity 0.9s ease-in-out;
+}
+
+.com-carrusel.carousel-fade .active.carousel-item-start,
+.com-carrusel.carousel-fade .active.carousel-item-end {
+    transition: opacity 0s 0.9s;
+}
+
+.com-carrusel .carousel-control-prev,
+.com-carrusel .carousel-control-next {
+    top: calc(var(--com-media-alto) / 2 - 22px);
+    bottom: auto;
+    width: 44px;
+    height: 44px;
+    margin: 0 0.5rem;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.45);
+    color: #ffffff;
+    opacity: 0.85;
+}
+
+.com-carrusel .carousel-control-prev:hover,
+.com-carrusel .carousel-control-next:hover,
+.com-carrusel .carousel-control-prev:focus-visible,
+.com-carrusel .carousel-control-next:focus-visible {
+    opacity: 1;
+    background: rgba(15, 23, 42, 0.7);
+}
+
+/* Puntitos debajo de la imagen (no encima) */
+.com-carrusel .carousel-indicators {
+    position: static;
+    margin: 0.35rem 0 0;
+    gap: 2px;
+}
+
+.com-carrusel .carousel-indicators [data-bs-target] {
+    box-sizing: content-box;
+    width: 9px;
+    height: 9px;
+    margin: 0;
+    border: 8px solid transparent;
+    border-radius: 50%;
+    background-clip: padding-box;
+    background-color: #94a3b8;
+    opacity: 0.6;
+}
+
+.com-carrusel .carousel-indicators .active {
+    background-color: var(--primary);
+    opacity: 1;
+}
+
+/* Texto con formato (comunicados nuevos). Los viejos siguen con pre-line, como siempre. */
+.com-texto.con-formato {
+    white-space: normal;
+}
+
+.con-formato p,
+.con-formato ul,
+.con-formato ol {
+    margin: 0 0 0.55em;
+}
+
+.con-formato ul,
+.con-formato ol {
+    padding-left: 1.3rem;
+}
+
+.con-formato > :last-child {
+    margin-bottom: 0;
+}
+
+.con-formato a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+/* Adjuntos PDF */
+.com-adjuntos {
+    margin-top: 0.75rem;
+    padding-top: 0.6rem;
+    border-top: 1px dashed var(--border-subtle);
+}
+
+.com-adjuntos-titulo {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.35rem;
+}
+
+.com-adjuntos-lista {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.com-adjunto {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.com-adjunto-icono {
+    color: #b91c1c;
+    font-size: 1.1rem;
+}
+
+.com-adjunto-nombre {
+    flex: 1 1 140px;
+    min-width: 0;
+    font-weight: 700;
+    color: var(--text-title);
+    overflow-wrap: anywhere;
+}
+
+.com-adjunto-peso {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.com-adjunto-botones {
+    display: flex;
+    gap: 6px;
+}
+
+.com-adjunto-botones .intra-btn {
+    padding: 0 0.75rem;
+    font-size: 0.8rem;
+}
+
+/* Columna del hub: miniatura de la portada y clip de adjuntos */
+.intra-com-fila {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.intra-com-fila .intra-com-titulo {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.intra-com-mini {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    object-fit: contain;
+    background: #f1f5f9;
+    border-radius: 8px;
+}
+
+.intra-com-clip {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    margin-left: 3px;
+}
+
+@media (max-width: 767.98px) {
+    .com-card {
+        --com-media-alto: 260px;
+    }
+
+    .com-esq-flyer {
+        --com-media-alto: 480px;
+    }
+
+    .com-lado,
+    .com-lado-derecha {
+        flex-direction: column;
+    }
+
+    .com-lado-media {
+        flex-basis: auto;
+        width: 100%;
+    }
+
+    .com-lado-media .com-media {
+        margin-bottom: 0.25rem;
+    }
+}
+
+/* ==================== Carga: esquemas y barra de formato ==================== */
+.intra-esquemas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: 0.5rem;
+}
+
+.intra-esquema-opcion {
+    position: relative;
+    margin: 0;
+}
+
+.intra-esquema-opcion input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.intra-esquema-opcion span {
+    min-height: 44px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 0.55rem 0.5rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    background: #ffffff;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--text-body);
+    text-align: center;
+    line-height: 1.25;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.intra-esquema-opcion svg {
+    width: 64px;
+    height: 44px;
+}
+
+.intra-esquema-opcion input:checked + span {
+    box-shadow: 0 0 0 2px var(--primary);
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.intra-esquema-opcion input:focus-visible + span {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.intra-formato {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.intra-formato button {
+    min-width: 44px;
+    min-height: 40px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: #ffffff;
+    color: var(--text-body);
+    font-size: 0.85rem;
+}
+
+.intra-formato button:hover,
+.intra-formato button:focus-visible {
+    border-color: #818cf8;
+    color: var(--primary);
+}
+
+/* ==================== Aviso al entrar al hub ==================== */
+.intra-tag-aviso {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+.intra-aviso-modal {
+    border: 0;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.intra-aviso-cabecera {
+    gap: 0.6rem;
+    background: linear-gradient(135deg, #fffbeb 0%, #eef2ff 100%);
+    border-bottom: 1px solid #fde68a;
+}
+
+.intra-aviso-cabecera .modal-title i {
+    color: #d97706;
+}
+
+.intra-aviso-contador {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.intra-aviso-contador + .btn-close {
+    margin-left: 0.25rem;
+}
+
+.intra-aviso-cuerpo {
+    background: var(--bg-page);
+}
+
+/* Solapa "Aviso al entrar" de la vista previa: la ventana, quieta, al ancho que tiene en el hub */
+.intra-previa-aviso {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.intra-previa-aviso .modal-content {
+    box-shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.35);
+}
+
+/* ==================== Comentarios y reacciones (recursosHumanos/intranet/sql/10) ==================== */
+/* Al pie de la tarjeta, separado por una línea. Solo en comunicados que lo tienen habilitado. */
+.com-inter {
+    margin-top: 0.85rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.com-reacciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.com-reaccion {
+    min-height: 44px;
+    min-width: 64px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 0.85rem;
+    border-radius: 22px;
+    border: 1px solid var(--border-subtle);
+    background: #ffffff;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.com-reaccion:hover:not(:disabled) {
+    border-color: #818cf8;
+    color: var(--primary);
+}
+
+.com-reaccion:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.com-reaccion:disabled {
+    cursor: default;
+}
+
+/* La reacción elegida por el usuario, resaltada (cada una con su color) */
+.com-reaccion.es-mia {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.com-reaccion[data-reaccion="APLAUSOS"].es-mia {
+    border-color: #d97706;
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.com-reaccion[data-reaccion="ME_ENCANTA"].es-mia {
+    border-color: #db2777;
+    background: #fdf2f8;
+    color: #be185d;
+}
+
+.com-reaccion.es-mia i {
+    animation: intra-reaccion 0.35s ease-out;
+}
+
+@keyframes intra-reaccion {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.35); }
+    100% { transform: scale(1); }
+}
+
+.com-inter-ver {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    margin-left: auto;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.com-inter-ver:hover {
+    text-decoration: underline;
+    color: var(--primary-dark);
+}
+
+.com-inter-aviso {
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #b91c1c;
+}
+
+.com-comentarios {
+    margin-top: 0.75rem;
+}
+
+.com-comentarios-titulo {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--text-title);
+    margin: 0 0 0.4rem;
+}
+
+.com-ver-todos {
+    min-height: 40px;
+    border: 0;
+    background: none;
+    padding: 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    cursor: pointer;
+}
+
+.com-ver-todos:hover {
+    text-decoration: underline;
+}
+
+.com-comentarios-lista {
+    list-style: none;
+    margin: 0 0 0.6rem;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.com-comentario {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.com-comentario-avatar {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    font-size: 0.68rem;
+}
+
+.com-comentario-cuerpo {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: #f8fafc;
+    border: 1px solid #eef2f7;
+    border-radius: 12px;
+    padding: 0.45rem 0.7rem;
+}
+
+.com-comentario-cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 8px;
+}
+
+.com-comentario-nombre {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--text-title);
+}
+
+.com-comentario-cuando {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.com-comentario-texto {
+    white-space: pre-line;
+    font-size: 0.86rem;
+    line-height: 1.45;
+    color: var(--text-body);
+    overflow-wrap: anywhere;
+}
+
+.com-comentario-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.9rem;
+    margin: -0.4rem 0 -0.45rem; /* el área táctil sigue siendo de 44 px, sin agrandar la burbuja */
+}
+
+.com-comentario-accion {
+    min-height: 44px;
+    border: 0;
+    background: none;
+    padding: 0;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.com-comentario-accion:hover,
+.com-comentario-accion:focus-visible {
+    color: var(--primary);
+}
+
+/* Oculto: solo lo ven los responsables de carga, atenuado */
+.com-comentario.es-oculto .com-comentario-avatar,
+.com-comentario.es-oculto .com-comentario-cabecera,
+.com-comentario.es-oculto .com-comentario-texto {
+    opacity: 0.5;
+}
+
+.com-comentario.es-oculto .com-comentario-cuerpo {
+    background: #ffffff;
+    border-style: dashed;
+}
+
+.com-comentario-oculto {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #92400e;
+    margin-top: 2px;
+}
+
+.com-comentar textarea {
+    border-radius: 12px;
+    font-size: 0.88rem;
+    min-height: 44px;
+    resize: vertical;
+}
+
+.com-comentar-pie {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 0.4rem;
+}
+
+.com-comentar-contador {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.com-comentar-contador.excedido {
+    color: #b91c1c;
+    font-weight: 700;
+}
+
+.com-comentar .intra-btn:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.com-comentar-error {
+    margin-top: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #b91c1c;
+}
+
+/* Columna del hub: solo los contadores, chicos */
+.intra-com-inter {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.intra-com-inter i {
+    font-size: 0.68rem;
+    margin-right: 2px;
+}
+
+/* Listado de la carga: columna de participación */
+.intra-participacion {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.78rem;
+    color: var(--text-body);
+    white-space: nowrap;
+}
+
+.intra-participacion i {
+    color: var(--text-muted);
+    width: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .com-reaccion.es-mia i {
+        animation: none;
+    }
+}
+
+/* ==================== Quiénes reaccionaron ==================== */
+.com-quienes-abrir,
+.intra-participacion-ver {
+    min-height: 44px;
+    border: 0;
+    background: none;
+    padding: 0 0.25rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    cursor: pointer;
+    text-align: left;
+}
+
+.com-quienes-abrir:hover,
+.intra-participacion-ver:hover {
+    text-decoration: underline;
+}
+
+.intra-participacion-ver {
+    min-height: 32px;
+    padding: 0;
+    font-weight: 600;
+    font-size: 0.78rem;
+}
+
+.intra-participacion-ver.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* En la publicación: se despliega debajo de las reacciones */
+.com-inter .com-quienes {
+    margin-top: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    background: #f8fafc;
+    border: 1px solid #eef2f7;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.com-quienes-grupo + .com-quienes-grupo {
+    margin-top: 0.6rem;
+}
+
+.com-quienes-titulo {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--text-title);
+    margin-bottom: 0.2rem;
+}
+
+.com-quienes-titulo i { color: var(--primary); }
+.com-quienes-aplausos .com-quienes-titulo i { color: #b45309; }
+.com-quienes-me_encanta .com-quienes-titulo i { color: #be185d; }
+
+.com-quienes-n {
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.com-quienes-lista {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+}
+
+.com-quienes-lista li {
+    font-size: 0.8rem;
+    color: var(--text-body);
+    background: #ffffff;
+    border: 1px solid var(--border-subtle);
+    border-radius: 999px;
+    padding: 2px 10px;
+}
+
+.com-quienes-vacio {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+/* ==================== Plantillas (recursosHumanos/intranet/sql/11) ==================== */
+/* Paso previo a "Nuevo comunicado": tarjetas para elegir */
+.intra-plantillas-elegir {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+}
+
+.intra-plantilla-opcion {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    background: #ffffff;
+    color: inherit;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.intra-plantilla-opcion:hover,
+.intra-plantilla-opcion:focus-visible {
+    border-color: #818cf8;
+    box-shadow: 0 6px 16px -8px rgba(79, 70, 229, 0.35);
+    color: inherit;
+}
+
+.intra-plantilla-opcion:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.intra-plantilla-opcion.es-cero {
+    border-style: dashed;
+}
+
+.intra-plantilla-icono {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 1rem;
+    border: 1px solid transparent;
+}
+
+.intra-plantilla-nombre {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--text-title);
+    line-height: 1.3;
+}
+
+.intra-plantilla-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* Leyenda "Basado en la plantilla" arriba del formulario */
+.intra-basado {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 10px;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    font-size: 0.82rem;
+}
+
+/* Datos a completar resaltados en la vista previa */
+mark.com-dato {
+    background: #fef08a;
+    color: #713f12;
+    padding: 0 3px;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px #facc15;
+}
