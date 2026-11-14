@@ -1,0 +1,515 @@
+{
+    "_comentario": "Áreas y temas de sql/03_directorio_carga_inicial.sql. Lo usan tests/test_busqueda.php y tests/paridad.html (mismos casos en PHP y JS).",
+    "areas": [
+        {
+            "id": 1,
+            "nombre": "Abastecimiento",
+            "color": "#2F5FB3",
+            "mail_sector": "abastecimiento@xl.com.ar"
+        },
+        {
+            "id": 2,
+            "nombre": "Logística",
+            "color": "#1F7A8C",
+            "mail_sector": null
+        },
+        {
+            "id": 3,
+            "nombre": "Administración",
+            "color": "#B23A2E",
+            "mail_sector": null
+        },
+        {
+            "id": 4,
+            "nombre": "Tesorería",
+            "color": "#8E3B6E",
+            "mail_sector": null
+        },
+        {
+            "id": 5,
+            "nombre": "Innovación",
+            "color": "#9A4A1F",
+            "mail_sector": "proyectos@xl.com.ar"
+        },
+        {
+            "id": 6,
+            "nombre": "Sistemas",
+            "color": "#5B5BA8",
+            "mail_sector": null
+        }
+    ],
+    "temas": [
+        {
+            "id": 1,
+            "id_area": 1,
+            "area": "Abastecimiento",
+            "tema": "Ingresos futuros",
+            "referente": "Jessica Farias",
+            "palabras_clave": "ingreso, mercadería nueva, cuándo entra"
+        },
+        {
+            "id": 2,
+            "id_area": 1,
+            "area": "Abastecimiento",
+            "tema": "Pedidos",
+            "referente": "Jessica Farias",
+            "palabras_clave": "pedido, pedir"
+        },
+        {
+            "id": 3,
+            "id_area": 1,
+            "area": "Abastecimiento",
+            "tema": "Reposición",
+            "referente": "Jessica Farias",
+            "palabras_clave": "reponer, reposición"
+        },
+        {
+            "id": 4,
+            "id_area": 1,
+            "area": "Abastecimiento",
+            "tema": "Stock",
+            "referente": "Mariana Blanco",
+            "palabras_clave": "sin stock, no tengo stock"
+        },
+        {
+            "id": 5,
+            "id_area": 1,
+            "area": "Abastecimiento",
+            "tema": "Distribución",
+            "referente": "Mariana Blanco",
+            "palabras_clave": "distribución, asignación"
+        },
+        {
+            "id": 6,
+            "id_area": 1,
+            "area": "Abastecimiento",
+            "tema": "Rotaciones",
+            "referente": "Mariana Blanco",
+            "palabras_clave": "rotación, pasar mercadería a otro local, traspaso"
+        },
+        {
+            "id": 7,
+            "id_area": 1,
+            "area": "Abastecimiento",
+            "tema": "Faltantes",
+            "referente": "Jessica Farias",
+            "palabras_clave": "me falta, faltante, no llegó, diferencia, mercadería"
+        },
+        {
+            "id": 8,
+            "id_area": 1,
+            "area": "Abastecimiento",
+            "tema": "Sobrantes",
+            "referente": "Jessica Farias",
+            "palabras_clave": "me sobra, sobrante, llegó de más"
+        },
+        {
+            "id": 9,
+            "id_area": 1,
+            "area": "Abastecimiento",
+            "tema": "Planificación",
+            "referente": "Julieta D'Almeida",
+            "palabras_clave": "planificación"
+        },
+        {
+            "id": 10,
+            "id_area": 1,
+            "area": "Abastecimiento",
+            "tema": "CADS",
+            "referente": "Mariana Blanco",
+            "palabras_clave": "cads"
+        },
+        {
+            "id": 11,
+            "id_area": 1,
+            "area": "Abastecimiento",
+            "tema": "Presupuestos",
+            "referente": "Julieta D'Almeida",
+            "palabras_clave": "presupuesto"
+        },
+        {
+            "id": 12,
+            "id_area": 1,
+            "area": "Abastecimiento",
+            "tema": "Precios",
+            "referente": "Jessica Farias",
+            "palabras_clave": "precio mal cargado, etiqueta"
+        },
+        {
+            "id": 13,
+            "id_area": 1,
+            "area": "Abastecimiento",
+            "tema": "Codificación",
+            "referente": "Jessica Farias",
+            "palabras_clave": "código, artículo nuevo, codificación"
+        },
+        {
+            "id": 14,
+            "id_area": 2,
+            "area": "Logística",
+            "tema": "Distribución",
+            "referente": "Claudia Otero",
+            "palabras_clave": "distribución"
+        },
+        {
+            "id": 15,
+            "id_area": 2,
+            "area": "Logística",
+            "tema": "Entregas",
+            "referente": "Lucas Navarro",
+            "palabras_clave": "entrega, cuándo llega mi pedido, envío"
+        },
+        {
+            "id": 16,
+            "id_area": 2,
+            "area": "Logística",
+            "tema": "Transporte",
+            "referente": "Lucas Navarro",
+            "palabras_clave": "transporte, camión, flete"
+        },
+        {
+            "id": 17,
+            "id_area": 2,
+            "area": "Logística",
+            "tema": "Seguimiento",
+            "referente": "Claudia Otero",
+            "palabras_clave": "seguimiento, dónde está mi pedido"
+        },
+        {
+            "id": 18,
+            "id_area": 2,
+            "area": "Logística",
+            "tema": "Recepción",
+            "referente": "Lucas Navarro",
+            "palabras_clave": "recepción, recibir"
+        },
+        {
+            "id": 19,
+            "id_area": 2,
+            "area": "Logística",
+            "tema": "Ruteo",
+            "referente": "Lucas Navarro",
+            "palabras_clave": "ruteo, ruta, horario de entrega"
+        },
+        {
+            "id": 20,
+            "id_area": 2,
+            "area": "Logística",
+            "tema": "Tiempos",
+            "referente": "Lucas Navarro",
+            "palabras_clave": "demora, cuándo llega"
+        },
+        {
+            "id": 21,
+            "id_area": 2,
+            "area": "Logística",
+            "tema": "Incidencias",
+            "referente": "Claudia Otero",
+            "palabras_clave": "incidencia, caja rota, dañado"
+        },
+        {
+            "id": 22,
+            "id_area": 2,
+            "area": "Logística",
+            "tema": "Reclamos",
+            "referente": "Claudia Otero",
+            "palabras_clave": "reclamo"
+        },
+        {
+            "id": 23,
+            "id_area": 2,
+            "area": "Logística",
+            "tema": "Remitos",
+            "referente": "Claudia Otero",
+            "palabras_clave": "remito"
+        },
+        {
+            "id": 24,
+            "id_area": 3,
+            "area": "Administración",
+            "tema": "Facturación",
+            "referente": null,
+            "palabras_clave": "factura, facturación"
+        },
+        {
+            "id": 25,
+            "id_area": 3,
+            "area": "Administración",
+            "tema": "Pagos",
+            "referente": null,
+            "palabras_clave": "pago"
+        },
+        {
+            "id": 26,
+            "id_area": 3,
+            "area": "Administración",
+            "tema": "Cobranzas",
+            "referente": null,
+            "palabras_clave": "cobranza, cobro"
+        },
+        {
+            "id": 27,
+            "id_area": 3,
+            "area": "Administración",
+            "tema": "Cuenta corriente",
+            "referente": null,
+            "palabras_clave": "cuenta corriente, saldo"
+        },
+        {
+            "id": 28,
+            "id_area": 3,
+            "area": "Administración",
+            "tema": "Comprobantes",
+            "referente": null,
+            "palabras_clave": "comprobante"
+        },
+        {
+            "id": 29,
+            "id_area": 3,
+            "area": "Administración",
+            "tema": "Notas de crédito/débito",
+            "referente": null,
+            "palabras_clave": "nota de crédito, nota de débito"
+        },
+        {
+            "id": 30,
+            "id_area": 3,
+            "area": "Administración",
+            "tema": "Contabilidad",
+            "referente": null,
+            "palabras_clave": "contabilidad"
+        },
+        {
+            "id": 31,
+            "id_area": 3,
+            "area": "Administración",
+            "tema": "Impuestos",
+            "referente": null,
+            "palabras_clave": "impuesto"
+        },
+        {
+            "id": 32,
+            "id_area": 3,
+            "area": "Administración",
+            "tema": "Documentación",
+            "referente": null,
+            "palabras_clave": "documentación"
+        },
+        {
+            "id": 33,
+            "id_area": 3,
+            "area": "Administración",
+            "tema": "Proveedores",
+            "referente": null,
+            "palabras_clave": "proveedor"
+        },
+        {
+            "id": 34,
+            "id_area": 3,
+            "area": "Administración",
+            "tema": "Seguros",
+            "referente": null,
+            "palabras_clave": "seguro"
+        },
+        {
+            "id": 35,
+            "id_area": 3,
+            "area": "Administración",
+            "tema": "Compras",
+            "referente": "Diego Szmulewicz",
+            "palabras_clave": "compra, insumos"
+        },
+        {
+            "id": 36,
+            "id_area": 3,
+            "area": "Administración",
+            "tema": "Control sucursales",
+            "referente": "Silvina Leguiza",
+            "palabras_clave": "control de sucursal, arqueo"
+        },
+        {
+            "id": 37,
+            "id_area": 4,
+            "area": "Tesorería",
+            "tema": "Pagos a proveedores",
+            "referente": null,
+            "palabras_clave": "pago a proveedor"
+        },
+        {
+            "id": 38,
+            "id_area": 4,
+            "area": "Tesorería",
+            "tema": "Cronograma de pagos",
+            "referente": null,
+            "palabras_clave": "cronograma de pagos"
+        },
+        {
+            "id": 39,
+            "id_area": 4,
+            "area": "Tesorería",
+            "tema": "Cheques",
+            "referente": null,
+            "palabras_clave": "cheque"
+        },
+        {
+            "id": 40,
+            "id_area": 4,
+            "area": "Tesorería",
+            "tema": "Transferencias bancarias",
+            "referente": null,
+            "palabras_clave": "transferencia"
+        },
+        {
+            "id": 41,
+            "id_area": 4,
+            "area": "Tesorería",
+            "tema": "Cuentas bancarias",
+            "referente": null,
+            "palabras_clave": "cuenta bancaria"
+        },
+        {
+            "id": 42,
+            "id_area": 4,
+            "area": "Tesorería",
+            "tema": "Caja y efectivo",
+            "referente": null,
+            "palabras_clave": "caja, efectivo, cambio"
+        },
+        {
+            "id": 43,
+            "id_area": 4,
+            "area": "Tesorería",
+            "tema": "Depósitos de locales",
+            "referente": null,
+            "palabras_clave": "depósito"
+        },
+        {
+            "id": 44,
+            "id_area": 4,
+            "area": "Tesorería",
+            "tema": "Flujo de fondos",
+            "referente": null,
+            "palabras_clave": "flujo de fondos"
+        },
+        {
+            "id": 45,
+            "id_area": 4,
+            "area": "Tesorería",
+            "tema": "Medios de cobro",
+            "referente": null,
+            "palabras_clave": "medios de cobro, tarjeta"
+        },
+        {
+            "id": 46,
+            "id_area": 4,
+            "area": "Tesorería",
+            "tema": "Retenciones",
+            "referente": null,
+            "palabras_clave": "retención"
+        },
+        {
+            "id": 47,
+            "id_area": 5,
+            "area": "Innovación",
+            "tema": "Control de stock",
+            "referente": "Agustina Latorre",
+            "palabras_clave": "control de stock, conteo"
+        },
+        {
+            "id": 48,
+            "id_area": 5,
+            "area": "Innovación",
+            "tema": "Soporte de aplicaciones (uso y errores)",
+            "referente": "Equipo",
+            "palabras_clave": "app, aplicación, error, no anda, no funciona, XL Gestión, pantalla, cómo se hace"
+        },
+        {
+            "id": 49,
+            "id_area": 5,
+            "area": "Innovación",
+            "tema": "Pedidos de mejoras o nuevas herramientas",
+            "referente": "Equipo",
+            "palabras_clave": "mejora, nueva herramienta, idea"
+        },
+        {
+            "id": 50,
+            "id_area": 6,
+            "area": "Sistemas",
+            "tema": "Sistema Tango",
+            "referente": null,
+            "palabras_clave": "tango"
+        },
+        {
+            "id": 51,
+            "id_area": 6,
+            "area": "Sistemas",
+            "tema": "Falla de facturación",
+            "referente": null,
+            "palabras_clave": "no factura, no puedo facturar"
+        },
+        {
+            "id": 52,
+            "id_area": 6,
+            "area": "Sistemas",
+            "tema": "Hardware",
+            "referente": null,
+            "palabras_clave": "computadora, pc, monitor"
+        },
+        {
+            "id": 53,
+            "id_area": 6,
+            "area": "Sistemas",
+            "tema": "Equipamiento",
+            "referente": null,
+            "palabras_clave": "equipo, equipamiento"
+        },
+        {
+            "id": 54,
+            "id_area": 6,
+            "area": "Sistemas",
+            "tema": "Impresoras",
+            "referente": null,
+            "palabras_clave": "impresora, no imprime, ticket"
+        },
+        {
+            "id": 55,
+            "id_area": 6,
+            "area": "Sistemas",
+            "tema": "Cajas / POS",
+            "referente": null,
+            "palabras_clave": "caja, pos, posnet"
+        },
+        {
+            "id": 56,
+            "id_area": 6,
+            "area": "Sistemas",
+            "tema": "Conectividad",
+            "referente": null,
+            "palabras_clave": "internet, wifi, sin conexión, red"
+        },
+        {
+            "id": 57,
+            "id_area": 6,
+            "area": "Sistemas",
+            "tema": "Usuarios y accesos",
+            "referente": null,
+            "palabras_clave": "usuario, contraseña, clave, acceso, olvidé"
+        },
+        {
+            "id": 58,
+            "id_area": 6,
+            "area": "Sistemas",
+            "tema": "Soporte técnico",
+            "referente": null,
+            "palabras_clave": "soporte técnico"
+        },
+        {
+            "id": 59,
+            "id_area": 6,
+            "area": "Sistemas",
+            "tema": "Incidencias",
+            "referente": null,
+            "palabras_clave": "incidencia de sistema"
+        }
+    ]
+}
