@@ -1,0 +1,17 @@
+{
+    "conversation_id": "test_e2e_ok_1794583606_cache_check",
+    "updated_at": "2026-11-13T12:27:06-03:00",
+    "turns": [
+        {
+            "timestamp": "2026-11-13T12:27:06-03:00",
+            "question": "¿Cómo se cargan proyectos de desarrollo en Trello y qué listas tiene el tablero?",
+            "answer": "De acuerdo con los procedimientos oficiales de la empresa, la carga de proyectos y la gestión de tareas en la plataforma Trello (específicamente en el tablero oficial **\"Desarrollos Gasn\"**) se realizan de la siguiente manera:\n\n---\n\n### 1. Listas que componen el Tablero\nEl ciclo de vida de los requerimientos y proyectos se organiza a través de las siguientes columnas:\n\n* **URL Proyectos:** Repositorio de *cards* de proyecto con información general y ubicación de cada sistema o desarrollo.\n* **Pendientes:** *Cards* ya cargadas que aún no deben ser trabajadas (ubicación inicial para nuevos pedidos o requerimientos).\n* **Asignados:** *Cards* en desarrollo por parte del equipo técnico. El orden de apilado define la prioridad (las primeras en la lista deben ejecutarse antes).\n* **Revisión:** *Cards* finalizadas por desarrollo, listas para testeo funcional por el equipo de proyectos (el cual debe realizarse dentro de las 24 horas posteriores).\n* **Merge:** *Cards* aprobadas en revisión, listas para ser subidas a producción.\n* **Finalizados:** *Cards* ya implementadas y desplegadas en el entorno productivo.\n\n---\n\n### 2. Cómo se cargan proyectos de desarrollo\n\nPara comenzar un **proyecto nuevo**, se deben seguir estos pasos:\n1. Ir a la columna **URL Proyectos**.\n2. Crear una nueva *card* completando los siguientes datos obligatorios:\n   * **Nombre del Proyecto:** Utilizar como título de la tarjeta.\n   * **Etiqueta del Proyecto:** Crear una etiqueta con el nombre del proyecto y asignarle un color distintivo.\n   * **Descripción del Proyecto:** Breve y clara.\n   * **Objetivos:** Detallar qué se busca lograr.\n   * **URL:** Enlace o ubicación del sistema en el servidor.\n*(Nota: Esta tarjeta servirá como referencia general para todas las tareas asociadas al proyecto).*\n\nPara registrar un **nuevo requerimiento, corrección o mejora** vinculada:\n1. **Título:** Utilizar el formato `### - Descripción breve` (Ejemplo: `500 - Programar remisión`).\n2. **Descripción:** Detallar lo solicit",
+            "sources": [
+                "12:Carga y Gestión de Proyectos de Desarrollo en Trello",
+                "24:Prompt para creación de desarrollos",
+                "13:Instructivo creación de repositorio en GitHub",
+                "26:Alta, actualización y baja de sucursales"
+            ]
+        }
+    ]
+}

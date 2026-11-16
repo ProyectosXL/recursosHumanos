@@ -1,0 +1,267 @@
+
+/* glossary.css - Estilos para el glosario */
+
+/* Elementos del glosario */
+.glossary-list {
+    list-style: none;
+}
+
+.glossary-item {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.glossary-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.glossary-item h4 {
+    font-size: 16px;
+    margin-bottom: 5px;
+    color: var(--dark-color);
+    display: flex;
+    align-items: center;
+}
+
+.glossary-item h4 i {
+    margin-right: 8px;
+    color: var(--primary-color);
+}
+
+.glossary-item p {
+    font-size: 14px;
+    color: #666;
+    margin-left: 25px;
+}
+
+/* Modal general */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Cambiado de auto a hidden para evitar scroll en el fondo */
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Modal específico del glosario */
+.glossary-modal {
+    max-width: 700px;
+    max-height: 90vh; /* Altura máxima relativa a la ventana */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Asegura que no haya desbordamiento fuera del modal */
+}
+
+/* Contenedor de búsqueda (fijo en la parte superior) */
+.glossary-search-container {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    padding: 15px 15px 5px 15px;
+    z-index: 10;
+    border-bottom: 1px solid #eee;
+}
+
+.glossary-search {
+    width: 100%;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* Título del modal */
+.glossary-modal h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+
+/* Contenedor de contenido con scroll */
+.glossary-content {
+    flex: 1;
+    overflow-y: auto; /* Solo este contenedor tendrá scroll */
+    padding: 0 15px 15px 15px; /* Padding adicional abajo para el contenido */
+    max-height: calc(90vh - 120px); /* Altura ajustada considerando el header */
+}
+
+/* Estilo mejorado para la lista de glosario dentro del modal */
+.glossary-modal .glossary-list {
+    padding-right: 5px;
+}
+
+/* Ajustar el botón de cierre para que permanezca visible */
+.glossary-modal .close-modal {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 11; /* Por encima del contenido del modal */
+}
+
+.glossary-letter {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+    margin: 20px 0 10px;
+    padding-bottom: 5px;
+}
+
+/* Estilos para el resultado de búsqueda del glosario */
+.glossary-result {
+    background-color: rgba(52, 152, 219, 0.1);
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.glossary-result-title {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.glossary-letter-divider {
+    display: flex;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.glossary-letter-divider::before,
+.glossary-letter-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: #eee;
+}
+
+.glossary-letter-divider::before {
+    margin-right: 10px;
+}
+
+.glossary-letter-divider::after {
+    margin-left: 10px;
+}
+
+.glossary-alphabet {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+    gap: 5px;
+}
+
+.glossary-alphabet a {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    border-radius: 50%;
+    background-color: #f0f0f0;
+    color: var(--dark-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.glossary-alphabet a:hover,
+.glossary-alphabet a.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.glossary-empty {
+    text-align: center;
+    padding: 50px 0;
+    color: #999;
+}
+
+.glossary-empty i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    color: #ddd;
+}
+
+/* Mejorar visualización en dispositivos móviles */
+@media (max-width: 768px) {
+    .glossary-modal {
+        width: 95%;
+        max-height: 85vh;
+    }
+
+    .glossary-content {
+        max-height: calc(85vh - 120px);
+    }
+    
+    .glossary-alphabet a {
+        width: 28px;
+        height: 28px;
+        line-height: 28px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 576px) {
+    .glossary-modal {
+        width: 98%;
+        max-height: 90vh;
+    }
+    
+    .glossary-content {
+        max-height: calc(90vh - 100px);
+        padding: 0 10px 10px 10px;
+    }
+    
+    .glossary-search-container {
+        padding: 12px 10px 5px 10px;
+    }
+    
+    .glossary-search {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+    
+    .glossary-letter {
+        font-size: 20px;
+        margin: 15px 0 8px;
+    }
+    
+    .glossary-item h4 {
+        font-size: 15px;
+    }
+    
+    .glossary-item p {
+        font-size: 13px;
+        margin-left: 20px;
+    }
+    
+    .glossary-alphabet {
+        gap: 3px;
+    }
+    
+    .glossary-alphabet a {
+        width: 26px;
+        height: 26px;
+        line-height: 26px;
+        font-size: 13px;
+    }
+    
+    .glossary-modal .close-modal {
+        font-size: 24px;
+        right: 10px;
+        top: 10px;
+    }
+}

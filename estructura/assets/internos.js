@@ -99,7 +99,7 @@ function createProfileCard(empleado) {
     const iniciales = esc(getInitials(nombre));
 
     return `
-        <div class="col-md-6 col-xl-4 mb-4">
+        <div class="col-md-6 col-xl-4 col-xxl-3 mb-4">
             <div class="profile-card">
                 ${esNuevo ? `
                     <div class="new-employee-badge" data-bs-toggle="tooltip" data-bs-placement="top" title="Nueva incorporación">

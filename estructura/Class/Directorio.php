@@ -132,21 +132,24 @@ class Directorio
 
     /* ================================================================ Personas de Internos */
 
-    /** Todas las personas de Internos: ID => ['nombre', 'activo', 'sector']. */
+    /** Todas las personas de Internos: ID => ['nombre', 'activo', 'sector', 'interno', 'mail']. */
     public function personas()
     {
         if (isset($this->memo['personas'])) {
             return $this->memo['personas'];
         }
         $res = array();
-        $sql = 'SELECT ID, NOMBRE_APELLIDO, SECTOR, ISNULL(INACTIVO, 0) AS INACTIVO
+        $sql = 'SELECT ID, NOMBRE_APELLIDO, SECTOR, ISNULL(INACTIVO, 0) AS INACTIVO,
+                       ISNULL(CAST(INTERNO AS NVARCHAR(20)), \'\') AS INTERNO, ISNULL(MAIL, \'\') AS MAIL
                   FROM dbo.RO_T_INTERNOS_PERSONAL
                  ORDER BY NOMBRE_APELLIDO';
         foreach ($this->filas($sql) as $f) {
             $res[(int)$f['ID']] = array(
-                'nombre' => trim((string)$f['NOMBRE_APELLIDO']),
-                'activo' => !(int)$f['INACTIVO'],
-                'sector' => trim((string)$f['SECTOR']),
+                'nombre'  => trim((string)$f['NOMBRE_APELLIDO']),
+                'activo'  => !(int)$f['INACTIVO'],
+                'sector'  => trim((string)$f['SECTOR']),
+                'interno' => trim((string)$f['INTERNO']),
+                'mail'    => trim((string)$f['MAIL']),
             );
         }
         return $this->memo['personas'] = $res;
@@ -242,6 +245,7 @@ class Directorio
             );
             foreach ($a['temas'] as $t) {
                 $esPersona = !$t['referente_equipo'] && Reglas::estadoPersona($t['id_referente'], $personas) === 'activa';
+                $p = $esPersona ? $personas[$t['id_referente']] : null;
                 $temas[] = array(
                     'id'             => $t['id'],
                     'id_area'        => $a['id'],
@@ -250,7 +254,10 @@ class Directorio
                     'palabras_clave' => $t['palabras_clave'],
                     'referente'      => Reglas::textoReferente($t['id_referente'], $t['referente_equipo'], $a['nombre'], $personas),
                     // Sólo si es una persona: "Ver en Internos" la busca por nombre
-                    'persona'        => $esPersona ? $personas[$t['id_referente']]['nombre'] : null,
+                    'persona'        => $p ? $p['nombre'] : null,
+                    // Interno y mail del referente (los mismos que muestra Internos, que también es pública)
+                    'interno'        => $p ? $p['interno'] : '',
+                    'mail_persona'   => $p ? $p['mail'] : '',
                 );
             }
         }

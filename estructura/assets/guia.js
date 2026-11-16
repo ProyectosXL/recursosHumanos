@@ -50,8 +50,16 @@
 
     function tarjeta(t) {
         var a = areasPorId[t.id_area] || {};
+        var contacto = '';
+        if (t.interno) {
+            contacto += '<span><i class="bi bi-telephone" aria-hidden="true"></i> Int. ' + esc(t.interno) + '</span>';
+        }
+        if (t.mail_persona) {
+            contacto += '<a href="mailto:' + esc(t.mail_persona) + '"><i class="bi bi-envelope" aria-hidden="true"></i> ' + esc(t.mail_persona) + '</a>';
+        }
         var ref = t.referente !== null
             ? '<div class="res-valor">' + esc(t.referente) + '</div>'
+              + (contacto ? '<div class="res-contacto">' + contacto + '</div>' : '')
             : '<div class="res-valor est-pendiente">A definir</div>';
         var mail = a.mail
             ? '<a href="mailto:' + esc(a.mail) + '">' + esc(a.mail) + '</a>'
@@ -175,6 +183,45 @@
             actualizarUrl();
         });
     }
+
+    /*
+     * Contacto del referente en las fichas. El popover se abre solo con hover (mouse) y con foco
+     * de teclado (CSS); el clic/toque lo deja fijo (aria-expanded), que es lo que usa el celular.
+     * Escape o un clic afuera lo cierran; .persona--cerrada lo tapa aunque siga el hover o el
+     * foco, hasta que el mouse o el foco salen de esa persona.
+     */
+    function cerrarPopovers(excepto) {
+        Array.prototype.forEach.call($fichas.querySelectorAll('.persona-nombre[aria-expanded="true"]'), function (b) {
+            if (b !== excepto) { b.setAttribute('aria-expanded', 'false'); }
+        });
+    }
+    $fichas.addEventListener('click', function (ev) {
+        var b = ev.target.closest('.persona-nombre');
+        cerrarPopovers(b);
+        if (b) {
+            b.closest('.persona').classList.remove('persona--cerrada');
+            b.setAttribute('aria-expanded', b.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+        }
+    });
+    document.addEventListener('click', function (ev) {
+        if (!ev.target.closest('.persona')) { cerrarPopovers(null); }
+    });
+    document.addEventListener('keydown', function (ev) {
+        if (ev.key !== 'Escape') { return; }
+        cerrarPopovers(null);
+        var p = document.activeElement && document.activeElement.closest('.persona');
+        if (p) {
+            p.classList.add('persona--cerrada');
+            p.querySelector('.persona-nombre').focus();
+        }
+        Array.prototype.forEach.call($fichas.querySelectorAll('.persona:hover'), function (h) { h.classList.add('persona--cerrada'); });
+    });
+    Array.prototype.forEach.call($fichas.querySelectorAll('.persona'), function (p) {
+        p.addEventListener('mouseleave', function () { p.classList.remove('persona--cerrada'); });
+        p.addEventListener('focusout', function (ev) {
+            if (!p.contains(ev.relatedTarget)) { p.classList.remove('persona--cerrada'); }
+        });
+    });
 
     leerAreaElegida();
     render();

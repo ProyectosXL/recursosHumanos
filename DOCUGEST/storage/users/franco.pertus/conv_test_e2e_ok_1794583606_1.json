@@ -1,0 +1,17 @@
+{
+    "conversation_id": "test_e2e_ok_1794583606_1",
+    "updated_at": "2026-11-13T12:26:55-03:00",
+    "turns": [
+        {
+            "timestamp": "2026-11-13T12:26:55-03:00",
+            "question": "¿Cómo funciona el sistema de etiquetas de precios?",
+            "answer": "El **Sistema de Etiquetas de Precios** de Extra Large permite generar e imprimir dos tipos de etiquetas: **Cartel Vidriera** (formato grande para exhibición) y **Etiquetas Pequeñas** (formato reducido para productos individuales). \n\nA continuación, se detallan los pasos para acceder, generar e imprimir cada tipo de etiqueta, así como las recomendaciones y solución de problemas según la normativa vigente:\n\n---\n\n### 1. Acceso al Sistema\n1. Abra su navegador web e ingrese a **XL Gestión**.\n2. Navegue a través del menú e ingrese en **Operaciones \/ Ventas \/ Carteles Precios Vidriera**.\n3. Se mostrará la interfaz principal con dos pestañas: **'Cartel Vidriera'** y **'Etiqueta Pequeña'**.\n\n---\n\n### 2. Generación de Carteles Vidriera (Formato Grande)\n*Diseñado para la exhibición de hasta 7 artículos.*\n\n1. Haga clic en la pestaña **'\nCartel Vidriera'** en la parte superior de la pantalla.\n2. Ingrese los códigos de los artículos en los campos disponibles (hasta **7 códigos** en total; aparecerán en el mismo orden de ingreso).\n3. Haga clic en el botón **'Generar Etiqueta'**. El sistema verificará cada código: si son correctos, se generará el cartel; si hay errores, mostrará un mensaje indicando cuáles códigos son inválidos.\n4. Haga clic en **'Imprimir'**, seleccione su impresora y configure las opciones (este formato está optimizado para **tamaño A4**).\n5. *Opcional:* Puede hacer clic sobre los nombres de los productos para editarlos si es necesario.\n\n---\n\n### 3. Generación de Etiquetas Pequeñas (Formato Individual)\n*Formato reducido optimizado para marcar productos individuales (medida: 4cm x 5.2cm).*\n\n1. Seleccione la pestaña **'Etiqueta Pequeña'**.\n2. En el campo **'Código Artículo'**, ingrese el código del producto y presione **Enter** (o espere a que el sistema lo procese). \n   * Si el código es válido, se agregará automáticamente a la grilla y el campo se limpiará para el siguiente código.\n   * Si es inválido, el sistema mostrará un mensaje de error.\n3. Repita el proceso",
+            "sources": [
+                "14:Instructivo para el Sistema de Etiquetas de Precios",
+                "12:Carga y Gestión de Proyectos de Desarrollo en Trello",
+                "1:Toma de inventario Deposito Central",
+                "25:Instructivo Gestión de Tickets en Portal Action Sales"
+            ]
+        }
+    ]
+}

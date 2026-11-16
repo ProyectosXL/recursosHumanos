@@ -1,0 +1,56 @@
+{
+    "conversation_id": "conv_1794584518739",
+    "updated_at": "2026-11-13T12:54:34-03:00",
+    "turns": [
+        {
+            "timestamp": "2026-11-13T12:49:09-03:00",
+            "question": "¿Cuál es el procedimiento de remisión y despacho de mercadería en locales propios?",
+            "answer": "Encontré la siguiente información relevante en la base documental de **XL DocuGest**:\n\n### Remision, Control y Despacho de Mercaderia en locales — Sección\nEstablecer un procedimiento para la remisión, control y despacho de mercadería en locales propios con el fin de: 1. Establecer la manera de proceder para la remisión, control y despacho de la mercadería alojada en locales. 2. Estandarizar las observaciones con el propósito de que la información ayude a la toma de decisiones. 3. Establecer el circuito administrativo de la documentación utilizada.\n\n### Remision, Control y Despacho de Mercaderia en locales — Alcance\nAplica a todos los remitos generados desde locales propios.\n\n### Remision, Control y Despacho de Mercaderia en locales — Paso a Paso de Operación y Ejecución\n1. Para generar un remito acceder a Ventas\/Facturación\/Remitos\/Emisión. 2. Seleccionar 'Ingresar' en el extremo superior izquierdo. 3. Completar datos de cabecera: Talonario (5 + número de sucursal), Cliente (Código según anexo 1), Observaciones (motivo del remito), Cond. De venta (1), Depósito (Número de depósito del remitente), Sucursal Destino (no editar según corresponda). 4. Escanear los artículos de a uno tras cargar la cabecera. 5. Colocar artículos en un bolso o caja junto con el remito original, identificados por fuera con el 'ROTULO DE ENVIOS' verificando que coincida el número de remito. 6. Presionar tilde verde o <F10> e imprimir para confirmar (se debe realizar un remito por bulto). 7. Verificar coincidencia de artículos con lo remitido, cerrar el bulto con el remito original dentro y rotular. 8. Para el despacho, verificar coincidencia entre cantidad de remitos y bultos; el duplicado debe ser conformado por el transportista con firma, aclaración y fecha. 9. Archivar los remitos en biblioratos ordenados de manera ascendente por número.",
+            "sources": [
+                "2:Remision, Control y Despacho de Mercaderia en locales",
+                "9:Instructivo para Emision de Ordenes de Compra",
+                "7:Instructivo para Aprobacion de Orden de Compra",
+                "26:Alta, actualización y baja de sucursales"
+            ]
+        },
+        {
+            "timestamp": "2026-11-13T12:50:00-03:00",
+            "question": "donde esta el documento?",
+            "answer": "No encontré coincidencias directas en los documentos vigentes para \"donde esta el documento?\". Probá reformular tu consulta usando el nombre del proceso o consultá el listado por sector en el panel principal.",
+            "sources": []
+        },
+        {
+            "timestamp": "2026-11-13T12:51:01-03:00",
+            "question": "Cómo se cargan proyectos de desarrollo en Trello?",
+            "answer": "Encontré la siguiente información relevante en la base documental de **XL DocuGest**:\n\n### Carga y Gestión de Proyectos de Desarrollo en Trello — 7. Responsabilidades del Equipo de Proyectos\nEl equipo de proyectos es responsable de:\n• Verificar el avance de cards diariamente.\n• Exigir que el equipo de desarrollo muestre avances tangibles y medibles.\n• En caso de falta de progreso, contactar vía WhatsApp para hacer seguimiento diario.\n• Realizar el testeo dentro de las 24 hs posteriores a que la card pase a revisión, asegurando agilidad en el flujo de trabajo.\n• Supervisar el cumplimiento del flujo y mantener actualizada la información de cada card.\n• Asegurar que los proyectos estén correctamente documentados y gestionados de forma ágil y ordenada.\n\n### Carga y Gestión de Proyectos de Desarrollo en Trello — 2. Estructura del Tablero\nEl tablero está compuesto por las siguientes columnas que representan el ciclo de vida de cada requerimiento:\n• Pendientes: Cards ya cargadas que aún no deben ser trabajadas.\n• Asignados: Cards en desarrollo por parte del equipo técnico. El orden de apilado define la prioridad (las primeras en la lista deben ejecutarse antes).\n• Revisión: Cards listas para testeo por el equipo de proyectos.\n• Merge: Cards aprobadas, listas para subir a producción.\n• Finalizados: Cards ya implementadas en el entorno productivo.\n• URL Proyectos: Repositorio de cards de proyecto con información general y ubicación de cada sistema o desarrollo.\n\n### Carga y Gestión de Proyectos de Desarrollo en Trello — 1. Objetivo\nEstablecer un método uniforme para registrar, gestionar y hacer seguimiento a nuevos proyectos, requerimientos, correcciones y mejoras de proyectos existentes en el tablero de Trello 'Desarrollos Gasn', con el fin de trabajar de forma ágil y documentada con el equipo de desarrollo.",
+            "sources": [
+                "12:Carga y Gestión de Proyectos de Desarrollo en Trello",
+                "24:Prompt para creación de desarrollos",
+                "13:Instructivo creación de repositorio en GitHub",
+                "26:Alta, actualización y baja de sucursales"
+            ]
+        },
+        {
+            "timestamp": "2026-11-13T12:52:28-03:00",
+            "question": "como es el Proceso de Solicitud de Orden de Compra?",
+            "answer": "El **Proceso de Solicitud de Orden de Compra** en Laker S.A. (XL Extra Large) se rige bajo los siguientes lineamientos, áreas involucradas y pasos normativos:\n\n### 1. Marco y Propósito\n* **Propósito:** Generar un documento interno (**Solicitud de pedido**) que indique la necesidad de adquirir un bien o servicio. Esto permite un seguimiento adecuado de la compra, control financiero y eficiencia, asegurando que la transacción esté justificada y ajustada a los presupuestos.\n* **Área \/ Subárea:** Gerencia de Administración \/ Jefa de Administración.\n* **Proceso \/ Subproceso:** Pago a Proveedores \/ Solicitud de Orden de Compra (o Compra).\n* **Ejecutante:** Cada área que requiera de un bien o servicio (a través de los compradores \/ solicitantes designados de cada sector).\n* **Aprobadores:** Líderes de área, Gerentes y Directores correspondientes.\n\n---\n\n### 2. Pasos del Proceso\n1. **Creación de la Solicitud:** \n   * Se inicia la creación de la solicitud de compra en el sistema (por ejemplo, utilizando el sistema Tango).\n   * La solicitud interna detalla la necesidad del bien o servicio.\n2. **Aprobación Previa:**\n   * Cada líder de área, gerente o director debe realizar la **aprobación previa** del pedido dentro de los niveles de autoridad correspondientes antes de que se efectúen las compras, garantizando la visibilidad del proceso en el sistema.\n3. **Modificación (si aplica):**\n   * El usuario solicitante puede ingresar y modificar ítems en la solicitud de pedido antes de que la misma sea completamente aprobada.\n4. **Generación de la Orden de Compra (OC):**\n   * Una vez autorizado el pedido de compra, se procede a generar la **Orden de Compra (OC)** correspondiente en el sistema.\n\n---\n\n### Fuente Normativa\n* **Instructivo para Solicitud de Compra** (Sector: Administración, v1.0)\n* **Instructivo para Aprobacion de Solicitud de Compras** (Sector: Administración, v1.0)\n* **Instructivo para Aprobacion de Orden de Compra** (Sector: Administración, v1.0)",
+            "sources": [
+                "7:Instructivo para Aprobacion de Orden de Compra",
+                "9:Instructivo para Emision de Ordenes de Compra",
+                "6:Instructivo para Carga de Ordenes de Compra",
+                "5:Instructivo para Solicitud de Compra"
+            ]
+        },
+        {
+            "timestamp": "2026-11-13T12:54:34-03:00",
+            "question": "Como es la emisión de Órdenes de Compra ?",
+            "answer": "Para realizar la **emisión de Órdenes de Compra** en el sistema Tango (proceso ejecutado por el Analista de Proveedores de la Gerencia de Administración), se deben seguir los pasos y condiciones normativas detalladas a continuación:\n\n### Frecuencia y Propósito\n* **Frecuencia:** La emisión se realizará día por medio o según la demanda, con el fin de enviarlas a las áreas correspondientes y al proveedor.\n* **Propósito:** Visualizar las condiciones comerciales acordadas con los proveedores y las áreas internas.\n\n---\n\n### Pasos para la Emisión en el Sistema Tango\n1. Navegar a la sección **Compras** en el sistema Tango.\n2. Seleccionar **Órdenes** y hacer doble clic en **Emisión e impresión**.\n3. Hacer clic en la opción **'+'**.\n4. Verificar que la opción **Emitir** esté activada.\n5. Seleccionar el **Talonario N° 100** *(identificador numérico específico requerido para este proceso)*.\n6. Indicar la **fecha de ingreso** correspondiente.\n7. Opcionalmente, aplicar un filtro **'Desde ordenes de compra'**.\n8. Confirmar la operación mediante la opción **Grabar** (tilde verde).\n\n---\n\n### Fuente Normativa\n* **Instructivo para Emision de Ordenes de Compra** (Sector: Administración, Versión: v1.0).",
+            "sources": [
+                "9:Instructivo para Emision de Ordenes de Compra",
+                "6:Instructivo para Carga de Ordenes de Compra",
+                "7:Instructivo para Aprobacion de Orden de Compra",
+                "4:Instructivo Revisión de Órdenes de Nexo Tiendas"
+            ]
+        }
+    ]
+}

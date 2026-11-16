@@ -1,0 +1,17 @@
+{
+    "conversation_id": "conv_1794585453829",
+    "updated_at": "2026-11-13T12:58:22-03:00",
+    "turns": [
+        {
+            "timestamp": "2026-11-13T12:58:22-03:00",
+            "question": "quienes pueden autorizar las ordenes de compra?",
+            "answer": "Las órdenes de compra deben ser autorizadas por el **superior del área correspondiente**, de acuerdo con la siguiente escala de montos establecida:\n\n* **De $0 a $100.000:** Líder de área.\n* **De $100.000 a $2.000.000:** Gerente de área.\n* **Mayores a $2.000.000:** Director de área.\n\nAsimismo, en el sistema se puede seleccionar a un usuario específico para realizar dicha gestión (por ejemplo, Silvia).\n\n---\n**Fuente Normativa**\n- Instructivo para Aprobacion de Orden de Compra (Sector: Administración, Versión: 1.0)",
+            "sources": [
+                "9:Instructivo para Emision de Ordenes de Compra",
+                "7:Instructivo para Aprobacion de Orden de Compra",
+                "6:Instructivo para Carga de Ordenes de Compra",
+                "4:Instructivo Revisión de Órdenes de Nexo Tiendas"
+            ]
+        }
+    ]
+}

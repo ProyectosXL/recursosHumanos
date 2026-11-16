@@ -1,0 +1,17 @@
+{
+    "conversation_id": "conv_1794679432219",
+    "updated_at": "2026-11-14T15:05:01-03:00",
+    "turns": [
+        {
+            "timestamp": "2026-11-14T15:05:01-03:00",
+            "question": "Que esta prohibido cuando hago un inventario en deposito central?",
+            "answer": "En base al procedimiento oficial de toma de inventario en el Depósito Central, durante el proceso está terminantemente **prohibido**:\n\n1. Tocar o mover mercadería de sectores que ya han sido inventariados.\n2. El ingreso de personal no autorizado por el responsable de Control de Stock.\n3. Utilizar el sistema en cualquier sector que tenga acceso a mover stock.\n\n**Fuente Normativa:**\n* Toma de inventario Deposito Central (Sector: Logística, Versión: v1.0)",
+            "sources": [
+                "1:Toma de inventario Deposito Central",
+                "2:Remision, Control y Despacho de Mercaderia en locales",
+                "3:Instructivos Entrega Pedidos Ecommerce en Tiendas",
+                "6:Instructivo para Carga de Ordenes de Compra"
+            ]
+        }
+    ]
+}

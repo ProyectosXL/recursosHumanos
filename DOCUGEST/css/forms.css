@@ -1,0 +1,362 @@
+
+/* forms.css - Estilos para formularios */
+
+/* Contenedor principal del formulario */
+.upload-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Estilos para el formulario */
+.upload-form {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.upload-form .form-group {
+    margin-bottom: 25px;
+}
+
+.upload-form label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--dark-color);
+}
+
+.upload-form input[type="text"],
+.upload-form select,
+.upload-form textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+}
+
+.upload-form input[type="text"]:focus,
+.upload-form select:focus,
+.upload-form textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    outline: none;
+}
+
+/* Estilos para el campo de carga de archivos */
+.file-upload-container {
+    position: relative;
+    margin-top: 20px;
+}
+
+.file-upload-button {
+    background-color: #f8f9fa;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    padding: 25px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.file-upload-button:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(52, 152, 219, 0.05);
+}
+
+.file-upload-button i {
+    font-size: 40px;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+.file-upload-button p {
+    margin: 5px 0 0;
+    color: #777;
+}
+
+.file-upload-button .main-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #555;
+}
+
+.file-upload-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.file-info {
+    display: none;
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.file-info.show {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.file-info .file-name {
+    font-weight: 600;
+    margin-right: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+}
+
+.file-info .file-size {
+    color: #777;
+    font-size: 14px;
+}
+
+.file-info .remove-file {
+    color: #e74c3c;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+/* Estilos para los botones de acción */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+/* Estilos para etiquetas y metadatos */
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.tag {
+    background-color: rgba(52, 152, 219, 0.1);
+    color: var(--primary-color);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+.tag i {
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+.tag-suggestions {
+    margin-top: 10px;
+}
+
+.tag-suggestions span {
+    display: inline-block;
+    background-color: #f8f9fa;
+    border-radius: 15px;
+    padding: 3px 10px;
+    font-size: 13px;
+    color: #555;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tag-suggestions span:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+    color: var(--primary-color);
+}
+
+/* Información adicional */
+.upload-info {
+    background-color: rgba(46, 204, 113, 0.1);
+    border-left: 4px solid var(--success-color);
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 30px;
+}
+
+.upload-info h4 {
+    color: var(--success-color);
+    margin-top: 0;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.upload-info h4 i {
+    margin-right: 8px;
+}
+
+.upload-info ul {
+    margin: 0;
+    padding-left: 25px;
+}
+
+.upload-info li {
+    margin-bottom: 5px;
+    color: #555;
+}
+
+/* Estilos para validación visual */
+.form-group.has-error input,
+.form-group.has-error select,
+.form-group.has-error textarea {
+    border-color: var(--accent-color);
+}
+
+.form-group.has-error .error-message {
+    color: var(--accent-color);
+    font-size: 14px;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Columnas en el formulario */
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -10px;
+    margin-left: -10px;
+}
+
+.form-row > .form-group {
+    padding-right: 10px;
+    padding-left: 10px;
+    flex: 1;
+}
+
+/* Estilos para campos requeridos */
+.required {
+    color: var(--accent-color);
+    margin-left: 3px;
+}
+
+/* Mejorar los estados de hover y focus en los controles del formulario */
+.upload-form input[type="text"]:hover,
+.upload-form select:hover,
+.upload-form textarea:hover {
+    border-color: #b3d7ff;
+}
+
+/* Personalización de select */
+.upload-form select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    padding-right: 30px;
+}
+
+/* Estilo para textarea */
+.upload-form textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Estado de foco para el botón de carga */
+.file-upload-button:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+/* Estilos para los mensajes de información en el formulario */
+.field-info {
+    display: block;
+    font-size: 13px;
+    color: #777;
+    margin-top: 5px;
+}
+
+/* Ajustes para la visualización de etiquetas */
+#tagsContainer {
+    min-height: 35px;
+    padding-top: 8px;
+}
+
+/* Estilo para el botón de carga cuando hay un archivo seleccionado */
+.file-upload-button.has-file {
+    border-color: var(--success-color);
+    background-color: rgba(46, 204, 113, 0.05);
+}
+
+/* Crear un aspecto visual atractivo para el archivo seleccionado */
+.file-info {
+    background-color: #f0f9ff;
+    border-left: 4px solid var(--primary-color);
+}
+
+.file-info i.fa-file-pdf {
+    color: #e74c3c;
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+/* Estilos para los campos deshabilitados */
+.upload-form input[disabled],
+.upload-form select[disabled],
+.upload-form textarea[disabled] {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+}
+
+/* Título del formulario */
+.upload-form-title {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.upload-form-title h3 {
+    margin: 0;
+    color: var(--dark-color);
+    font-size: 20px;
+}
+
+.upload-form-title p {
+    margin: 5px 0 0;
+    color: #777;
+}
+
+/* Responsive para formularios */
+@media (max-width: 768px) {
+    .upload-form {
+        padding: 20px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .form-row > .form-group {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+}

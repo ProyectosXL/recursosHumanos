@@ -1,0 +1,17 @@
+{
+    "conversation_id": "test_e2e_ok_1794583606_3",
+    "updated_at": "2026-11-13T12:27:06-03:00",
+    "turns": [
+        {
+            "timestamp": "2026-11-13T12:27:06-03:00",
+            "question": "¿Cómo se aprueba una orden de compra y una solicitud de compra?",
+            "answer": "Para aprobar una orden de compra y una solicitud de compra en Laker S.A. (XL Extra Large), se deben seguir los procedimientos establecidos por la Gerencia de Administración. A continuación se detallan los pasos y normativas para cada caso:\n\n---\n\n### 1. Aprobación de Orden de Compra\nEl procedimiento\n para la autorización de las órdenes de compra en el sistema se realiza de la siguiente manera:\n\n1. **Navegación:** Ingresar a la sección **Compras**, seleccionar **Órdenes de compra** y acceder a la opción **Autorización**.\n2. **Selección del Aprobador:** El sistema permitirá la selección de un usuario específico para la aprobación (por ejemplo, *Silvia*).\n3. **Visualización:** Se mostrará un listado de las órdenes de compra pendientes de autorización.\n4. **Opciones de Autorización:** \n   - Se puede autorizar individualmente cada solicitud.\n   - O bien, utilizar las opciones **AUTORIZAR TODO** o **DESAUTORIZAR TODO** disponibles al final de la pantalla.\n5. **Modificación de Solicitudes:** El usuario solicitante tiene la posibilidad de ingresar y modificar ítems en la solicitud de pedido antes de su aprobación definitiva.\n\n---\n\n### 2. Aprobación de Solicitud de Compra\nLa solicitud de pedido es un documento interno que refleja la necesidad de adquirir un bien o servicio, permitiendo un seguimiento y control financiero eficiente. Las reglas que la regulan son:\n\n* **Ejecutante:** Cada área que requiera un bien o servicio.\n* **Aprobadores:** Gerentes y Directores.\n* **Condición:** Toda solicitud debe ser aprobada obligatoriamente por los niveles de autoridad correspondientes (Gerentes y Directores) para garantizar que la compra esté debidamente justificada y se ajuste a los presupuestos establecidos.\n\n---\n\n### Fuente Normativa\n* **Instructivo para Aprobacion de Orden de Compra** · Sector: Administración · Versión: 1.0\n* **Instructivo para Solicitud de Compra** · Sector: Administración · Versión: 1.0\n* **Glosario corporativo de XL DocuGest**",
+            "sources": [
+                "7:Instructivo para Aprobacion de Orden de Compra",
+                "5:Instructivo para Solicitud de Compra",
+                "6:Instructivo para Carga de Ordenes de Compra",
+                "9:Instructivo para Emision de Ordenes de Compra"
+            ]
+        }
+    ]
+}

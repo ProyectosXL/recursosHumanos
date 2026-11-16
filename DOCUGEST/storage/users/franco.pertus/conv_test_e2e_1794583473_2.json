@@ -1,0 +1,17 @@
+{
+    "conversation_id": "test_e2e_1794583473_2",
+    "updated_at": "2026-11-13T12:24:59-03:00",
+    "turns": [
+        {
+            "timestamp": "2026-11-13T12:24:59-03:00",
+            "question": "¿Cuál es el procedimiento de remisión, control y despacho de mercadería en locales?",
+            "answer": "Encontré la siguiente información relevante en la base documental de **XL DocuGest**:\n\n### Remision, Control y Despacho de Mercaderia en locales — Sección\nEstablecer un procedimiento para la remisión, control y despacho de mercadería en locales propios con el fin de: 1. Establecer la manera de proceder para la remisión, control y despacho de la mercadería alojada en locales. 2. Estandarizar las observaciones con el propósito de que la información ayude a la toma de decisiones. 3. Establecer el circuito administrativo de la documentación utilizada.\n\n### Remision, Control y Despacho de Mercaderia en locales — Paso a Paso de Operación y Ejecución\n1. Para generar un remito acceder a Ventas\/Facturación\/Remitos\/Emisión. 2. Seleccionar 'Ingresar' en el extremo superior izquierdo. 3. Completar datos de cabecera: Talonario (5 + número de sucursal), Cliente (Código según anexo 1), Observaciones (motivo del remito), Cond. De venta (1), Depósito (Número de depósito del remitente), Sucursal Destino (no editar según corresponda). 4. Escanear los artículos de a uno tras cargar la cabecera. 5. Colocar artículos en un bolso o caja junto con el remito original, identificados por fuera con el 'ROTULO DE ENVIOS' verificando que coincida el número de remito. 6. Presionar tilde verde o <F10> e imprimir para confirmar (se debe realizar un remito por bulto). 7. Verificar coincidencia de artículos con lo remitido, cerrar el bulto con el remito original dentro y rotular. 8. Para el despacho, verificar coincidencia entre cantidad de remitos y bultos; el duplicado debe ser conformado por el transportista con firma, aclaración y fecha. 9. Archivar los remitos en biblioratos ordenados de manera ascendente por número.\n\n### Remision, Control y Despacho de Mercaderia en locales — Alcance\nAplica a todos los remitos generados desde locales propios.",
+            "sources": [
+                "2:Remision, Control y Despacho de Mercaderia en locales",
+                "9:Instructivo para Emision de Ordenes de Compra",
+                "7:Instructivo para Aprobacion de Orden de Compra",
+                "6:Instructivo para Carga de Ordenes de Compra"
+            ]
+        }
+    ]
+}

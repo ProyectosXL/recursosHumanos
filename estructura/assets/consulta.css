@@ -108,16 +108,16 @@
     align-items: start;
 }
 
+/* Sin overflow:hidden: cortaría el popover del referente. La banda redondea sus propias esquinas. */
 .ficha {
     background: var(--est-surface);
     border: 1px solid var(--est-hairline);
     border-radius: var(--est-radius-lg);
-    overflow: hidden;
     scroll-margin-top: 16px;
 }
 
 .ficha[hidden] { display: none; }
-.ficha-banda { height: 6px; }
+.ficha-banda { height: 6px; border-radius: calc(var(--est-radius-lg) - 1px) calc(var(--est-radius-lg) - 1px) 0 0; }
 .ficha-cabeza { padding: 18px 20px 6px; }
 .ficha-cabeza h2 { margin: 0; font-size: 20px; font-weight: 700; }
 .ficha-cabeza p { margin: 4px 0 0; font-size: 13px; color: var(--est-ink-2); line-height: 1.4; }
@@ -158,6 +158,69 @@
     gap: 6px;
     font-size: 14px;
 }
+
+/* ------------------------------------------------------------------ Contacto del referente (popover) */
+.persona { position: relative; display: inline-block; }
+
+.persona-nombre {
+    border: 0;
+    background: none;
+    padding: 0;
+    font: inherit;
+    font-weight: 700;
+    color: inherit;
+    text-align: right;
+    cursor: pointer;
+    text-decoration: underline dotted var(--est-ink-3);
+    text-underline-offset: 3px;
+}
+
+.persona-nombre i { font-size: 12px; color: var(--est-ink-3); margin-left: 2px; }
+.persona-nombre:hover i, .persona-nombre[aria-expanded="true"] i { color: var(--est-accent); }
+
+.persona-pop {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    z-index: 20;
+    margin-top: 6px;
+    min-width: 220px;
+    max-width: min(300px, 80vw);
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    background: var(--est-surface);
+    border: 1px solid var(--est-hairline);
+    border-radius: var(--est-radius);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .14);
+    text-align: left;
+    font-weight: 400;
+    font-size: 14px;
+}
+
+/* Puente invisible entre el nombre y el popover: el hover no se corta al bajar el mouse */
+.persona-pop::before { content: ""; position: absolute; left: 0; right: 0; top: -8px; height: 8px; }
+
+@media (hover: hover) {
+    .persona:not(.persona--cerrada):hover .persona-pop { display: flex; }
+}
+.persona:not(.persona--cerrada) .persona-nombre:focus-visible + .persona-pop,
+.persona:not(.persona--cerrada) .persona-pop:focus-within,
+.persona-nombre[aria-expanded="true"] + .persona-pop { display: flex; }
+
+.persona-linea { display: flex; align-items: center; gap: 8px; overflow-wrap: anywhere; color: var(--est-ink); }
+.persona-linea i { color: var(--est-ink-3); }
+a.persona-linea { color: var(--est-accent); text-decoration: none; font-weight: 600; }
+a.persona-linea:hover { text-decoration: underline; }
+.persona-mas { margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--est-hairline); font-size: 13px; color: var(--est-ink-2); text-decoration: none; }
+.persona-mas:hover { color: var(--est-accent); }
+
+/* En las tarjetas de resultados hay lugar: el contacto va a la vista, sin popover */
+.res-contacto { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; font-size: 13px; color: var(--est-ink-2); }
+.res-contacto a { color: var(--est-accent); text-decoration: none; overflow-wrap: anywhere; }
+.res-contacto a:hover { text-decoration: underline; }
+.res-contacto i { margin-right: 2px; }
 
 .ficha-mail { font-weight: 600; overflow-wrap: anywhere; }
 .ficha-link { color: var(--est-accent); font-weight: 600; text-decoration: none; }

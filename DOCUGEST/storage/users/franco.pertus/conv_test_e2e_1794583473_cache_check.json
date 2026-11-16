@@ -1,0 +1,17 @@
+{
+    "conversation_id": "test_e2e_1794583473_cache_check",
+    "updated_at": "2026-11-13T12:25:15-03:00",
+    "turns": [
+        {
+            "timestamp": "2026-11-13T12:25:15-03:00",
+            "question": "¿Cómo se cargan proyectos de desarrollo en Trello y qué listas tiene el tablero?",
+            "answer": "Encontré la siguiente información relevante en la base documental de **XL DocuGest**:\n\n### Carga y Gestión de Proyectos de Desarrollo en Trello — 2. Estructura del Tablero\nEl tablero está compuesto por las siguientes columnas que representan el ciclo de vida de cada requerimiento:\n• Pendientes: Cards ya cargadas que aún no deben ser trabajadas.\n• Asignados: Cards en desarrollo por parte del equipo técnico. El orden de apilado define la prioridad (las primeras en la lista deben ejecutarse antes).\n• Revisión: Cards listas para testeo por el equipo de proyectos.\n• Merge: Cards aprobadas, listas para subir a producción.\n• Finalizados: Cards ya implementadas en el entorno productivo.\n• URL Proyectos: Repositorio de cards de proyecto con información general y ubicación de cada sistema o desarrollo.\n\n### Carga y Gestión de Proyectos de Desarrollo en Trello — 7. Responsabilidades del Equipo de Proyectos\nEl equipo de proyectos es responsable de:\n• Verificar el avance de cards diariamente.\n• Exigir que el equipo de desarrollo muestre avances tangibles y medibles.\n• En caso de falta de progreso, contactar vía WhatsApp para hacer seguimiento diario.\n• Realizar el testeo dentro de las 24 hs posteriores a que la card pase a revisión, asegurando agilidad en el flujo de trabajo.\n• Supervisar el cumplimiento del flujo y mantener actualizada la información de cada card.\n• Asegurar que los proyectos estén correctamente documentados y gestionados de forma ágil y ordenada.\n\n### Carga y Gestión de Proyectos de Desarrollo en Trello — 1. Objetivo\nEstablecer un método uniforme para registrar, gestionar y hacer seguimiento a nuevos proyectos, requerimientos, correcciones y mejoras de proyectos existentes en el tablero de Trello 'Desarrollos Gasn', con el fin de trabajar de forma ágil y documentada con el equipo de desarrollo.",
+            "sources": [
+                "12:Carga y Gestión de Proyectos de Desarrollo en Trello",
+                "24:Prompt para creación de desarrollos",
+                "13:Instructivo creación de repositorio en GitHub",
+                "26:Alta, actualización y baja de sucursales"
+            ]
+        }
+    ]
+}

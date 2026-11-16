@@ -1,0 +1,17 @@
+{
+    "conversation_id": "test_e2e_1794583473_3",
+    "updated_at": "2026-11-13T12:25:07-03:00",
+    "turns": [
+        {
+            "timestamp": "2026-11-13T12:25:07-03:00",
+            "question": "¿Cómo se aprueba una orden de compra y una solicitud de compra?",
+            "answer": "Encontré la siguiente información relevante en la base documental de **XL DocuGest**:\n\n### Instructivo para Aprobacion de Orden de Compra — Paso a Paso del Proceso\n1. Proceso de aprobación: Navegar a la sección Compras, seleccionar Órdenes de compra y acceder a la opción Autorización.\n2. Selección del Aprobador: El sistema permitirá la selección de un usuario específico para la aprobación (por ejemplo, Silvia).\n3. Visualización de Órdenes Pendientes de Autorización: Se mostrará un listado de las órdenes de compra que requieren aprobación.\n4. Opciones de Autorización: Se podrá autorizar individualmente cada solicitud, o utilizar las opciones AUTORIZAR TODO o DESAUTORIZAR TODO disponibles al final de la pantalla.\n5. Modificación de Solicitudes: El usuario solicitante podrá ingresar y modificar ítems en la solicitud de pedido antes de su aprobación.\n\n### Instructivo para Solicitud de Compra — Sección\nÁrea: Gerencia de Administración. Subárea: Jefa de Administración. Proceso: Pago a proveedores. Subproceso: Solicitud de Orden de Compra. Ejecutante: Cada área que requiera de un bien o servicio. Aprobadores: Gerentes y Directores.\n\n### Instructivo para Carga de Ordenes de Compra — Objetivo\nExplicar cómo realizar las órdenes de compra (OC) en XL Extra Large. Su objetivo principal es formalizar el acuerdo de compra detallando los términos de la transacción. Debe ser aprobada por los responsables de la empresa para el control de gastos garantizando la precisión de la información y el cumplimiento de las normativas internas, control financiero para dar visibilidad de los pagos, control de inventarios y aplicación de estrategias y políticas comerciales con los proveedores, haciendo más eficiente la estructura de costos de la organización.",
+            "sources": [
+                "7:Instructivo para Aprobacion de Orden de Compra",
+                "5:Instructivo para Solicitud de Compra",
+                "6:Instructivo para Carga de Ordenes de Compra",
+                "9:Instructivo para Emision de Ordenes de Compra"
+            ]
+        }
+    ]
+}

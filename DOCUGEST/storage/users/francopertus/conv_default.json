@@ -1,0 +1,39 @@
+{
+    "conversation_id": "default",
+    "updated_at": "2026-11-13T12:44:43-03:00",
+    "turns": [
+        {
+            "timestamp": "2026-11-13T12:32:43-03:00",
+            "question": "Cómo funciona el sistema de etiquetas de precios?",
+            "answer": "El **Sistema de Etiquetas de Precios** de XL Extra Large permite generar e imprimir dos tipos de etiquetas: **Carteles Vidriera** (formato grande para exhibición) y **Etiquetas Pequeñas** (formato reducido para productos individuales). \n\nA continuación se detalla cómo acceder, cómo generar cada tipo de etiqueta y las recomendaciones generales del sistema:\n\n---\n\n### 1. Acceso al Sistema\n1. Abra su navegador web e ingrese a **XL Gestión**.\n2. Navegue a través del menú e ingrese en: **Operaciones \/ Ventas \/ Carteles Precios Vidriera**.\n3. Se mostrará la interfaz principal con dos pestañas: **'Cartel Vidriera'** y **'Etiqueta Pequeña'**.\n\n---\n\n### 2. Generación de Carteles Vidriera (Formato Grande)\n*Diseñado para la exhibición de hasta 7 artículos en tamaño A4.*\n\n1. Seleccione la pestaña **'Cartel Vidriera'** en la parte superior de la pantalla.\n2. Ingrese los códigos de artículos (hasta **7 códigos** en los campos disponibles; aparecerán en el mismo orden de ingreso).\n3. Haga clic en el botón **'Generar Etiqueta'**. \n   * *Validación:* El sistema verificará cada código. Si son correctos, se genera el cartel; si hay errores, mostrará un mensaje indicando cuáles son inválidos.\n4. Haga clic en **'Imprimir'**, seleccione su impresora y configure las opciones (este formato está optimizado para **tamaño A4**).\n5. *Opcional:* Puede hacer clic sobre los nombres de los productos en pantalla para editarlos si lo requiere.\n\n---\n\n### 3. Generación de Etiquetas Pequeñas (Formato Reducido)\n*Optimizado para marcar productos individuales en un tamaño de 4cm x 5.2cm.*\n\n1. Seleccione la pestaña **'Etiqueta Pequeña'**.\n2. En el campo **'Código Artículo'**, ingrese el código del producto y presione **Enter** (o espere a que el sistema lo procese):\n   * Si el código es válido, se agrega automáticamente a la grilla y el campo se limpia para el siguiente ingreso.\n   * Si es inválido, el sistema mostrará un mensaje de error.\n3. Repita el proceso para agregar múltiples etiquetas.\n4. Para elimi",
+            "sources": [
+                "14:Instructivo para el Sistema de Etiquetas de Precios",
+                "12:Carga y Gestión de Proyectos de Desarrollo en Trello",
+                "1:Toma de inventario Deposito Central",
+                "25:Instructivo Gestión de Tickets en Portal Action Sales"
+            ]
+        },
+        {
+            "timestamp": "2026-11-13T12:44:10-03:00",
+            "question": "Cómo se cargan proyectos de desarrollo en Trello?",
+            "answer": "Para\n cargar y gestionar un nuevo proyecto de desarrollo en Trello (en el tablero oficial **'Desarrollos Gasn'**), se debe seguir el procedimiento establecido por el sector de Innovación. \n\nA continuación, se detallan los pasos y requisitos:\n\n### 1. Creación de la Card del Proyecto Principal\nAl comenzar un proyecto nuevo, se debe documentar en el repositorio general:\n1. Ir a la columna **URL Proyectos** del tablero.\n2. Crear una nueva *card* con los siguientes datos obligatorios:\n   - **Nombre del Proyecto:** Utilizar como título de la tarjeta.\n   - **Etiqueta del Proyecto:** Crear una etiqueta con el nombre del proyecto y asignarle un color distintivo.\n   - **Descripción del Proyecto:** Breve y clara.\n   - **Objetivos:** Detallar qué se busca lograr.\n   - **URL:** Enlace o ubicación del sistema en el servidor.\n   \n*(Nota: Esta card principal servirá como referencia central para todas las tareas asociadas al proyecto).*\n\n---\n\n### 2. Creación de Cards de Requerimientos, Correcciones o Mejoras\nPara registrar tareas o pedidos específicos dentro de un proyecto:\n1. **Título:** Utilizar el formato `### - Descripción breve` (Ejemplo: `500 - Programar remisión`).\n2. **Descripción:** Detallar con precisión lo solicitado. Si el requerimiento incluye múltiples puntos, utilizar **checklists** para facilitar el control y posterior testeo.\n3. **Asignaciones:** Agregar como miembros de la card al solicitante y a los desarrolladores encargados.\n4. **Etiqueta:** Asignar la etiqueta correspondiente al proyecto.\n5. **Ubicación inicial:** Colocar la card en la columna **Pendientes** hasta su validación.\n\n---\n\n### 3. Ciclo de Vida en el Tablero (Columnas)\nLas tareas transitan por las siguientes columnas que reflejan su estado:\n* **Pendientes:** Cards ya cargadas que aún no deben ser trabajadas.\n* **Asignados:** Cards en proceso de desarrollo por el equipo técnico. *El orden de apilado define la prioridad* (las cards ubicadas más arriba deben ejecutarse primero).\n* **Revisión:** Cards fi",
+            "sources": [
+                "12:Carga y Gestión de Proyectos de Desarrollo en Trello",
+                "24:Prompt para creación de desarrollos",
+                "13:Instructivo creación de repositorio en GitHub",
+                "26:Alta, actualización y baja de sucursales"
+            ]
+        },
+        {
+            "timestamp": "2026-11-13T12:44:43-03:00",
+            "question": "Cómo se cargan proyectos de desarrollo en Trello?",
+            "answer": "Para cargar y gestionar un nuevo proyecto de desarrollo en Trello (dent\nro del tablero oficial **'Desarrollos Gasn'**), se debe seguir el procedimiento establecido por el sector de Innovación. \n\nEl proceso se divide en dos instancias principales: la creación del proyecto general y la carga de tareas o requerimientos específicos.\n\n---\n\n### 1. Creación del Proyecto Principal (Columna \"URL Proyectos\")\nAl comenzar un proyecto nuevo, se debe generar una card de referencia general:\n1. Ir a la columna **URL Proyectos** en el tablero de Trello.\n2. Crear una nueva card completando los siguientes datos:\n   * **Nombre del Proyecto:** Se utiliza como título de la card.\n   * **Etiqueta del Proyecto:** Crear una etiqueta identificatoria con el nombre del proyecto y asignarle un color distintivo.\n   * **Descripción del Proyecto:** Breve y clara.\n   * **Objetivos:** Qué se busca lograr con el desarrollo.\n   * **URL:** Enlace o ubicación del sistema en el servidor.\n\n*(Esta card sirve como repositorio de referencia general para todas las tareas asociadas al proyecto).*\n\n---\n\n### 2. Creación de Cards de Requerimientos, Correcciones o Mejoras\nPara registrar un nuevo pedido o tarea dentro del proyecto:\n1. **Título:** Utilizar el formato `### - Descripción breve` (Ejemplo: `500 - Programar remisión`).\n2. **Descripción:** Detallar con precisión lo solicitado. Si el requerimiento consta de varios puntos, **se deben usar checklists** para facilitar el control y el testeo posterior.\n3. **Asignaciones:** Agregar como miembros de la card al solicitante y a los desarrolladores encargados.\n4. **Etiqueta:** Asignar la etiqueta correspondiente al proyecto.\n5. **Ubicación inicial:** Colocar la card en la columna **Pendientes** hasta su validación y pase a desarrollo.\n\n---\n\n### Fuente Normativa\n* **Carga y Gestión de Proyectos de Desarrollo en Trello** (Sector: Innovación, Versión: v1.0).",
+            "sources": [
+                "12:Carga y Gestión de Proyectos de Desarrollo en Trello",
+                "24:Prompt para creación de desarrollos",
+                "13:Instructivo creación de repositorio en GitHub",
+                "26:Alta, actualización y baja de sucursales"
+            ]
+        }
+    ]
+}

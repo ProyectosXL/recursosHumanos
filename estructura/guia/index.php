@@ -58,7 +58,7 @@ require __DIR__ . '/../partials/cabecera.php';
 ?>
         <div class="est-encabezado">
             <h1>Guía de Consultas</h1>
-            <p>Buscá por lo que te pasa o elegí un área. El interno y el celular de cada persona están en Internos.</p>
+            <p>Buscá por lo que te pasa o elegí un área. Pasá el cursor o tocá el nombre de una persona para ver su interno y su mail.</p>
         </div>
 
         <?php require __DIR__ . '/../partials/falta_script.php'; ?>
@@ -114,7 +114,25 @@ require __DIR__ . '/../partials/cabecera.php';
                     <?php foreach (isset($temasPorArea[$a['id']]) ? $temasPorArea[$a['id']] : array() as $t): ?>
                         <tr>
                             <td><?= $e($t['tema']) ?></td>
-                            <?php if ($t['referente'] !== null): ?>
+                            <?php if ($t['persona'] !== null && ($t['interno'] !== '' || $t['mail_persona'] !== '')):
+                                $idPop = 'pop-' . (int)$t['id']; ?>
+                                <td class="ficha-ref">
+                                    <span class="persona">
+                                        <button type="button" class="persona-nombre" aria-expanded="false" aria-controls="<?= $idPop ?>">
+                                            <?= $e($t['referente']) ?> <i class="bi bi-info-circle" aria-hidden="true"></i>
+                                        </button>
+                                        <span class="persona-pop" id="<?= $idPop ?>" role="group" aria-label="Contacto de <?= $e($t['referente']) ?>">
+                                            <?php if ($t['interno'] !== ''): ?>
+                                                <span class="persona-linea"><i class="bi bi-telephone" aria-hidden="true"></i> Interno <strong><?= $e($t['interno']) ?></strong></span>
+                                            <?php endif; ?>
+                                            <?php if ($t['mail_persona'] !== ''): ?>
+                                                <a class="persona-linea" href="mailto:<?= $e($t['mail_persona']) ?>"><i class="bi bi-envelope" aria-hidden="true"></i> <?= $e($t['mail_persona']) ?></a>
+                                            <?php endif; ?>
+                                            <a class="persona-mas" href="<?= $e(ESTRUCTURA_URL_INTERNOS . '?q=' . rawurlencode($t['persona'])) ?>">Celular y más en Internos ›</a>
+                                        </span>
+                                    </span>
+                                </td>
+                            <?php elseif ($t['referente'] !== null): ?>
                                 <td class="ficha-ref"><?= $e($t['referente']) ?></td>
                             <?php else: ?>
                                 <td class="ficha-ref est-pendiente">A definir</td>

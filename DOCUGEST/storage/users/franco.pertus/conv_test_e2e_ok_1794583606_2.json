@@ -1,0 +1,17 @@
+{
+    "conversation_id": "test_e2e_ok_1794583606_2",
+    "updated_at": "2026-11-13T12:27:03-03:00",
+    "turns": [
+        {
+            "timestamp": "2026-11-13T12:27:03-03:00",
+            "question": "¿Cuál es el procedimiento de remisión, control y despacho de mercadería en locales?",
+            "answer": "De acuerdo con el procedimiento oficial vigente para los locales propios de Extra Large, los pasos, responsabilidades y reglas para la remisión, control y despacho de mercadería son los siguientes:\n\n### 1. Responsabilidades\n* **Dirección:** Velar por el cumplimiento del procedimiento y autorizar excepciones.\n* **Responsable del local:** Velar por el cumplimiento operativo y administrativo del procedimiento.\n* **Responsable Comercial:** Velar por su cumplimiento, designar reemplazos por ausencia y capacitar al personal.\n* **Referente de Control de Stock:** Velar por el cumplimiento del procedimiento.\n\n---\n\n### 2. Paso a Paso de Operación y Ejecución\n1. **Generación del remito:** Acceder en el sistema a `Ventas \/ Facturación \/ Remitos \/ Emisión` y seleccionar **'Ingresar'** en el extremo superior izquierdo.\n2. **Datos de cabecera:** Completar los campos requeridos:\n   * **Talonario:** 5 + número de sucursal.\n   * **Cliente:** Código según anexo 1.\n   * **Observaciones:** Indicar el motivo del remito (respetando los motivos estandarizados; si se requieren otras observaciones, ingresarlas en la grilla presionando `<F3>`).\n   * **Condición de venta:** 1.\n   * **Depósito:** Número de depósito del remitente.\n   * **Sucursal Destino:** No editar, según corresponda.\n3. **Carga de artículos:** Tras cargar la cabecera, escanear los artículos de a uno. *(Nota: cada artículo debe tener su etiqueta de código de barras y el packaging adecuado).*\n4. **Embalaje:** Colocar los artículos en un bolso o caja junto con el **remito original**.\n Se debe realizar **un remito por bulto**.\n5. **Rotulado externo:** Identificar el bulto por fuera con el **'ROTULO DE ENVIOS'**, verificando que coincida exactamente el número de remito.\n6. **Confirmación:** Presionar el tilde verde o la tecla `<F10>` e imprimir para confirmar.\n7. **Control interno:** Verificar la coincidencia de los artículos físicos con lo remitido. Cerrar el bulto con el remito original dentro y asegurar su rotulado.\n8. **Despac",
+            "sources": [
+                "2:Remision, Control y Despacho de Mercaderia en locales",
+                "9:Instructivo para Emision de Ordenes de Compra",
+                "7:Instructivo para Aprobacion de Orden de Compra",
+                "6:Instructivo para Carga de Ordenes de Compra"
+            ]
+        }
+    ]
+}

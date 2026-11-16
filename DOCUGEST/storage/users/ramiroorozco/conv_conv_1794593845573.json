@@ -1,0 +1,17 @@
+{
+    "conversation_id": "conv_1794593845573",
+    "updated_at": "2026-11-13T15:18:20-03:00",
+    "turns": [
+        {
+            "timestamp": "2026-11-13T15:18:20-03:00",
+            "question": "quien da de baja una sucursal y donde?",
+            "answer": "Basado en el procedimiento oficial para el alta, actualización y baja de sucursales de XL Extra Large, las responsabilidades y acciones para llevar a cabo la baja por cierre son las siguientes:\n\n### 1. Quién la da de baja (Responsables)\nEl proceso de baja interviene de manera coordinada entre las áreas de **Administración**, **Comercial** y **Logística** (además de la participación del franquiciado en el caso de las franquicias):\n* **Administración:** Es la encargada de realizar el **cierre administrativo** inhabilitando al cliente en el sistema Tango.\n* **Comercial:** Es la encargada de coordinar el retiro de mercadería (según corresponda), aprobar el comprobante CADS de devolución y realizar el **cierre comercial** inhabilitando el punto de venta en el direccionario.\n* **Logística:** Se encarga de coordinar físicamente el retiro de la mercadería.\n* **Franquiciado (si aplica):** Carga la solicitud CADS de devolución por cierre.\n\n---\n\n### 2. Dónde se realiza (Sistemas \/ Aplicaciones \/ Acciones)\nLas acciones de baja se ejecutan en los siguientes entornos según corresponda:\n* **En el Sistema Tango (Administración):** Se procede a **inhabilitar el cliente en Tango**.\n* **En el Direccionario (Comercial):** Se realiza la **inhabilitación del punto de venta**.\n* **En el sistema CADS \/ Coordinación (Comercial y Franquicias):** Se gestiona la carga y aprobación del CADS de devolución por cierre, y la coordinación logística del retiro de mercadería.\n\n---\n\n**Fuente Normativa:** Alta, actualización y baja de sucursales (Sector: Administración, Versión: v1.0).",
+            "sources": [
+                "26:Alta, actualización y baja de sucursales",
+                "4:Instructivo Revisión de Órdenes de Nexo Tiendas",
+                "3:Instructivos Entrega Pedidos Ecommerce en Tiendas",
+                "25:Instructivo Gestión de Tickets en Portal Action Sales"
+            ]
+        }
+    ]
+}

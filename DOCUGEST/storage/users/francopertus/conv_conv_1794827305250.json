@@ -1,0 +1,28 @@
+{
+    "conversation_id": "conv_1794827305250",
+    "updated_at": "2026-11-16T08:29:50-03:00",
+    "turns": [
+        {
+            "timestamp": "2026-11-16T08:08:45-03:00",
+            "question": "Como genero un orden de compra?",
+            "answer": "Encontré la siguiente información relevante en la base documental de **XL DocuGest**:\n\n### Instructivo para Aprobacion de Orden de Compra — Paso a Paso del Proceso\n1. Proceso de aprobación: Navegar a la sección Compras, seleccionar Órdenes de compra y acceder a la opción Autorización.\n2. Selección del Aprobador: El sistema permitirá la selección de un usuario específico para la aprobación (por ejemplo, Silvia).\n3. Visualización de Órdenes Pendientes de Autorización: Se mostrará un listado de las órdenes de compra que requieren aprobación.\n4. Opciones de Autorización: Se podrá autorizar individualmente cada solicitud, o utilizar las opciones AUTORIZAR TODO o DESAUTORIZAR TODO disponibles al final de la pantalla.\n5. Modificación de Solicitudes: El usuario solicitante podrá ingresar y modificar ítems en la solicitud de pedido antes de su aprobación.\n\n### Instructivo para Emision de Ordenes de Compra — Sección\nPasos a seguir para emitir la Orden de Compra:\n1. Navegar a la sección Compras en el sistema Tango.\n2. Seleccionar Órdenes y hacer doble clic en Emisión e impresión.\n3. Hacer clic en la opción '+'.\n4. Verificar que la opción Emitir esté activada.\n5. Seleccionar el talonario N° 100.\n6. Indicar la fecha de ingreso correspondiente.\n7. Opcionalmente, aplicar un filtro 'Desde ordenes de compra'.\n8. Confirmar la operación mediante la opción Grabar (tilde verde).\n\n### Instructivo para Aprobacion de Orden de Compra — Objetivo y Alcance\nEl propósito es explicar los pasos para la aprobación de la orden de compra en XL Extra Large para asegurar el cumplimiento de políticas internas, la mejor gestión de precios mediante múltiples presupuestos y la razonabilidad de cantidades. El alcance corresponde a la Gerencia de Administración, Sub Área Jefa de Administración, proceso de Pago a Proveedores y subproceso Aprobación de Orden de Compra.",
+            "sources": [
+                "7:Instructivo para Aprobacion de Orden de Compra",
+                "9:Instructivo para Emision de Ordenes de Compra",
+                "6:Instructivo para Carga de Ordenes de Compra",
+                "5:Instructivo para Solicitud de Compra"
+            ]
+        },
+        {
+            "timestamp": "2026-11-16T08:29:50-03:00",
+            "question": "De que es responsable el responsable de logistica en la Toma de inventario Deposito Central",
+            "answer": "Según el procedimiento oficial, las responsabilidades del **Responsable de Logística** en la Toma de Inventario de Depósito Central se dividen en dos etapas:\n\n### 1. Previo al Inventario\n* Asegurarse de que el total de la mercadería esté codificada.\n* Separar e identificar la mercadería ajena al stock del depósito.\n* Verificar que las ubicaciones cuenten con etiquetas de código de barras.\n* Identificar mediante cartelería el depósito asociado al sistema (Ubicación, Nivel, Rack).\n* Controlar los depósitos asociados en el maestro de ubicaciones.\n\n### 2. Durante el Inventario\n* Realizar el cierre de áreas junto con el supervisor de inventarios y el responsable de stock.\n* Pedir tiempo prudencial para verificar diferencias.\n* Asegurar el escaneo total de la mercadería y de las ubicaciones.\n\n---\n**Fuente Normativa:** Toma de inventario Deposito Central (Sector: Logística, Versión 1.0)",
+            "sources": [
+                "1:Toma de inventario Deposito Central",
+                "26:Alta, actualización y baja de sucursales",
+                "6:Instructivo para Carga de Ordenes de Compra",
+                "10:Instructivo para Recepcion de Bienes\/Servicios"
+            ]
+        }
+    ]
+}

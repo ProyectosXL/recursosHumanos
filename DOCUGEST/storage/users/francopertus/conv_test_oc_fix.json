@@ -1,0 +1,17 @@
+{
+    "conversation_id": "test_oc_fix",
+    "updated_at": "2026-11-16T08:11:52-03:00",
+    "turns": [
+        {
+            "timestamp": "2026-11-16T08:11:52-03:00",
+            "question": "Como genero un orden de compra?",
+            "answer": "Para generar y procesar una **Orden de Compra (OC)** en XL Extra Large, el procedimiento abarca las etapas de carga inicial, su posterior aprobación y la emisión final en el sistema Tango. \n\nA continuación se detallan los pasos y responsabilidades según los procedimientos vigentes:\n\n---\n\n### 1. Carga de la Orden de Compra\n* **Responsable \/ Ejecutante:** Compradores de cada área (Gerencia de Administración \/ Sub Área Jefa de Administración).\n* **Objetivo:** Formalizar el acuerdo de compra detallando los términos de la transacción, asegurando el control de gastos, inventarios y la visibilidad financiera de los pagos.\n\n---\n\n### 2. Aprobación de la Orden de Compra\nLas Órdenes de Compra deben contar con la debida autorización antes de proceder a la recepción de mercadería o carga de facturas. El proceso de aprobación en el sistema se realiza de la siguiente manera:\n1. **Navegación:** Ingresar a la sección **Compras**, seleccionar **Órdenes de compra** y acceder a la opción **Autorización**.\n2. **Selección del Aprobador:** El sistema permite seleccionar a un usuario específico autorizado (por ejemplo, Silvia).\n3. **Visualización:** Se despliega el listado de órdenes de compra pendientes de autorización.\n4. **Autorización:** Se puede aprobar individualmente cada solicitud o utilizar las opciones **AUTORIZAR TODO** o **DESAUTORIZAR TODO** ubicadas al pie de la pantalla.\n5. **Modificación:** El usuario solicitante puede ingresar y modificar ítems en la solicitud de pedido antes de que la misma sea aprobada definitivamente.\n\n---\n\n### 3. Emisión Final de la Orden de Compra Autorizada\nUna vez aprobada la orden, la emisión final en el sistema la realiza el sector de **Proveedores** de la siguiente manera:\n1. Navegar a la sección **Compras** en el sistema Tango.\n2. Seleccionar **Órdenes** y hacer doble clic en **Emisión e impresión**.\n3. Hacer clic en la opción **'+'**.\n4. Verificar que la opción **Emitir** se encuentre activada.\n5. Seleccionar el **Talonario N° 100**.\n6. Indicar",
+            "sources": [
+                "7:Instructivo para Aprobacion de Orden de Compra",
+                "9:Instructivo para Emision de Ordenes de Compra",
+                "6:Instructivo para Carga de Ordenes de Compra",
+                "5:Instructivo para Solicitud de Compra"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,17 @@
+{
+    "conversation_id": "verify_env_fix",
+    "updated_at": "2026-11-13T12:52:10-03:00",
+    "turns": [
+        {
+            "timestamp": "2026-11-13T12:52:10-03:00",
+            "question": "¿Cuál es el procedimiento de remisión y despacho de mercadería en locales propios?",
+            "answer": "El procedimiento normativo para la **remisión, control y despacho de mercadería en locales propios** de Laker S.A. (XL Extra Large) se detalla a continuación:\n\n---\n\n### **1. Objetivo**\nEstablecer la manera de proceder para la remisión, control y despacho de la mercadería alojada en locales, estandarizar las observaciones para la toma de decisiones y fijar el circuito administrativo de la documentación utilizada. **Alcance:** Aplica a todos los remitos generados desde locales propios.\n\n---\n\n### **2. Paso a Paso de Operación y Ejecución**\n\n1. **Generación del Remito:**\n   * Acceder a la ruta del sistema: **Ventas \/ Facturación \/ Remitos \/ Emisión**.\n   * Seleccionar **'Ingresar'** en el extremo superior izquierdo.\n2. **Carga de Datos de Cabecera:**\n   * **Talonario:** 5 + número de sucursal.\n   * **Cliente:** Código según anexo 1.\n   * **Observaciones:** Motivo del remito (respetar motivos estandarizados; cualquier otra observación debe ingresarse en la grilla presionando `<F3>`).\n   * **Cond. De venta:** 1.\n   * **Depósito:** Número de depósito del remitente.\n   * **Sucursal Destino:** No editar según corresponda.\n3. **Escaneo de Artículos:**\n   * Escanear los artículos de a uno tras cargar la cabecera. Cada artículo debe tener su etiqueta de código de barras y el packaging adecuado.\n4. **Empaquetado y Rotulado:**\n   * Colocar los artículos en un bolso o caja junto con el remito original.\n   * Identificar el bulto por fuera con el **'ROTULO DE ENVIOS'**, verificando que coincida exactamente el número de remito. *(Nota: Se debe realizar un remito por bulto).*\n5. **Confirmación e Impresión:**\n   * Presionar el tilde verde o la tecla `<F10>` e imprimir para confirmar.\n6. **Control Previo al Despacho:**\n   * Verificar la coincidencia de los artículos físicos con lo remitido.\n   * Cerrar el bulto con el remito original dentro y asegurar que esté correctamente rotulado.\n   * Verificar la coincidencia numérica entre la cantidad total de remitos y la cantidad de bultos a des",
+            "sources": [
+                "2:Remision, Control y Despacho de Mercaderia en locales",
+                "9:Instructivo para Emision de Ordenes de Compra",
+                "7:Instructivo para Aprobacion de Orden de Compra",
+                "26:Alta, actualización y baja de sucursales"
+            ]
+        }
+    ]
+}

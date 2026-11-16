@@ -1,0 +1,2 @@
+# La plantilla se descarga solo por Controller/descargar_plantilla.php (exige login del hub).
+Require all denied

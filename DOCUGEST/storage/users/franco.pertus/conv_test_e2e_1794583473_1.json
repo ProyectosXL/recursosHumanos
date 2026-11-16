@@ -1,0 +1,17 @@
+{
+    "conversation_id": "test_e2e_1794583473_1",
+    "updated_at": "2026-11-13T12:24:51-03:00",
+    "turns": [
+        {
+            "timestamp": "2026-11-13T12:24:51-03:00",
+            "question": "¿Cómo funciona el sistema de etiquetas de precios?",
+            "answer": "Encontré la siguiente información relevante en la base documental de **XL DocuGest**:\n\n### Instructivo para el Sistema de Etiquetas de Precios — Generación de Etiquetas Pequeñas\nPasos para generar etiquetas pequeñas: 1. Seleccionar la pestaña 'Etiqueta Pequeña'. 2. En el campo 'Código Artículo', ingrese el código del producto y presione Enter o espere a que el sistema lo procese (si es válido, se agrega a la grilla; si es inválido, muestra error). 3. Repita para agregar múltiples etiquetas (el campo se limpia automáticamente tras cada código válido). 4. Para eliminar etiquetas individuales, haga clic en el botón X en la esquina superior derecha de cada etiqueta. 5. Haga clic en 'Imprimir' (optimizado para tamaño 4cm x 5.2cm). 6. Para eliminar todas las etiquetas y comenzar de nuevo, haga clic en 'Limpiar' (el sistema pedirá confirmación).\n\n### Instructivo para el Sistema de Etiquetas de Precios — Sección\nEl sistema permite generar e imprimir dos tipos de etiquetas: Cartel Vidriera (formato grande para exhibición) y Etiquetas Pequeñas (formato reducido para productos individuales). Para acceder: 1. Abra su navegador web e ingrese a XL Gestión. 2. Navegar a través del menú e ingresar en Operaciones\/Ventas\/Carteles Precios Vidriera. 3. Se mostrará la interfaz principal con dos pestañas: 'Cartel Vidriera' y 'Etiqueta Pequeña'.\n\n### Instructivo para el Sistema de Etiquetas de Precios — Generación de Cartel Vidriera\nPasos para generar carteles de vidriera: 1. Seleccionar la pestaña 'Cartel Vidriera' haciendo clic en la parte superior de la pantalla. 2. Ingresar códigos de artículos (hasta 7 códigos en los campos disponibles; aparecerán en el mismo orden de ingreso). 3. Generar el cartel haciendo clic en el botón 'Generar Etiqueta'. El sistema verificará cada código: si son correctos, se genera el cartel; si hay errores, mostrará un mensaje indicando cuáles son inválidos. 4. Imprimir el cartel haciendo clic en 'Imprimir', seleccione su impresora y configure las opciones (o",
+            "sources": [
+                "14:Instructivo para el Sistema de Etiquetas de Precios",
+                "12:Carga y Gestión de Proyectos de Desarrollo en Trello",
+                "1:Toma de inventario Deposito Central",
+                "25:Instructivo Gestión de Tickets en Portal Action Sales"
+            ]
+        }
+    ]
+}
