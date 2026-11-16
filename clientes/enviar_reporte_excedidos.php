@@ -90,6 +90,11 @@ $htmlBody .= "
 </html>";
 
 // 4. ENVIAR EL CORREO
+if (MAIL_HOST === '' || MAIL_PORT === '' || MAIL_USERNAME === '' || MAIL_PASSWORD === '' || MAIL_FROM_ADDRESS === '' || MAIL_TO_ADDRESS === '') {
+    error_log('enviar_reporte_excedidos: faltan variables MAIL_* en htdocs/.env; se omite el envío.');
+    return;
+}
+
 $mail = new PHPMailer(true);
 
 try {

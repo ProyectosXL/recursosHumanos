@@ -5,3 +5,5 @@
 /.claude
 # Fotos de Internos: viven sólo en el servidor (estructura/internos/fotos), no se suben al repo
 /estructura/internos/fotos/
+docugest/storage/
+DOCUGEST/storage/logs/
