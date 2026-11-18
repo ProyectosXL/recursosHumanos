@@ -44,7 +44,7 @@ class Conexion{
         }elseif($nameServer == 'apps'){
             return array($this->host_apps, $this->database_apps);
         }else{
-            return array($_SESSION['conexion_dns'], $_SESSION['base_nombre']);
+            return array($_SESSION['conexion_dns'] ?? null, $_SESSION['base_nombre'] ?? null);
         }
 
     }
@@ -84,6 +84,10 @@ class Conexion{
         try {
 
             $serverDB = $this->servidor($nameServer);
+
+            if (empty($serverDB[0]) || empty($serverDB[1])) {
+                return false;
+            }
 
             $pass = $this->pass;
             // $pass = ($nameServer == 'locales') ? $this->pass_locales : $this->pass;

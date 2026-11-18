@@ -6,15 +6,14 @@
 //    $vendedores = $vendedor->traerVendedores();
  
     
-    if(isset($_SESSION['entorno']) && $_SESSION['entorno'] == 'central'){
-        $checked = 'checked';
-    }else{
+    if(isset($_SESSION['entorno']) && $_SESSION['entorno'] == 'uy'){
         $checked = '';
+        $checkedValue = 'uy';
+    }else{
+        $checked = 'checked';
+        $checkedValue = 'central';
     }
-        
 
-
-    $checkedValue = isset($_SESSION['entorno']) ? $_SESSION['entorno'] : 'central';
     $dataOnValue = ($checkedValue === 'uy') ? 'UY' : 'ARG';
     $dataOffValue = ($checkedValue === 'uy') ? 'ARG' : 'UY';
     $imageOn = ($checkedValue === 'central') ? '../assets/images/bandera_con_sol__55757_std.jpg' : '../assets/images/UY.png';

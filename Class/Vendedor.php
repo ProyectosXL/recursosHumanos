@@ -25,7 +25,15 @@ class Vendedor
 
         $cid_central = $this->cid->conectar($db);
 
+        if ($cid_central === false) {
+            return array();
+        }
+
         $stmt = sqlsrv_query( $cid_central, $sql );
+
+        if ($stmt === false) {
+            return array();
+        }
 
         $rows = array();
 
@@ -103,7 +111,7 @@ class Vendedor
         $sql = "SELECT COD_VENDED, NOMBRE_VEN, INHABILITA FROM GVA23 WHERE INHABILITA = 0 ORDER BY NOMBRE_VEN";
     
         // Determine the database based on the environment
-        $db = isset($_SESSION['entorno']) ? $_SESSION['entorno'] : 'central';
+        $db = (isset($_SESSION['entorno']) && $_SESSION['entorno'] === 'uy') ? 'uy' : 'central';
     
         $rows = $this->retornarArray($sql, $db);
     
@@ -254,11 +262,7 @@ class Vendedor
 
         $cid = new Conexion();
         
-        $db = isset($_SESSION['entorno'] ) ? $_SESSION['entorno'] : '';
-        
-        if($db == 'central'){
-            $db = '';
-        }
+        $db = (isset($_SESSION['entorno']) && $_SESSION['entorno'] === 'uy') ? 'uy' : '';
    
         $cidLocal = $cid->conectar($db);
         
@@ -319,11 +323,7 @@ class Vendedor
 
         $cid = new Conexion();
 
-        $db = isset($_SESSION['entorno'] ) ? $_SESSION['entorno'] : '';
-        
-        if($db == 'central'){
-            $db = '';
-        }
+        $db = (isset($_SESSION['entorno']) && $_SESSION['entorno'] === 'uy') ? 'uy' : '';
 
         $cidLocal = $cid->conectar($db);
 
